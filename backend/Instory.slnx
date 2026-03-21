@@ -1,0 +1,6 @@
+<Solution>
+  <Project Path="Instory.API/Instory.API.csproj" />
+  <Project Path="Instory.Core/Instory.Core.csproj" />
+  <Project Path="Instory.Infrastructure/Instory.Infrastructure.csproj" />
+  <Project Path="Instory.Tests/Instory.Tests.csproj" />
+</Solution>
