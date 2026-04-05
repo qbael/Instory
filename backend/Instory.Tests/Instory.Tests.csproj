@@ -22,8 +22,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Instory.Core\Instory.Core.csproj" />
-    <ProjectReference Include="..\Instory.Infrastructure\Instory.Infrastructure.csproj" />
+    <ProjectReference Include="..\Instory.API\Instory.API.csproj" />
   </ItemGroup>
 
 </Project>

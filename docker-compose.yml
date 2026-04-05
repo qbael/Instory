@@ -4,11 +4,10 @@ services:
   postgres:
     image: postgres:16-alpine
     container_name: instory_db
-    restart: unless-stopped
     environment:
       POSTGRES_USER: instory
       POSTGRES_PASSWORD: instory_pass
-      POSTGRES_DB: instory_db
+      POSTGRES_DB: Instory
     ports:
       - "5432:5432"
     volumes:
