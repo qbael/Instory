@@ -6,8 +6,7 @@ namespace Instory.API.Data;
 
   public class InstoryDbContext(DbContextOptions<InstoryDbContext> options) : IdentityDbContext<User, Role, int>(options)
     {
- 
-
+        
         public DbSet<Post> Posts => Set<Post>();
         public DbSet<Comment> Comments => Set<Comment>();
         public DbSet<Like> Likes => Set<Like>();

@@ -48,6 +48,17 @@ builder.Services.AddAuthentication(options =>
         IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["JwtSettings:SecretKey"]!)),
         ClockSkew = TimeSpan.Zero
     };
+    options.Events = new JwtBearerEvents
+    {
+        OnMessageReceived = context =>
+        {
+            if (context.Request.Cookies.TryGetValue("jwt", out var accessToken))
+            {
+                context.Token = accessToken;
+            }
+            return Task.CompletedTask;
+        }
+    };
 });
 
 builder.Services.AddScoped<ITokenService, TokenService>();
@@ -71,18 +82,6 @@ app.UseAuthorization();
 
 app.MapControllers();
 app.MigrateDb();
-
-using (var scope = app.Services.CreateScope())
-{
-    var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<Role>>();
-    string[] roleNames = { "Admin", "User" };
-    foreach (var roleName in roleNames)
-    {
-        if (!await roleManager.RoleExistsAsync(roleName))
-        {
-            await roleManager.CreateAsync(new Role { Name = roleName });
-        }
-    }
-}
+await app.SeedRolesAsync();  
 
 app.Run();

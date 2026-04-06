@@ -90,10 +90,11 @@ public class AuthController : ControllerBase
 
         await _userManager.UpdateAsync(user);
 
-        return Ok(new AuthResponseDto
+        AppendTokenCookies(token, refreshToken, refreshTokenValidityInDays);
+
+        return Ok(new
         {
-            Token = token,
-            RefreshToken = refreshToken,
+            Message = "Login successful",
             UserId = user.Id,
             Username = user.UserName!,
             Email = user.Email!
@@ -101,12 +102,13 @@ public class AuthController : ControllerBase
     }
 
     [HttpPost("refresh")]
-    public async Task<IActionResult> RefreshToken([FromBody] TokenRequestDto model)
+    public async Task<IActionResult> RefreshToken()
     {
-        if (!ModelState.IsValid)
-            return BadRequest(ModelState);
+        var refreshToken = Request.Cookies["refreshToken"];
+        if (string.IsNullOrEmpty(refreshToken))
+            return BadRequest(new { Message = "Invalid client request" });
 
-        var user = await Microsoft.EntityFrameworkCore.EntityFrameworkQueryableExtensions.FirstOrDefaultAsync(_context.Users, u => u.RefreshToken == model.RefreshToken);
+        var user = await Microsoft.EntityFrameworkCore.EntityFrameworkQueryableExtensions.FirstOrDefaultAsync(_context.Users, u => u.RefreshToken == refreshToken);
 
         if (user == null || user.RefreshTokenExpiryTime <= DateTime.UtcNow)
         {
@@ -123,10 +125,11 @@ public class AuthController : ControllerBase
 
         await _userManager.UpdateAsync(user);
 
-        return Ok(new AuthResponseDto
+        AppendTokenCookies(newAccessToken, newRefreshToken, refreshTokenValidityInDays);
+
+        return Ok(new
         {
-            Token = newAccessToken,
-            RefreshToken = newRefreshToken,
+            Message = "Token refreshed successfully",
             UserId = user.Id,
             Username = user.UserName!,
             Email = user.Email!
@@ -152,5 +155,39 @@ public class AuthController : ControllerBase
             user.Bio,
             user.AvatarUrl
         });
+    }
+
+    [Authorize]
+    [HttpPost("logout")]
+    public IActionResult Logout()
+    {
+        Response.Cookies.Delete("jwt");
+        Response.Cookies.Delete("refreshToken");
+        return Ok(new { Message = "Logged out successfully" });
+    }
+
+    private void AppendTokenCookies(string jwt, string refreshToken, int refreshTokenValidityInDays)
+    {
+        int.TryParse(_configuration["JwtSettings:ExpirationMinutes"] ?? "4320", out int expirationMinutes);
+
+        var cookieOptions = new CookieOptions
+        {
+            HttpOnly = true,
+            Secure = true,
+            SameSite = SameSiteMode.Strict,
+            Expires = DateTime.UtcNow.AddMinutes(expirationMinutes)
+        };
+
+        Response.Cookies.Append("jwt", jwt, cookieOptions);
+
+        var refreshCookieOptions = new CookieOptions
+        {
+            HttpOnly = true,
+            Secure = true,
+            SameSite = SameSiteMode.Strict,
+            Expires = DateTime.UtcNow.AddDays(refreshTokenValidityInDays)
+        };
+
+        Response.Cookies.Append("refreshToken", refreshToken, refreshCookieOptions);
     }
 }
