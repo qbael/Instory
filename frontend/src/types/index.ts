@@ -1,0 +1,235 @@
+// ─── User ────────────────────────────────────────────────────────────────────
+
+export interface User {
+  id: number;
+  userName: string;
+  email: string;
+  fullName: string | null;
+  bio: string | null;
+  avatarUrl: string | null;
+  createdAt: string;
+  updatedAt: string | null;
+}
+
+export interface UserProfile extends User {
+  postsCount: number;
+  followersCount: number;
+  followingCount: number;
+  isFollowing: boolean;
+  friendshipStatus: FriendshipStatus | null;
+}
+
+// ─── Post ────────────────────────────────────────────────────────────────────
+
+export interface Post {
+  id: number;
+  userId: number;
+  content: string | null;
+  imageUrl: string | null;
+  createdAt: string;
+  updatedAt: string | null;
+  user: User;
+  commentsCount: number;
+  likesCount: number;
+  sharesCount: number;
+  isLiked: boolean;
+  hashtags: string[];
+}
+
+export interface CreatePostDto {
+  content?: string;
+  image?: File;
+}
+
+// ─── Comment ─────────────────────────────────────────────────────────────────
+
+export interface Comment {
+  id: number;
+  postId: number;
+  userId: number;
+  content: string | null;
+  createdAt: string;
+  updatedAt: string | null;
+  user: User;
+}
+
+export interface CreateCommentDto {
+  postId: number;
+  content: string;
+}
+
+// ─── Like ────────────────────────────────────────────────────────────────────
+
+export interface Like {
+  id: number;
+  postId: number;
+  userId: number;
+  createdAt: string;
+}
+
+// ─── Story ───────────────────────────────────────────────────────────────────
+
+export interface Story {
+  id: number;
+  userId: number;
+  mediaUrl: string | null;
+  caption: string | null;
+  expiresAt: string;
+  createdAt: string;
+  user: User;
+  viewsCount: number;
+  isViewed: boolean;
+}
+
+export interface StoryGroup {
+  user: User;
+  stories: Story[];
+  hasUnviewed: boolean;
+}
+
+// ─── Follow ──────────────────────────────────────────────────────────────────
+
+export interface Follow {
+  id: number;
+  followerId: number;
+  followingId: number;
+  createdAt: string;
+}
+
+// ─── Friendship ──────────────────────────────────────────────────────────────
+
+export type FriendshipStatus = 'pending' | 'accepted' | 'declined';
+
+export interface Friendship {
+  id: number;
+  requesterId: number;
+  addresseeId: number;
+  status: FriendshipStatus;
+  createdAt: string;
+  requester: User;
+  addressee: User;
+}
+
+// ─── Notification ────────────────────────────────────────────────────────────
+
+export type NotificationType =
+  | 'like'
+  | 'comment'
+  | 'follow'
+  | 'friend_request'
+  | 'friend_accept'
+  | 'post_share'
+  | 'mention';
+
+export interface Notification {
+  id: number;
+  userId: number;
+  type: NotificationType;
+  referenceId: number | null;
+  message: string | null;
+  isRead: boolean;
+  createdAt: string;
+}
+
+// ─── Hashtag ─────────────────────────────────────────────────────────────────
+
+export interface Hashtag {
+  id: number;
+  tag: string;
+  postsCount: number;
+}
+
+// ─── Post Report ─────────────────────────────────────────────────────────────
+
+export type ReportStatus = 'pending' | 'reviewed' | 'resolved';
+
+export interface PostReport {
+  id: number;
+  postId: number;
+  reporterId: number;
+  reason: string | null;
+  status: ReportStatus;
+  createdAt: string;
+  post: Post;
+  reporter: User;
+}
+
+// ─── Share Post ──────────────────────────────────────────────────────────────
+
+export interface SharePost {
+  id: number;
+  userId: number;
+  postId: number;
+  caption: string | null;
+  createdAt: string;
+  user: User;
+  post: Post;
+}
+
+// ─── Auth DTOs ───────────────────────────────────────────────────────────────
+
+export interface LoginDto {
+  usernameOrEmail: string;
+  password: string;
+}
+
+export interface RegisterDto {
+  username: string;
+  email: string;
+  password: string;
+  fullName?: string;
+}
+
+export interface AuthResponse {
+  token: string;
+  refreshToken: string;
+  userId: number;
+  username: string;
+  email: string;
+}
+
+export interface AuthTokens {
+  token: string;
+  refreshToken: string;
+}
+
+export interface TokenRequestDto {
+  token: string;
+  refreshToken: string;
+}
+
+// ─── API Response Wrappers ───────────────────────────────────────────────────
+
+export interface ApiResponse<T> {
+  data: T;
+  success: boolean;
+  message: string | null;
+  errors: string[];
+}
+
+export interface PaginatedResponse<T> {
+  items: T[];
+  pageNumber: number;
+  pageSize: number;
+  totalCount: number;
+  totalPages: number;
+  hasNextPage: boolean;
+  hasPreviousPage: boolean;
+}
+
+export interface PaginationParams {
+  pageNumber?: number;
+  pageSize?: number;
+}
+
+// ─── Search ──────────────────────────────────────────────────────────────────
+
+export interface SearchParams extends PaginationParams {
+  query: string;
+}
+
+export interface SearchResults {
+  users: User[];
+  posts: Post[];
+  hashtags: Hashtag[];
+}
