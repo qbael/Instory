@@ -22,6 +22,9 @@ public class Story : BaseEntity
  
     [Column("expires_at")]
     public DateTime ExpiresAt { get; set; }
+    
+    [Column("is_deleted")]
+    public bool IsDeleted { get; set; } = false;
  
     [ForeignKey(nameof(UserId))]
     public User User { get; set; } = null!;
