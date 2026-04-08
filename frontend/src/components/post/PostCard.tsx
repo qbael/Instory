@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { memo, useState } from 'react';
 import { Link } from 'react-router';
 import { MoreHorizontal } from 'lucide-react';
 import { Avatar } from '@/components/ui/Avatar';
@@ -30,7 +30,7 @@ function renderCaption(content: string) {
   });
 }
 
-export function PostCard({ post, onLikeToggle }: PostCardProps) {
+export const PostCard = memo(function PostCard({ post, onLikeToggle }: PostCardProps) {
   const [showComments, setShowComments] = useState(false);
 
   return (
@@ -107,4 +107,4 @@ export function PostCard({ post, onLikeToggle }: PostCardProps) {
       )}
     </article>
   );
-}
+});

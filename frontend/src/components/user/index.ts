@@ -1,3 +1,3 @@
-// User components — implement as needed:
-// UserCard, FollowButton, SuggestedUsers, FriendRequest
-export {};
+export { UserCard } from './UserCard';
+export { UserCardSkeleton } from './UserCardSkeleton';
+export { FriendRequest } from './FriendRequest';

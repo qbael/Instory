@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import { Avatar } from '@/components/ui/Avatar';
 import { cn } from '@/utils/cn';
 import { Plus } from 'lucide-react';
@@ -10,7 +11,7 @@ interface StoryCircleProps {
   onClick: () => void;
 }
 
-export function StoryCircle({
+export const StoryCircle = memo(function StoryCircle({
   src,
   name,
   hasUnviewed,
@@ -54,4 +55,4 @@ export function StoryCircle({
       </span>
     </button>
   );
-}
+});
