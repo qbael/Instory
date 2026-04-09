@@ -64,10 +64,10 @@ export default function RegisterPage() {
       {/* Form card */}
       <div className="rounded-xl border border-border bg-bg-card px-8 py-10">
         <h2 className="mb-1 text-center text-lg font-semibold text-text-primary">
-          Create your account
+          Tạo tài khoản của bạn
         </h2>
         <p className="mb-6 text-center text-sm text-text-secondary">
-          Sign up to see photos and videos from your friends.
+          Đăng ký để xem ảnh và video từ bạn bè.
         </p>
 
         {error && (
@@ -79,8 +79,8 @@ export default function RegisterPage() {
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
           <Input
             {...register('username')}
-            label="Username"
-            placeholder="Choose a username"
+            label="Tên đăng nhập"
+            placeholder="Chọn tên đăng nhập"
             error={errors.username?.message}
             autoComplete="username"
           />
@@ -89,15 +89,15 @@ export default function RegisterPage() {
             {...register('email')}
             type="email"
             label="Email"
-            placeholder="Enter your email"
+            placeholder="Nhập email của bạn"
             error={errors.email?.message}
             autoComplete="email"
           />
 
           <Input
             {...register('fullName')}
-            label="Full Name"
-            placeholder="Your full name (optional)"
+            label="Họ và tên"
+            placeholder="Họ và tên (không bắt buộc)"
             error={errors.fullName?.message}
             autoComplete="name"
           />
@@ -107,8 +107,8 @@ export default function RegisterPage() {
             <Input
               {...register('password')}
               type={showPassword ? 'text' : 'password'}
-              label="Password"
-              placeholder="Create a password"
+              label="Mật khẩu"
+              placeholder="Tạo mật khẩu"
               error={errors.password?.message}
               autoComplete="new-password"
               rightIcon={
@@ -151,8 +151,8 @@ export default function RegisterPage() {
           <Input
             {...register('confirmPassword')}
             type={showConfirm ? 'text' : 'password'}
-            label="Confirm Password"
-            placeholder="Re-enter your password"
+            label="Xác nhận mật khẩu"
+            placeholder="Nhập lại mật khẩu"
             error={errors.confirmPassword?.message}
             autoComplete="new-password"
             rightIcon={
@@ -172,26 +172,26 @@ export default function RegisterPage() {
           />
 
           <Button type="submit" fullWidth size="lg" isLoading={isLoading}>
-            Sign Up
+            Đăng ký
           </Button>
 
           <p className="text-center text-xs leading-relaxed text-text-secondary">
-            By signing up, you agree to our{' '}
-            <span className="font-semibold">Terms</span>,{' '}
-            <span className="font-semibold">Privacy Policy</span> and{' '}
-            <span className="font-semibold">Cookies Policy</span>.
+            Khi đăng ký, bạn đồng ý với{' '}
+            <span className="font-semibold">Điều khoản</span>,{' '}
+            <span className="font-semibold">Chính sách bảo mật</span> và{' '}
+            <span className="font-semibold">Chính sách Cookie</span>.
           </p>
         </form>
       </div>
 
       {/* Login link card */}
       <div className="mt-3 rounded-xl border border-border bg-bg-card px-8 py-5 text-center text-sm">
-        Have an account?{' '}
+        Đã có tài khoản?{' '}
         <Link
           to="/login"
           className="font-semibold text-primary hover:text-primary-hover"
         >
-          Log in
+          Đăng nhập
         </Link>
       </div>
     </>

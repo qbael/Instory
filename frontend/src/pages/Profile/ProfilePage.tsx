@@ -46,7 +46,7 @@ export default function ProfilePage() {
   if (!profile) {
     return (
       <div className="py-20 text-center">
-        <p className="text-lg font-semibold">User not found</p>
+        <p className="text-lg font-semibold">Không tìm thấy người dùng</p>
       </div>
     );
   }
@@ -74,7 +74,7 @@ export default function ProfilePage() {
                   size="sm"
                   onClick={() => navigate('/profile/edit')}
                 >
-                  Edit profile
+                  Chỉnh sửa hồ sơ
                 </Button>
                 <Button variant="ghost" size="sm">
                   <Settings className="h-5 w-5" />
@@ -86,7 +86,7 @@ export default function ProfilePage() {
                 size="sm"
                 onClick={toggleFollow}
               >
-                {profile.isFollowing ? 'Following' : 'Follow'}
+                {profile.isFollowing ? 'Đang theo dõi' : 'Theo dõi'}
               </Button>
             )}
           </div>
@@ -95,15 +95,15 @@ export default function ProfilePage() {
           <div className="mb-4 flex justify-center gap-8 md:justify-start">
             <span className="text-base">
               <strong>{profile.postsCount}</strong>{' '}
-              <span className="text-text-secondary">posts</span>
+              <span className="text-text-secondary">bài viết</span>
             </span>
             <button type="button" className="cursor-pointer text-base">
               <strong>{profile.followersCount.toLocaleString()}</strong>{' '}
-              <span className="text-text-secondary">followers</span>
+              <span className="text-text-secondary">người theo dõi</span>
             </button>
             <button type="button" className="cursor-pointer text-base">
               <strong>{profile.followingCount.toLocaleString()}</strong>{' '}
-              <span className="text-text-secondary">following</span>
+              <span className="text-text-secondary">đang theo dõi</span>
             </button>
           </div>
 
@@ -129,7 +129,7 @@ export default function ProfilePage() {
               : 'border-transparent text-text-secondary hover:text-text-primary',
           )}
         >
-          <Grid3X3 className="h-3.5 w-3.5" /> Posts
+          <Grid3X3 className="h-3.5 w-3.5" /> Bài viết
         </button>
         <button
           type="button"
@@ -150,7 +150,7 @@ export default function ProfilePage() {
         <>
           {posts.length === 0 && !postsLoading && (
             <div className="py-16 text-center">
-              <p className="text-lg font-semibold">No Posts Yet</p>
+              <p className="text-lg font-semibold">Chưa có bài viết</p>
             </div>
           )}
 
@@ -196,7 +196,7 @@ export default function ProfilePage() {
 
       {tab === 'stories' && (
         <div className="py-16 text-center text-sm text-text-secondary">
-          Story highlights will appear here
+          Highlights story sẽ hiển thị ở đây
         </div>
       )}
     </div>

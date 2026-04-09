@@ -14,9 +14,9 @@ const WEEK = 7 * DAY;
 function groupNotifications(items: Notification[]) {
   const now = Date.now();
   const groups: { label: string; items: Notification[] }[] = [
-    { label: 'Today', items: [] },
-    { label: 'This Week', items: [] },
-    { label: 'Earlier', items: [] },
+    { label: 'Hôm nay', items: [] },
+    { label: 'Tuần này', items: [] },
+    { label: 'Trước đó', items: [] },
   ];
 
   for (const n of items) {
@@ -59,11 +59,11 @@ export default function NotificationsPage() {
     <div>
       {/* Header */}
       <div className="mb-4 flex items-center justify-between">
-        <h1 className="text-xl font-semibold">Notifications</h1>
+        <h1 className="text-xl font-semibold">Thông báo</h1>
         {unreadCount > 0 && (
           <Button variant="ghost" size="sm" onClick={markAllAsRead}>
             <CheckCheck className="h-4 w-4" />
-            Mark all read
+            Đánh dấu tất cả đã đọc
           </Button>
         )}
       </div>
@@ -104,10 +104,10 @@ export default function NotificationsPage() {
       {!isLoading && notifications.length === 0 && (
         <div className="py-20 text-center">
           <p className="text-lg font-semibold text-text-primary">
-            No notifications yet
+            Chưa có thông báo
           </p>
           <p className="mt-1 text-sm text-text-secondary">
-            When someone interacts with your posts, you&apos;ll see it here.
+            Khi ai đó tương tác với bài viết của bạn, bạn sẽ thấy ở đây.
           </p>
         </div>
       )}

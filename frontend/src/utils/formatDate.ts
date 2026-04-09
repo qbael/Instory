@@ -7,12 +7,12 @@ const WEEK = 7 * DAY;
 export function timeAgo(dateString: string): string {
   const diff = Date.now() - new Date(dateString).getTime();
 
-  if (diff < MINUTE) return 'just now';
-  if (diff < HOUR) return `${Math.floor(diff / MINUTE)}m`;
-  if (diff < DAY) return `${Math.floor(diff / HOUR)}h`;
-  if (diff < WEEK) return `${Math.floor(diff / DAY)}d`;
+  if (diff < MINUTE) return 'vừa xong';
+  if (diff < HOUR) return `${Math.floor(diff / MINUTE)} phút`;
+  if (diff < DAY) return `${Math.floor(diff / HOUR)} giờ`;
+  if (diff < WEEK) return `${Math.floor(diff / DAY)} ngày`;
 
-  return new Date(dateString).toLocaleDateString('en-US', {
+  return new Date(dateString).toLocaleDateString('vi-VN', {
     month: 'short',
     day: 'numeric',
     year:
@@ -23,7 +23,7 @@ export function timeAgo(dateString: string): string {
 }
 
 export function formatFullDate(dateString: string): string {
-  return new Date(dateString).toLocaleDateString('en-US', {
+  return new Date(dateString).toLocaleDateString('vi-VN', {
     year: 'numeric',
     month: 'long',
     day: 'numeric',

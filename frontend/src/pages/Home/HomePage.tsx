@@ -58,10 +58,10 @@ export default function HomePage() {
       {!isLoading && posts.length === 0 && (
         <div className="py-16 text-center">
           <p className="text-lg font-semibold text-text-primary">
-            Welcome to Instory
+            Chào mừng đến với Instory
           </p>
           <p className="mt-1 text-sm text-text-secondary">
-            Follow people to start seeing their posts here.
+            Hãy theo dõi mọi người để xem bài viết của họ tại đây.
           </p>
         </div>
       )}
@@ -69,7 +69,7 @@ export default function HomePage() {
       {/* End of feed */}
       {!hasMore && posts.length > 0 && (
         <p className="pb-8 text-center text-sm text-text-secondary">
-          You&apos;re all caught up
+          Bạn đã xem hết bài viết
         </p>
       )}
     </div>

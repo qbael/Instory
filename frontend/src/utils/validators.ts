@@ -3,65 +3,65 @@ import { z } from 'zod';
 export const loginSchema = z.object({
   usernameOrEmail: z
     .string()
-    .min(1, 'Email or username is required'),
+    .min(1, 'Vui lòng nhập email hoặc tên đăng nhập'),
   password: z
     .string()
-    .min(6, 'Password must be at least 6 characters'),
+    .min(6, 'Mật khẩu phải có ít nhất 6 ký tự'),
 });
 
 export const registerSchema = z.object({
   username: z
     .string()
-    .min(3, 'Username must be at least 3 characters')
-    .max(20, 'Username must be at most 20 characters')
-    .regex(/^[a-zA-Z0-9._]+$/, 'Only letters, numbers, dots and underscores'),
+    .min(3, 'Tên đăng nhập phải có ít nhất 3 ký tự')
+    .max(20, 'Tên đăng nhập không được quá 20 ký tự')
+    .regex(/^[a-zA-Z0-9._]+$/, 'Chỉ chấp nhận chữ, số, dấu chấm và gạch dưới'),
   email: z
     .string()
-    .min(1, 'Email is required')
-    .email('Invalid email address'),
+    .min(1, 'Vui lòng nhập email')
+    .email('Địa chỉ email không hợp lệ'),
   fullName: z
     .string()
-    .max(100, 'Full name must be at most 100 characters')
+    .max(100, 'Họ và tên không được quá 100 ký tự')
     .optional()
     .or(z.literal('')),
   password: z
     .string()
-    .min(6, 'Password must be at least 6 characters')
-    .max(100, 'Password must be at most 100 characters'),
-  confirmPassword: z.string().min(1, 'Please confirm your password'),
+    .min(6, 'Mật khẩu phải có ít nhất 6 ký tự')
+    .max(100, 'Mật khẩu không được quá 100 ký tự'),
+  confirmPassword: z.string().min(1, 'Vui lòng xác nhận mật khẩu'),
 }).refine((data) => data.password === data.confirmPassword, {
-  message: 'Passwords do not match',
+  message: 'Mật khẩu không khớp',
   path: ['confirmPassword'],
 });
 
 export const createPostSchema = z.object({
   content: z
     .string()
-    .max(2200, 'Caption must be at most 2,200 characters')
+    .max(2200, 'Chú thích không được quá 2.200 ký tự')
     .optional(),
 });
 
 export const createCommentSchema = z.object({
   content: z
     .string()
-    .min(1, 'Comment cannot be empty')
-    .max(1000, 'Comment must be at most 1,000 characters'),
+    .min(1, 'Bình luận không được để trống')
+    .max(1000, 'Bình luận không được quá 1.000 ký tự'),
 });
 
 export const editProfileSchema = z.object({
   fullName: z
     .string()
-    .max(100, 'Full name must be at most 100 characters')
+    .max(100, 'Họ và tên không được quá 100 ký tự')
     .optional(),
   bio: z
     .string()
-    .max(150, 'Bio must be at most 150 characters')
+    .max(150, 'Tiểu sử không được quá 150 ký tự')
     .optional(),
   userName: z
     .string()
-    .min(3, 'Username must be at least 3 characters')
-    .max(20, 'Username must be at most 20 characters')
-    .regex(/^[a-zA-Z0-9._]+$/, 'Only letters, numbers, dots and underscores'),
+    .min(3, 'Tên đăng nhập phải có ít nhất 3 ký tự')
+    .max(20, 'Tên đăng nhập không được quá 20 ký tự')
+    .regex(/^[a-zA-Z0-9._]+$/, 'Chỉ chấp nhận chữ, số, dấu chấm và gạch dưới'),
 });
 
 export type LoginFormData = z.infer<typeof loginSchema>;
@@ -77,7 +77,7 @@ export function getPasswordStrength(password: string) {
   if (/[0-9]/.test(password)) score++;
   if (/[^a-zA-Z0-9]/.test(password)) score++;
 
-  if (score <= 1) return { score, label: 'Weak', color: 'bg-error', textColor: 'text-error' } as const;
-  if (score <= 2) return { score, label: 'Medium', color: 'bg-warning', textColor: 'text-warning' } as const;
-  return { score, label: 'Strong', color: 'bg-success', textColor: 'text-success' } as const;
+  if (score <= 1) return { score, label: 'Yếu', color: 'bg-error', textColor: 'text-error' } as const;
+  if (score <= 2) return { score, label: 'Trung bình', color: 'bg-warning', textColor: 'text-warning' } as const;
+  return { score, label: 'Mạnh', color: 'bg-success', textColor: 'text-success' } as const;
 }

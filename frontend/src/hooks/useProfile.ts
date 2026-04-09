@@ -17,23 +17,23 @@ export function useProfile(userId: string) {
   }, [userId]);
 
   const toggleFollow = useCallback(async () => {
-    if (!profile) return;
-
     const numId = Number(userId);
-    setProfile((p) =>
-      p
-        ? {
-            ...p,
-            isFollowing: !p.isFollowing,
-            followersCount: p.isFollowing
-              ? p.followersCount - 1
-              : p.followersCount + 1,
-          }
-        : p,
-    );
+    let wasFollowing = false;
+
+    setProfile((p) => {
+      if (!p) return p;
+      wasFollowing = p.isFollowing;
+      return {
+        ...p,
+        isFollowing: !p.isFollowing,
+        followersCount: p.isFollowing
+          ? p.followersCount - 1
+          : p.followersCount + 1,
+      };
+    });
 
     try {
-      if (profile.isFollowing) await userService.unfollow(numId);
+      if (wasFollowing) await userService.unfollow(numId);
       else await userService.follow(numId);
     } catch {
       setProfile((p) =>
@@ -48,7 +48,7 @@ export function useProfile(userId: string) {
           : p,
       );
     }
-  }, [profile, userId]);
+  }, [userId]);
 
   return { profile, isLoading, load, toggleFollow };
 }

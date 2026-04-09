@@ -21,9 +21,9 @@ export default function SearchPage() {
   }
 
   const tabs: { key: Tab; label: string }[] = [
-    { key: 'people', label: 'People' },
-    { key: 'posts', label: 'Posts' },
-    { key: 'hashtags', label: 'Hashtags' },
+    { key: 'people', label: 'Mọi người' },
+    { key: 'posts', label: 'Bài viết' },
+    { key: 'hashtags', label: 'Hashtag' },
   ];
 
   const isEmpty = results && !results.users.length && !results.posts.length && !results.hashtags.length;
@@ -37,7 +37,7 @@ export default function SearchPage() {
           type="text"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          placeholder="Search people, posts, hashtags…"
+          placeholder="Tìm kiếm mọi người, bài viết, hashtag…"
           className="w-full rounded-lg border border-border bg-bg py-2.5 pl-10 pr-10 text-sm text-text-primary placeholder:text-text-secondary/70 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
         />
         {query && (
@@ -135,7 +135,7 @@ export default function SearchPage() {
         <div className="py-20 text-center">
           <Search className="mx-auto mb-3 h-12 w-12 text-border" />
           <p className="text-sm text-text-secondary">
-            Search for people, posts, or hashtags
+            Tìm kiếm mọi người, bài viết hoặc hashtag
           </p>
         </div>
       )}
@@ -192,21 +192,28 @@ function HashtagRow({ hashtag }: { hashtag: Hashtag }) {
       <div>
         <p className="text-sm font-semibold text-text-primary">#{hashtag.tag}</p>
         <p className="text-xs text-text-secondary">
-          {hashtag.postsCount.toLocaleString()} posts
+          {hashtag.postsCount.toLocaleString()} bài viết
         </p>
       </div>
     </Link>
   );
 }
 
+const typeLabelsVI: Record<string, string> = {
+  people: 'mọi người',
+  posts: 'bài viết',
+  hashtags: 'hashtag',
+};
+
 function EmptyResults({ query, type }: { query: string; type?: string }) {
+  const label = type ? (typeLabelsVI[type] ?? type) : 'kết quả';
   return (
     <div className="py-16 text-center">
       <p className="text-base font-semibold text-text-primary">
-        No {type ?? 'results'} found
+        Không tìm thấy {label}
       </p>
       <p className="mt-1 text-sm text-text-secondary">
-        No results for &ldquo;{query}&rdquo;. Try a different search.
+        Không có kết quả cho &ldquo;{query}&rdquo;. Thử tìm kiếm khác.
       </p>
     </div>
   );

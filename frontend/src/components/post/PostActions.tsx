@@ -27,7 +27,7 @@ export const PostActions = memo(function PostActions({
             type="button"
             onClick={onLike}
             className="cursor-pointer transition-transform active:scale-110"
-            aria-label={isLiked ? 'Unlike' : 'Like'}
+            aria-label={isLiked ? 'Bỏ thích' : 'Thích'}
           >
             <Heart
               className={cn(
@@ -42,7 +42,7 @@ export const PostActions = memo(function PostActions({
             type="button"
             onClick={onCommentClick}
             className="cursor-pointer text-text-primary hover:text-text-secondary"
-            aria-label="Comment"
+            aria-label="Bình luận"
           >
             <MessageCircle className="h-6 w-6" />
           </button>
@@ -50,7 +50,7 @@ export const PostActions = memo(function PostActions({
             type="button"
             onClick={onShare}
             className="cursor-pointer text-text-primary hover:text-text-secondary"
-            aria-label="Share"
+            aria-label="Chia sẻ"
           >
             <Send className="h-6 w-6" />
           </button>
@@ -58,7 +58,7 @@ export const PostActions = memo(function PostActions({
         <button
           type="button"
           className="cursor-pointer text-text-primary hover:text-text-secondary"
-          aria-label="Save"
+          aria-label="Lưu"
         >
           <Bookmark className="h-6 w-6" />
         </button>
@@ -66,7 +66,7 @@ export const PostActions = memo(function PostActions({
 
       {likesCount > 0 && (
         <p className="mt-2 text-sm font-semibold">
-          {likesCount.toLocaleString()} {likesCount === 1 ? 'like' : 'likes'}
+          {likesCount.toLocaleString()} lượt thích
         </p>
       )}
       {commentsCount > 0 && (
@@ -75,7 +75,7 @@ export const PostActions = memo(function PostActions({
           onClick={onCommentClick}
           className="mt-1 cursor-pointer text-sm text-text-secondary"
         >
-          View all {commentsCount} comments
+          Xem tất cả {commentsCount} bình luận
         </button>
       )}
     </div>

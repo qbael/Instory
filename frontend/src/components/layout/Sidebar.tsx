@@ -30,15 +30,15 @@ export function Sidebar() {
   const unreadCount = useAppSelector((s) => s.notification.unreadCount);
 
   const navItems: NavEntry[] = [
-    { icon: Home, label: 'Home', to: '/' },
-    { icon: Search, label: 'Search', to: '/search' },
-    { icon: Heart, label: 'Notifications', to: '/notifications', badge: unreadCount },
+    { icon: Home, label: 'Trang chủ', to: '/' },
+    { icon: Search, label: 'Tìm kiếm', to: '/search' },
+    { icon: Heart, label: 'Thông báo', to: '/notifications', badge: unreadCount },
     {
       icon: SquarePlus,
-      label: 'Create',
+      label: 'Tạo bài',
       action: () => dispatch(openModal({ modal: 'createPost' })),
     },
-    { icon: User, label: 'Profile', to: `/profile/${user?.id}` },
+    { icon: User, label: 'Hồ sơ', to: `/profile/${user?.id}` },
   ];
 
   return (
@@ -123,7 +123,7 @@ export function Sidebar() {
           className="flex w-full cursor-pointer items-center gap-4 rounded-lg px-3 py-3 text-text-primary transition-colors hover:bg-border/30"
         >
           <LogOut className="h-6 w-6 shrink-0" />
-          <span className="hidden text-[15px] lg:inline">Log out</span>
+          <span className="hidden text-[15px] lg:inline">Đăng xuất</span>
         </button>
       </div>
     </aside>

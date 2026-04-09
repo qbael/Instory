@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import type { Post } from '@/types';
 import { postService } from '@/services/postService';
 import { DEFAULT_PAGE_SIZE } from '@/utils/constants';
@@ -7,21 +7,26 @@ type FeedType = 'home' | { userId: number };
 
 export function usePosts(feedType: FeedType = 'home') {
   const [posts, setPosts] = useState<Post[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const [hasMore, setHasMore] = useState(true);
   const [page, setPage] = useState(1);
+  const fetchingRef = useRef(false);
+
+  const userIdParam = feedType === 'home' ? null : feedType.userId;
 
   const fetchPage = useCallback(
     async (pageNum: number) => {
+      if (fetchingRef.current) return;
+      fetchingRef.current = true;
       setIsLoading(true);
       try {
         const { data } =
-          feedType === 'home'
+          userIdParam === null
             ? await postService.getFeed({
                 pageNumber: pageNum,
                 pageSize: DEFAULT_PAGE_SIZE,
               })
-            : await postService.getUserPosts(feedType.userId, {
+            : await postService.getUserPosts(userIdParam, {
                 pageNumber: pageNum,
                 pageSize: DEFAULT_PAGE_SIZE,
               });
@@ -30,28 +35,47 @@ export function usePosts(feedType: FeedType = 'home') {
         setPosts((prev) =>
           pageNum === 1 ? result.items : [...prev, ...result.items],
         );
-        setHasMore(result.hasNextPage);
+        setHasMore(result.hasNextPage && result.items.length > 0);
         setPage(pageNum);
+      } catch {
+        setHasMore(false);
       } finally {
+        fetchingRef.current = false;
         setIsLoading(false);
       }
     },
-    [feedType],
+    [userIdParam],
   );
 
   const loadMore = useCallback(() => {
-    if (!isLoading && hasMore) fetchPage(page + 1);
-  }, [isLoading, hasMore, page, fetchPage]);
+    if (!fetchingRef.current && hasMore) fetchPage(page + 1);
+  }, [hasMore, page, fetchPage]);
 
   const refresh = useCallback(() => {
+    fetchingRef.current = false;
     setPosts([]);
     setPage(1);
     setHasMore(true);
     fetchPage(1);
   }, [fetchPage]);
 
-  const toggleLike = useCallback(
-    async (postId: number) => {
+  const toggleLike = useCallback(async (postId: number) => {
+    let wasLiked = false;
+    setPosts((prev) =>
+      prev.map((p) => {
+        if (p.id !== postId) return p;
+        wasLiked = p.isLiked;
+        return {
+          ...p,
+          isLiked: !p.isLiked,
+          likesCount: p.isLiked ? p.likesCount - 1 : p.likesCount + 1,
+        };
+      }),
+    );
+    try {
+      if (wasLiked) await postService.unlike(postId);
+      else await postService.like(postId);
+    } catch {
       setPosts((prev) =>
         prev.map((p) =>
           p.id === postId
@@ -63,33 +87,15 @@ export function usePosts(feedType: FeedType = 'home') {
             : p,
         ),
       );
-      try {
-        const post = posts.find((p) => p.id === postId);
-        if (post?.isLiked) await postService.unlike(postId);
-        else await postService.like(postId);
-      } catch {
-        setPosts((prev) =>
-          prev.map((p) =>
-            p.id === postId
-              ? {
-                  ...p,
-                  isLiked: !p.isLiked,
-                  likesCount: p.isLiked ? p.likesCount - 1 : p.likesCount + 1,
-                }
-              : p,
-          ),
-        );
-      }
-    },
-    [posts],
-  );
+    }
+  }, []);
 
   useEffect(() => {
-    if (feedType !== 'home') return;
+    if (userIdParam !== null) return;
     const handler = () => refresh();
     window.addEventListener('post-created', handler);
     return () => window.removeEventListener('post-created', handler);
-  }, [feedType, refresh]);
+  }, [userIdParam, refresh]);
 
   return { posts, isLoading, hasMore, loadMore, refresh, toggleLike, fetchPage };
 }

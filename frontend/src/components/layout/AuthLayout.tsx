@@ -9,7 +9,7 @@ export function AuthLayout() {
         <Camera className="mb-5 h-16 w-16 opacity-90" />
         <h1 className="mb-2 text-4xl font-extrabold tracking-tight">Instory</h1>
         <p className="max-w-[260px] text-center text-base leading-relaxed opacity-80">
-          Share your stories, connect with friends, and discover the world around you.
+          Chia sẻ câu chuyện, kết nối bạn bè và khám phá thế giới xung quanh bạn.
         </p>
       </div>
 

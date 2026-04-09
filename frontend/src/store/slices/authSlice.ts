@@ -27,7 +27,7 @@ export const login = createAsyncThunk(
     } catch (err: unknown) {
       const error = err as { response?: { data?: { message?: string } } };
       return rejectWithValue(
-        error.response?.data?.message ?? 'Login failed',
+        error.response?.data?.message ?? 'Đăng nhập thất bại',
       );
     }
   },
@@ -42,7 +42,7 @@ export const register = createAsyncThunk(
     } catch (err: unknown) {
       const error = err as { response?: { data?: { message?: string } } };
       return rejectWithValue(
-        error.response?.data?.message ?? 'Registration failed',
+        error.response?.data?.message ?? 'Đăng ký thất bại',
       );
     }
   },
@@ -57,7 +57,7 @@ export const fetchCurrentUser = createAsyncThunk(
     } catch (err: unknown) {
       const error = err as { response?: { data?: { message?: string } } };
       return rejectWithValue(
-        error.response?.data?.message ?? 'Failed to fetch user',
+        error.response?.data?.message ?? 'Không thể lấy thông tin người dùng',
       );
     }
   },

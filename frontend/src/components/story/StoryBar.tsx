@@ -35,7 +35,7 @@ export function StoryBar() {
           {/* Your story */}
           <StoryCircle
             src={currentUser?.avatarUrl}
-            name={currentUser?.userName ?? 'You'}
+            name={currentUser?.userName ?? 'Bạn'}
             hasUnviewed={false}
             isOwn
             onClick={() => {
