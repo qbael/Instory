@@ -1,8 +1,5 @@
-export const API_URL = import.meta.env.API_BASE_URL as string ?? 'http://localhost:5174/api';
-export const SIGNALR_URL = import.meta.env.VITE_SIGNALR_URL as string ?? 'http://localhost:5000/hubs';
-
-export const AUTH_TOKEN_KEY = 'instory_token';
-export const REFRESH_TOKEN_KEY = 'instory_refresh_token';
+export const API_URL = import.meta.env.VITE_API_URL as string ?? '/api';
+export const SIGNALR_URL = import.meta.env.VITE_SIGNALR_URL as string ?? '/hubs';
 
 export const DEFAULT_PAGE_SIZE = 20;
 export const STORY_DURATION_HOURS = 24;

@@ -1,10 +1,8 @@
 import api from './api';
 import type {
-  ApiResponse,
   AuthResponse,
   LoginDto,
   RegisterDto,
-  TokenRequestDto,
   User,
 } from '@/types';
 
@@ -12,19 +10,19 @@ const BASE = 'v1/auth';
 
 export const authService = {
   login(dto: LoginDto) {
-    return api.post<ApiResponse<AuthResponse>>(`${BASE}/login`, dto);
+    return api.post<AuthResponse>(`${BASE}/login`, dto);
   },
 
   register(dto: RegisterDto) {
-    return api.post<ApiResponse<AuthResponse>>(`${BASE}/register`, dto);
+    return api.post<{ message: string }>(`${BASE}/register`, dto);
   },
 
-  refreshToken(dto: TokenRequestDto) {
-    return api.post<ApiResponse<AuthResponse>>(`${BASE}/refresh`, dto);
+  refreshToken() {
+    return api.post<AuthResponse>(`${BASE}/refresh`);
   },
 
   getMe() {
-    return api.get<ApiResponse<User>>(`${BASE}/me`);
+    return api.get<User>(`${BASE}/me`);
   },
 
   logout() {

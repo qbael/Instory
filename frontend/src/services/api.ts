@@ -1,35 +1,32 @@
 import axios, { type AxiosError, type InternalAxiosRequestConfig } from 'axios';
-import { API_URL, AUTH_TOKEN_KEY, REFRESH_TOKEN_KEY } from '@/utils/constants';
-import type { ApiResponse, AuthTokens } from '@/types';
+import { API_URL } from '@/utils/constants';
 
 const api = axios.create({
   baseURL: API_URL,
   headers: { 'Content-Type': 'application/json' },
   timeout: 15_000,
+  withCredentials: true,
 });
 
-// ─── Request interceptor: attach JWT ─────────────────────────────────────────
+// ─── Response interceptor: handle 401 → refresh or redirect ─────────────────
 
-api.interceptors.request.use((config: InternalAxiosRequestConfig) => {
-  const token = localStorage.getItem(AUTH_TOKEN_KEY);
-  if (token && config.headers) {
-    config.headers.Authorization = `Bearer ${token}`;
-  }
-  return config;
-});
+const AUTH_PATHS = ['/auth/login', '/auth/register', '/auth/refresh', '/auth/me'];
 
-// ─── Response interceptor: handle 401 → refresh or logout ────────────────────
+function isAuthRequest(url?: string): boolean {
+  if (!url) return false;
+  return AUTH_PATHS.some((p) => url.includes(p));
+}
 
 let isRefreshing = false;
 let failedQueue: Array<{
-  resolve: (token: string) => void;
+  resolve: () => void;
   reject: (error: unknown) => void;
 }> = [];
 
-function processQueue(error: unknown, token: string | null = null) {
+function processQueue(error: unknown) {
   failedQueue.forEach((p) => {
     if (error) p.reject(error);
-    else if (token) p.resolve(token);
+    else p.resolve();
   });
   failedQueue = [];
 }
@@ -41,55 +38,33 @@ api.interceptors.response.use(
       _retry?: boolean;
     };
 
-    if (error.response?.status !== 401 || originalRequest._retry) {
-      return Promise.reject(error);
-    }
-
-    const refreshToken = localStorage.getItem(REFRESH_TOKEN_KEY);
-    if (!refreshToken) {
-      clearTokens();
-      window.location.href = '/login';
+    if (
+      error.response?.status !== 401 ||
+      originalRequest._retry ||
+      isAuthRequest(originalRequest.url)
+    ) {
       return Promise.reject(error);
     }
 
     if (isRefreshing) {
-      return new Promise<string>((resolve, reject) => {
+      return new Promise<void>((resolve, reject) => {
         failedQueue.push({ resolve, reject });
-      }).then((token) => {
-        if (originalRequest.headers) {
-          originalRequest.headers.Authorization = `Bearer ${token}`;
-        }
-        return api(originalRequest);
-      });
+      }).then(() => api(originalRequest));
     }
 
     isRefreshing = true;
     originalRequest._retry = true;
 
     try {
-      const { data } = await axios.post<ApiResponse<AuthTokens>>(
-        `${API_URL}/auth/refresh`,
-        {
-          token: localStorage.getItem(AUTH_TOKEN_KEY),
-          refreshToken,
-        },
-      );
+      await axios.post(`${API_URL}/v1/auth/refresh`, null, {
+        withCredentials: true,
+      });
 
-      const newToken = data.data.token;
-      const newRefresh = data.data.refreshToken;
+      processQueue(null);
 
-      localStorage.setItem(AUTH_TOKEN_KEY, newToken);
-      localStorage.setItem(REFRESH_TOKEN_KEY, newRefresh);
-
-      processQueue(null, newToken);
-
-      if (originalRequest.headers) {
-        originalRequest.headers.Authorization = `Bearer ${newToken}`;
-      }
       return api(originalRequest);
     } catch (refreshError) {
-      processQueue(refreshError, null);
-      clearTokens();
+      processQueue(refreshError);
       window.location.href = '/login';
       return Promise.reject(refreshError);
     } finally {
@@ -97,10 +72,5 @@ api.interceptors.response.use(
     }
   },
 );
-
-function clearTokens() {
-  localStorage.removeItem(AUTH_TOKEN_KEY);
-  localStorage.removeItem(REFRESH_TOKEN_KEY);
-}
 
 export default api;

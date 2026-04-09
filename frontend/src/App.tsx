@@ -6,13 +6,13 @@ import { fetchCurrentUser } from '@/store/slices/authSlice';
 
 export default function App() {
   const dispatch = useAppDispatch();
-  const { token, user } = useAppSelector((s) => s.auth);
+  const { isInitialized } = useAppSelector((s) => s.auth);
 
   useEffect(() => {
-    if (token && !user) {
+    if (!isInitialized) {
       dispatch(fetchCurrentUser());
     }
-  }, [dispatch, token, user]);
+  }, [dispatch, isInitialized]);
 
   return (
     <>

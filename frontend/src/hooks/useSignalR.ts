@@ -7,7 +7,7 @@ import {
 } from '@microsoft/signalr';
 import { useAppDispatch, useAppSelector } from '@/store';
 import { addRealtimeNotification } from '@/store/slices/notificationSlice';
-import { SIGNALR_URL, AUTH_TOKEN_KEY } from '@/utils/constants';
+import { SIGNALR_URL } from '@/utils/constants';
 import type { Notification } from '@/types';
 
 export function useSignalR() {
@@ -29,7 +29,7 @@ export function useSignalR() {
 
     const connection = new HubConnectionBuilder()
       .withUrl(`${SIGNALR_URL}/notifications`, {
-        accessTokenFactory: () => localStorage.getItem(AUTH_TOKEN_KEY) ?? '',
+        withCredentials: true,
       })
       .withAutomaticReconnect([0, 2000, 5000, 10000, 30000])
       .configureLogging(LogLevel.Warning)

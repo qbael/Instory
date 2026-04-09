@@ -53,7 +53,7 @@ export default function RegisterPage() {
         password: data.password,
         fullName: data.fullName || undefined,
       });
-      navigate('/', { replace: true });
+      navigate('/login', { replace: true });
     } catch {
       /* error stored in Redux */
     }

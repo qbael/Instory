@@ -4,14 +4,14 @@ import {
   login as loginThunk,
   register as registerThunk,
   fetchCurrentUser,
-  logout as logoutAction,
+  logout as logoutThunk,
   clearAuthError,
 } from '@/store/slices/authSlice';
 import type { LoginDto, RegisterDto } from '@/types';
 
 export function useAuth() {
   const dispatch = useAppDispatch();
-  const { user, token, isAuthenticated, isLoading, isInitialized, error } =
+  const { user, isAuthenticated, isLoading, isInitialized, error } =
     useAppSelector((s) => s.auth);
 
   const login = useCallback(
@@ -29,9 +29,10 @@ export function useAuth() {
     [dispatch],
   );
 
-  const logout = useCallback(() => {
-    dispatch(logoutAction());
-  }, [dispatch]);
+  const logout = useCallback(
+    () => dispatch(logoutThunk()).unwrap(),
+    [dispatch],
+  );
 
   const clearError = useCallback(() => {
     dispatch(clearAuthError());
@@ -39,7 +40,6 @@ export function useAuth() {
 
   return {
     user,
-    token,
     isAuthenticated,
     isLoading,
     isInitialized,

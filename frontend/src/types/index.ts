@@ -181,21 +181,10 @@ export interface RegisterDto {
 }
 
 export interface AuthResponse {
-  token: string;
-  refreshToken: string;
+  message: string;
   userId: number;
   username: string;
   email: string;
-}
-
-export interface AuthTokens {
-  token: string;
-  refreshToken: string;
-}
-
-export interface TokenRequestDto {
-  token: string;
-  refreshToken: string;
 }
 
 // ─── API Response Wrappers ───────────────────────────────────────────────────

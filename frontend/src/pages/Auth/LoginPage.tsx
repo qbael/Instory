@@ -80,7 +80,7 @@ export default function LoginPage() {
                 onClick={() => setShowPassword((v) => !v)}
                 className="cursor-pointer text-text-secondary hover:text-text-primary"
               >
-                {showPassword ? (
+                {!showPassword ? (
                   <EyeOff className="h-4 w-4" />
                 ) : (
                   <Eye className="h-4 w-4" />
