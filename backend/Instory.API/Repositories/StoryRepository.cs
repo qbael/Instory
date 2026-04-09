@@ -1,6 +1,7 @@
 ﻿using Instory.API.Data;
 using Instory.API.Helpers;
 using Instory.API.Models;
+using Instory.API.Repositories.impl;
 using Microsoft.EntityFrameworkCore;
 
 namespace Instory.API.Repositories;

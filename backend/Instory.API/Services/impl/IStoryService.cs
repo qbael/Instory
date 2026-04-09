@@ -1,4 +1,4 @@
-﻿using Instory.API.DTOs.Story;
+﻿using Instory.API.DTOs.StoryDtos;
 using Instory.API.Helpers;
 using Instory.API.Models;
 

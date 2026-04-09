@@ -1,6 +1,4 @@
-﻿using System;
-using Instory.API.Models;
-namespace Instory.API.DTOs;
+﻿namespace Instory.API.DTOs.StoryDtos;
 
 public record StoryResponseDto(
     int Id,
@@ -11,7 +9,7 @@ public record StoryResponseDto(
     bool IsDeleted
 )
 {
-    public static StoryResponseDto FromEntity(Story story) => new(
+    public static StoryResponseDto FromEntity(Models.Story story) => new(
         story.Id,
         story.UserId,
         story.MediaUrl,

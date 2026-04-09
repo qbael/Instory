@@ -1,7 +1,7 @@
 ﻿using Instory.API.Helpers;
 using Instory.API.Models;
 
-namespace Instory.API.Repositories;
+namespace Instory.API.Repositories.impl;
 
 public interface IStoryRepository
 {
