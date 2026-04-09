@@ -1,0 +1,7 @@
+﻿namespace Instory.API.Exceptions;
+
+public class NotFoundException(string name, object key) 
+    : Exception($"{name} with key '{key}' was not found.")
+{
+    public NotFoundException(string message) : this(message, string.Empty) { }
+}

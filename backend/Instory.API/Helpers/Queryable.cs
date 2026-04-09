@@ -14,7 +14,6 @@ public static class QueryableExtensions
             .ToListAsync();
     
         return new PaginatedResult<T>(
-            items, page, pageSize, total,
-            (int)Math.Ceiling(total / (double)pageSize));
+            items, page, pageSize, total);
     }
 }
