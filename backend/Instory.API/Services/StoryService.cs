@@ -4,6 +4,7 @@ using Instory.API.DTOs.StoryDtos;
 using Instory.API.Helpers;
 using Instory.API.Models;
 using Instory.API.Services.impl;
+using Instory.API.Exceptions;
 using Microsoft.EntityFrameworkCore;
 
 namespace Instory.API.Services;
@@ -26,7 +27,7 @@ public class StoryService(InstoryDbContext db) : IStoryService
             .FirstOrDefaultAsync(story => story.Id == id);
         
         if (story == null)
-            throw new Exception("Story not found with id: " + id);
+            throw new NotFoundException("Story not found with id: " + id);
         
         return StoryResponseDto.FromEntity(story);
     }

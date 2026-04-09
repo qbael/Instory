@@ -28,7 +28,7 @@ Content-Type: application/json
     console.log("Refresh Token saved:", client.global.get("refreshToken"));
 %}
 ###
-GET {{InstoryAPI_HostAddress}}/api/v1/auth/me
+GET {{InstoryAPI_HostAddress}}/api/v1/story
 
 
 

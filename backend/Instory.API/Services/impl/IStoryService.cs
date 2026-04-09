@@ -7,7 +7,7 @@ namespace Instory.API.Services.impl;
 public interface IStoryService
 {
     Task<PaginatedResult<StoryResponseDto>> GetAllAsync(int page, int pageSize);
-    Task<StoryResponseDto?> GetByIdAsync(int id);
+    Task<StoryResponseDto> GetByIdAsync(int id);
     Task<StoryResponseDto> CreateAsync(CreateStoryDto dto);
     Task<bool> DeleteByIdAsync(int id);
 }

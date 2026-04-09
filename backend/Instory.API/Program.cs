@@ -7,6 +7,8 @@ using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using Instory.API.Exceptions;
 using Instory.API.Helpers;
+using Instory.API.Services;
+using Instory.API.Services.impl;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -66,6 +68,7 @@ builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
 builder.Services.AddProblemDetails();      
 
 builder.Services.AddScoped<ITokenService, TokenService>();
+builder.Services.AddScoped<IStoryService, StoryService>();
 
 var app = builder.Build();
 

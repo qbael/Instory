@@ -1,0 +1,26 @@
+﻿@InstoryAPI_HostAddress = http://localhost:5174
+
+
+GET {{InstoryAPI_HostAddress}}/api/v1/story
+
+###
+
+GET {{InstoryAPI_HostAddress}}/api/v1/story/1
+
+###
+POST {{InstoryAPI_HostAddress}}/api/v1/story
+Content-Type: application/json
+
+{
+  "UserId": 1,
+  "MediaUrl": "abc",
+  "Caption": "abc"
+}
+
+###
+DELETE {{InstoryAPI_HostAddress}}/api/v1/story/1
+
+
+
+
+
