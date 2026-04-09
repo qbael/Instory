@@ -18,7 +18,7 @@ export default function App() {
     <>
       <AppRouter />
       <Toaster
-        position="top-center"
+        position="top-right"
         toastOptions={{
           duration: 3000,
           style: {
@@ -27,6 +27,12 @@ export default function App() {
             borderRadius: '12px',
             boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
             fontSize: '14px',
+          },
+          success: {
+            iconTheme: { primary: '#58C322', secondary: '#fff' },
+          },
+          error: {
+            iconTheme: { primary: '#ED4956', secondary: '#fff' },
           },
         }}
       />

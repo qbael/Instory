@@ -224,8 +224,11 @@ export interface PaginationParams {
 
 // ─── Search ──────────────────────────────────────────────────────────────────
 
+export type SearchType = 'people' | 'posts' | 'tags';
+
 export interface SearchParams extends PaginationParams {
   query: string;
+  type?: SearchType;
 }
 
 export interface SearchResults {

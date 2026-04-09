@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import { Heart, MessageCircle, Send, Bookmark } from 'lucide-react';
 import { cn } from '@/utils/cn';
 
@@ -10,7 +11,7 @@ interface PostActionsProps {
   onShare: () => void;
 }
 
-export function PostActions({
+export const PostActions = memo(function PostActions({
   isLiked,
   likesCount,
   commentsCount,
@@ -79,4 +80,4 @@ export function PostActions({
       )}
     </div>
   );
-}
+});

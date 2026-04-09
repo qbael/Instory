@@ -8,7 +8,7 @@ import type {
   User,
 } from '@/types';
 
-const BASE = '/auth';
+const BASE = 'v1/auth';
 
 export const authService = {
   login(dto: LoginDto) {

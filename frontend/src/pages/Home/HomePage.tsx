@@ -1,29 +1,40 @@
-import { useEffect } from 'react';
+import { useEffect, useCallback } from 'react';
 import { StoryBar } from '@/components/story/StoryBar';
 import { PostCard } from '@/components/post/PostCard';
 import { PostCardSkeleton } from '@/components/post/PostCardSkeleton';
+import { NewPostsBanner } from '@/components/layout/NewPostsBanner';
 import { usePosts } from '@/hooks/usePosts';
 import { useInfiniteScroll } from '@/hooks/useInfiniteScroll';
+import { useSignalRContext } from '@/hooks/useSignalRContext';
 import { Spinner } from '@/components/ui/Spinner';
 
 export default function HomePage() {
-  const { posts, isLoading, hasMore, loadMore, fetchPage, toggleLike } =
+  const { posts, isLoading, hasMore, loadMore, fetchPage, toggleLike, refresh } =
     usePosts('home');
   const { sentinelRef } = useInfiniteScroll({
     hasMore,
     isLoading,
     onLoadMore: loadMore,
   });
+  const { hasNewPosts, dismissNewPosts } = useSignalRContext();
 
   useEffect(() => {
     fetchPage(1);
   }, [fetchPage]);
+
+  const handleNewPosts = useCallback(() => {
+    refresh();
+    dismissNewPosts();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }, [refresh, dismissNewPosts]);
 
   const showSkeletons = isLoading && posts.length === 0;
 
   return (
     <div className="space-y-4">
       <StoryBar />
+
+      <NewPostsBanner visible={hasNewPosts} onRefresh={handleNewPosts} />
 
       {/* Post feed */}
       {showSkeletons && (

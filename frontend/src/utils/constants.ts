@@ -1,4 +1,4 @@
-export const API_URL = import.meta.env.VITE_API_URL as string ?? 'http://localhost:5000/api';
+export const API_URL = import.meta.env.API_BASE_URL as string ?? 'http://localhost:5174/api';
 export const SIGNALR_URL = import.meta.env.VITE_SIGNALR_URL as string ?? 'http://localhost:5000/hubs';
 
 export const AUTH_TOKEN_KEY = 'instory_token';
