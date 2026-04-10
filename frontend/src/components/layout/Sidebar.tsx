@@ -8,6 +8,7 @@ import {
   LogOut,
   Camera,
 } from 'lucide-react';
+import { toast } from 'sonner';
 import { cn } from '@/utils/cn';
 import { useAppSelector, useAppDispatch } from '@/store';
 import { logout } from '@/store/slices/authSlice';
@@ -119,7 +120,10 @@ export function Sidebar() {
       <div className="border-t border-border px-3 py-3">
         <button
           type="button"
-          onClick={() => dispatch(logout())}
+          onClick={() => {
+            toast.success('Hẹn gặp lại!');
+            dispatch(logout());
+          }}
           className="flex w-full cursor-pointer items-center gap-4 rounded-lg px-3 py-3 text-text-primary transition-colors hover:bg-border/30"
         >
           <LogOut className="h-6 w-6 shrink-0" />

@@ -6,7 +6,7 @@ import { Spinner } from '@/components/ui/Spinner';
 import { adminService } from '@/services/adminService';
 import { useAppSelector } from '@/store';
 import { timeAgo } from '@/utils/formatDate';
-import toast from 'react-hot-toast';
+import { toast } from 'sonner';
 import type { PostReport } from '@/types';
 
 export default function AdminPage() {

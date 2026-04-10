@@ -1,6 +1,6 @@
 import { useState, useRef, useCallback } from 'react';
 import { ImagePlus, X } from 'lucide-react';
-import toast from 'react-hot-toast';
+import { toast } from 'sonner';
 import { Modal } from '@/components/ui/Modal';
 import { Button } from '@/components/ui/Button';
 import { Avatar } from '@/components/ui/Avatar';

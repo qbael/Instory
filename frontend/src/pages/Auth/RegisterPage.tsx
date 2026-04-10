@@ -3,6 +3,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Link, useNavigate } from 'react-router';
 import { Eye, EyeOff } from 'lucide-react';
+import { toast } from 'sonner';
 import { useAuth } from '@/hooks/useAuth';
 import {
   registerSchema,
@@ -53,6 +54,7 @@ export default function RegisterPage() {
         password: data.password,
         fullName: data.fullName || undefined,
       });
+      toast.success('Đăng ký thành công! Hãy đăng nhập để tiếp tục.');
       navigate('/login', { replace: true });
     } catch {
       /* error stored in Redux */
@@ -118,7 +120,7 @@ export default function RegisterPage() {
                   onClick={() => setShowPassword((v) => !v)}
                   className="cursor-pointer text-text-secondary hover:text-text-primary"
                 >
-                  {showPassword ? (
+                  {!showPassword ? (
                     <EyeOff className="h-4 w-4" />
                   ) : (
                     <Eye className="h-4 w-4" />
@@ -162,7 +164,7 @@ export default function RegisterPage() {
                 onClick={() => setShowConfirm((v) => !v)}
                 className="cursor-pointer text-text-secondary hover:text-text-primary"
               >
-                {showConfirm ? (
+                {!showConfirm ? (
                   <EyeOff className="h-4 w-4" />
                 ) : (
                   <Eye className="h-4 w-4" />

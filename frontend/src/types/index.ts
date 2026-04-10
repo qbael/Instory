@@ -87,6 +87,17 @@ export interface StoryGroup {
   hasUnviewed: boolean;
 }
 
+// ─── Story Highlight ────────────────────────────────────────────────────────
+
+export interface StoryHighlight {
+  id: number;
+  userId: number;
+  title: string;
+  coverUrl: string | null;
+  stories: Story[];
+  createdAt: string;
+}
+
 // ─── Follow ──────────────────────────────────────────────────────────────────
 
 export interface Follow {

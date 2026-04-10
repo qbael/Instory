@@ -1,9 +1,37 @@
 import { useState, useCallback, useEffect, useRef } from 'react';
-import type { Post } from '@/types';
+import type { Post, User } from '@/types';
 import { postService } from '@/services/postService';
 import { DEFAULT_PAGE_SIZE } from '@/utils/constants';
 
 type FeedType = 'home' | { userId: number };
+
+// ── Mock posts (xóa khi backend sẵn sàng) ──────────────────────────────────
+
+const mockUser = (id: number, name: string): User => ({
+  id,
+  userName: name,
+  email: `${name}@example.com`,
+  fullName: null,
+  bio: null,
+  avatarUrl: `https://i.pravatar.cc/100?u=${name}`,
+  createdAt: new Date().toISOString(),
+  updatedAt: null,
+});
+
+const MOCK_POSTS: Post[] = Array.from({ length: 9 }, (_, i) => ({
+  id: i + 1,
+  userId: 1,
+  content: `Bài viết #${i + 1}`,
+  imageUrl: `https://picsum.photos/seed/post${i + 1}/600/600`,
+  createdAt: new Date(Date.now() - i * 86400000).toISOString(),
+  updatedAt: null,
+  user: mockUser(1, 'mindang'),
+  commentsCount: Math.floor(Math.random() * 30),
+  likesCount: Math.floor(Math.random() * 150) + 5,
+  sharesCount: 0,
+  isLiked: Math.random() > 0.5,
+  hashtags: [],
+}));
 
 export function usePosts(feedType: FeedType = 'home') {
   const [posts, setPosts] = useState<Post[]>([]);
@@ -38,6 +66,9 @@ export function usePosts(feedType: FeedType = 'home') {
         setHasMore(result.hasNextPage && result.items.length > 0);
         setPage(pageNum);
       } catch {
+        if (pageNum === 1) {
+          setPosts(MOCK_POSTS);
+        }
         setHasMore(false);
       } finally {
         fetchingRef.current = false;

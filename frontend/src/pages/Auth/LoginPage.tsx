@@ -3,6 +3,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Link, useNavigate, useLocation } from 'react-router';
 import { Eye, EyeOff } from 'lucide-react';
+import { toast } from 'sonner';
 import { useAuth } from '@/hooks/useAuth';
 import { loginSchema, type LoginFormData } from '@/utils/validators';
 import { Button } from '@/components/ui/Button';
@@ -33,10 +34,11 @@ export default function LoginPage() {
 
   const onSubmit = async (data: LoginFormData) => {
     try {
-      await login({
+      const result = await login({
         usernameOrEmail: data.usernameOrEmail,
         password: data.password,
       });
+      toast.success(`Xin chào, ${result.username}!`);
       navigate(from, { replace: true });
     } catch {
       /* error stored in Redux */
@@ -106,17 +108,6 @@ export default function LoginPage() {
             Đăng nhập
           </Button>
         </form>
-
-        {/* Divider */}
-        <div className="my-6 flex items-center gap-4">
-          <span className="h-px flex-1 bg-border" />
-          <span className="text-xs font-semibold text-text-secondary">HOẶC</span>
-          <span className="h-px flex-1 bg-border" />
-        </div>
-
-        <p className="text-center text-sm text-text-secondary">
-          Tiếp tục với tư cách khách — tính năng bị giới hạn.
-        </p>
       </div>
 
       {/* Register link card */}

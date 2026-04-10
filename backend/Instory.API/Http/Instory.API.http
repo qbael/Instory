@@ -30,6 +30,17 @@ Content-Type: application/json
 ###
 GET {{InstoryAPI_HostAddress}}/api/v1/auth
 
+###
+POST {{InstoryAPI_HostAddress}}/api/v1/auth/register
+Content-Type: application/json
+
+{
+  "username": "mindang",
+  "email": "mindang@gmail.com",
+  "password": "mindang",
+  "fullName": "Tran Minh Dang"
+}
+
 
 
 
