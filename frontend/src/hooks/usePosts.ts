@@ -42,6 +42,7 @@ export function usePosts(feedType: FeedType = 'home') {
 
   const userIdParam = feedType === 'home' ? null : feedType.userId;
 
+<<<<<<< HEAD
   const fetchPage = useCallback(
     async (pageNum: number) => {
       if (fetchingRef.current) return;
@@ -77,6 +78,45 @@ export function usePosts(feedType: FeedType = 'home') {
     },
     [userIdParam],
   );
+=======
+    const fetchPage = useCallback(
+        async (pageNum: number) => {
+            setIsLoading(true);
+            try {
+                const { data } =
+                    feedType === 'home'
+                        ? await postService.getFeed({
+                            pageNumber: pageNum,
+                            pageSize: DEFAULT_PAGE_SIZE,
+                        })
+                        : await postService.getUserPosts(feedType.userId, {
+                            pageNumber: pageNum,
+                            pageSize: DEFAULT_PAGE_SIZE,
+                        });
+
+                const result = data.data;
+
+                setPosts((prev) =>
+                    pageNum === 1 ? result.items : [...prev, ...result.items],
+                );
+                setHasMore(result.hasNextPage);
+                setPage(pageNum);
+            } catch (error: any) {
+                if (error.response?.status === 404) {
+                    console.warn('No posts found (404)');
+
+                    setHasMore(false);
+                    return;
+                }
+
+                console.error(error);
+            } finally {
+                setIsLoading(false);
+            }
+        },
+        [feedType],
+    );
+>>>>>>> 36d67bce02c34e55ec7f701d44e636068c6583a3
 
   const loadMore = useCallback(() => {
     if (!fetchingRef.current && hasMore) fetchPage(page + 1);

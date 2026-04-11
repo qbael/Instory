@@ -1,103 +1,51 @@
-using Instory.API.Data;
 using Instory.API.DTOs.Auth;
-using Instory.API.Helpers;
-using Instory.API.Models;
+using Instory.API.Services;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Instory.API.Controllers;
 
 [ApiController]
-[Route("api/v1/auth")]
+[Route("/api/v1/auth")]
 public class AuthController : ControllerBase
 {
-    private readonly UserManager<User> _userManager;
-    private readonly RoleManager<Role> _roleManager;
-    private readonly ITokenService _tokenService;
+    private readonly IAuthService _authService;
     private readonly IConfiguration _configuration;
-    private readonly InstoryDbContext _context;
-
-    public AuthController(
-        UserManager<User> userManager,
-        RoleManager<Role> roleManager,
-        ITokenService tokenService,
-        IConfiguration configuration,
-        InstoryDbContext context)
+    
+    public AuthController(IAuthService authService, IConfiguration configuration)
     {
-        _userManager = userManager;
-        _roleManager = roleManager;
-        _tokenService = tokenService;
+        _authService = authService;
         _configuration = configuration;
-        _context = context;
     }
 
     [HttpPost("register")]
-    public async Task<IActionResult> Register([FromBody] RegisterDto model)
+    public async Task<IActionResult> Register([FromBody] RegisterRequestDto model)
     {
         if (!ModelState.IsValid)
             return BadRequest(ModelState);
 
-        var existingUser = await _userManager.FindByEmailAsync(model.Email);
-        if (existingUser != null)
-            return BadRequest(new { Message = "Email is already in use" });
-
-        var existingUsername = await _userManager.FindByNameAsync(model.Username);
-        if (existingUsername != null)
-            return BadRequest(new { Message = "Username is already taken" });
-
-        var user = new User
-        {
-            UserName = model.Username,
-            Email = model.Email,
-            FullName = model.FullName
-        }; 
-
-        var result = await _userManager.CreateAsync(user, model.Password);
-
-        if (!result.Succeeded)
-        {
-            return BadRequest(new { Errors = result.Errors.Select(e => e.Description) });
-        }
-
-        if (await _roleManager.RoleExistsAsync("User"))
-        {
-            await _userManager.AddToRoleAsync(user, "User");
-        }
-
-        return Ok(new { Message = "User registered successfully" });
+        var result = await _authService.RegisterAsync(model);
+        
+        return StatusCode(result.StatusCode, new { result.Message });
     }
 
     [HttpPost("login")]
-    public async Task<IActionResult> Login([FromBody] LoginDto model)
+    public async Task<IActionResult> Login([FromBody] LoginRequestDto model)
     {
         if (!ModelState.IsValid)
             return BadRequest(ModelState);
 
-        var user = await _userManager.FindByNameAsync(model.UsernameOrEmail) ??
-                   await _userManager.FindByEmailAsync(model.UsernameOrEmail);
+        var result = await _authService.LoginAsync(model);
+        if (!result.Success) return StatusCode(result.StatusCode, new { result.Message });
 
-        if (user == null || !await _userManager.CheckPasswordAsync(user, model.Password))
-            return Unauthorized(new { Message = "Invalid credentials" });
+        AppendTokenCookies(result.Data!.Token, result.Data.RefreshToken, result.Data.ReshTokenValidityInDays);
 
-        var token = await _tokenService.GenerateTokenAsync(user);
-        var refreshToken = _tokenService.GenerateRefreshToken();
-
-        int.TryParse(_configuration["JwtSettings:RefreshTokenExpirationDays"] ?? "7", out int refreshTokenValidityInDays);
-
-        user.RefreshToken = refreshToken;
-        user.RefreshTokenExpiryTime = DateTime.UtcNow.AddDays(refreshTokenValidityInDays);
-
-        await _userManager.UpdateAsync(user);
-
-        AppendTokenCookies(token, refreshToken, refreshTokenValidityInDays);
-
-        return Ok(new
+        return Ok(new LoginResponseDto()
         {
-            Message = "Login successful",
-            UserId = user.Id,
-            Username = user.UserName!,
-            Email = user.Email!
+            Message = result.Message,
+            UserId = result.Data.User.Id,
+            Username = result.Data.User.UserName!,
+            Email = result.Data.User.Email!
         });
     }
 
@@ -108,31 +56,17 @@ public class AuthController : ControllerBase
         if (string.IsNullOrEmpty(refreshToken))
             return BadRequest(new { Message = "Invalid client request" });
 
-        var user = await Microsoft.EntityFrameworkCore.EntityFrameworkQueryableExtensions.FirstOrDefaultAsync(_context.Users, u => u.RefreshToken == refreshToken);
+        var result = await _authService.RefreshTokenAsync(refreshToken);
+        if (!result.Success) return StatusCode(result.StatusCode, new { result.Message });
+        
+        AppendTokenCookies(result.Data!.Token, result.Data.RefreshToken, result.Data.ReshTokenValidityInDays);
 
-        if (user == null || user.RefreshTokenExpiryTime <= DateTime.UtcNow)
+        return Ok(new LoginResponseDto()
         {
-            return BadRequest(new { Message = "Invalid client request" });
-        }
-
-        var newAccessToken = await _tokenService.GenerateTokenAsync(user);
-        var newRefreshToken = _tokenService.GenerateRefreshToken();
-
-        int.TryParse(_configuration["JwtSettings:RefreshTokenExpirationDays"] ?? "7", out int refreshTokenValidityInDays);
-
-        user.RefreshToken = newRefreshToken;
-        user.RefreshTokenExpiryTime = DateTime.UtcNow.AddDays(refreshTokenValidityInDays);
-
-        await _userManager.UpdateAsync(user);
-
-        AppendTokenCookies(newAccessToken, newRefreshToken, refreshTokenValidityInDays);
-
-        return Ok(new
-        {
-            Message = "Token refreshed successfully",
-            UserId = user.Id,
-            Username = user.UserName!,
-            Email = user.Email!
+            Message = result.Message,
+            UserId = result.Data.User.Id,
+            Username = result.Data.User.UserName!,
+            Email = result.Data.User.Email!
         });
     }
     
@@ -142,24 +76,24 @@ public class AuthController : ControllerBase
     {
         var userName = User.Identity?.Name;
         if (string.IsNullOrEmpty(userName)) return Unauthorized();
-
-        var user = await _userManager.FindByNameAsync(userName);
-        if (user == null) return NotFound();
-
+        
+        var result = await _authService.GetCurrentUserAsync(userName);
+        if (!result.Success) return StatusCode(result.StatusCode, new { result.Message });
+        
         return Ok(new
         {
-            user.Id,
-            user.UserName,
-            user.Email,
-            user.FullName,
-            user.Bio,
-            user.AvatarUrl
+            result.Data!.Id,
+            result.Data.UserName,
+            result.Data.Email,
+            result.Data.FullName,
+            result.Data.Bio,
+            result.Data.AvatarUrl
         });
     }
 
     [Authorize]
     [HttpPost("logout")]
-    public IActionResult Logout()
+    public async Task<IActionResult> Logout()
     {
         Response.Cookies.Delete("jwt");
         Response.Cookies.Delete("refreshToken");

@@ -1,12 +1,11 @@
-using System.ComponentModel.DataAnnotations;
+using Instory.API.Models;
 
 namespace Instory.API.DTOs.Auth;
 
-    public class LoginDto
-    {
-        [Required]
-        public string UsernameOrEmail { get; set; } = null!;
-
-        [Required]
-        public string Password { get; set; } = null!;
-    }
+public record LoginDto
+{
+    public string Token { get; init; } = null!;
+    public string RefreshToken { get; init; } = null!;
+    public User User { get; init; } = null!;
+    public int ReshTokenValidityInDays { get; init; }
+}

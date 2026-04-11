@@ -1,17 +1,17 @@
 @InstoryAPI_HostAddress = http://localhost:5174
 
-// Register a new user
+//AUTH SERVICES
 POST {{InstoryAPI_HostAddress}}/api/v1/auth/register
 Content-Type: application/json
 
 {
-  "username": "testusername",
-  "email": "testemail@gmail.com",
-  "password": "testpassword",
-  "fullName": "Test User"
+  "username": "testusername1",
+  "email": "testemail1@gmail.com",
+  "password": "testpassword1",
+  "fullName": "Test User 1"
 }
 ###
-// Login with the registered user
+
 POST {{InstoryAPI_HostAddress}}/api/v1/auth/login
 Content-Type: application/json
 
@@ -23,13 +23,18 @@ Content-Type: application/json
 > {%
     client.global.set("jwt", response.headers.valuesOf("Set-Cookie")[0]);
     client.global.set("refreshToken", response.headers.valuesOf("Set-Cookie")[1]);
-    
+
     console.log("Cookie saved:", client.global.get("jwt"));
     console.log("Refresh Token saved:", client.global.get("refreshToken"));
 %}
 ###
-GET {{InstoryAPI_HostAddress}}/api/v1/auth
+GET {{InstoryAPI_HostAddress}}/api/v1/auth/me
+###
+POST {{InstoryAPI_HostAddress}}/api/v1/auth/refresh
+###
+POST {{InstoryAPI_HostAddress}}/api/v1/auth/logout
 
+<<<<<<< HEAD
 ###
 POST {{InstoryAPI_HostAddress}}/api/v1/auth/register
 Content-Type: application/json
@@ -41,6 +46,56 @@ Content-Type: application/json
   "fullName": "Tran Minh Dang"
 }
 
+=======
+//CHAT SERVICES
+>>>>>>> 36d67bce02c34e55ec7f701d44e636068c6583a3
 
+### Get User Chats
+GET {{InstoryAPI_HostAddress}}/api/v1/chat
+Accept: application/json
 
+### Get or Create Direct Chat
+POST {{InstoryAPI_HostAddress}}/api/v1/chat/direct/2
+Accept: application/json
 
+### Create Group Chat
+POST {{InstoryAPI_HostAddress}}/api/v1/chat/group
+Accept: application/json
+Content-Type: application/json
+
+{
+  "name": "Super Cool Group",
+  "participantIds": [2]
+}
+
+### Get Chat Messages
+GET {{InstoryAPI_HostAddress}}/api/v1/chat/1/messages
+Accept: application/json
+
+### Send Message
+POST {{InstoryAPI_HostAddress}}/api/v1/chat/message
+Content-Type: application/json
+
+{
+  "chatId": 1,
+  "content": "Hello, this is a test message!"
+}
+
+### Send Media Message
+POST {{InstoryAPI_HostAddress}}/api/v1/chat/message/media
+Content-Type: multipart/form-data; boundary=WebAppBoundary
+
+--WebAppBoundary
+Content-Disposition: form-data; name="chatId"
+
+1
+--WebAppBoundary
+Content-Disposition: form-data; name="content"
+
+This is a test message with media
+--WebAppBoundary
+Content-Disposition: form-data; name="file"; filename="test-image.png"
+Content-Type: image/png
+
+< ./test-image.png
+--WebAppBoundary--

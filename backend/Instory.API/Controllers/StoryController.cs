@@ -1,11 +1,11 @@
 ﻿using Instory.API.DTOs.Story;
-using Instory.API.Services.impl;
+using Instory.API.Services;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Instory.API.Controllers;
 
 [ApiController]
-[Route("api/v1/story")]
+[Route("/api/v1/story")]
 public class StoryController(IStoryService service) : ControllerBase
 {
     [HttpGet]

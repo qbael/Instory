@@ -2,7 +2,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace Instory.API.DTOs.Auth;
 
-    public class RegisterDto
+    public class RegisterRequestDto
     {
         [Required]
         [StringLength(50, MinimumLength = 3)]

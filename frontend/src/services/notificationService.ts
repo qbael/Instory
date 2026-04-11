@@ -6,7 +6,7 @@ import type {
   PaginationParams,
 } from '@/types';
 
-const BASE = '/notifications';
+const BASE = 'v1/notifications';
 
 export const notificationService = {
   getAll(params?: PaginationParams) {
