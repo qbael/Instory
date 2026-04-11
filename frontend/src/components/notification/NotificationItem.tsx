@@ -1,7 +1,6 @@
 import { memo } from 'react';
 import { Link } from 'react-router';
 import { Heart, MessageCircle, UserPlus, Users, AtSign, Share2 } from 'lucide-react';
-import { Avatar } from '@/components/ui/Avatar';
 import { timeAgo } from '@/utils/formatDate';
 import { cn } from '@/utils/cn';
 import type { Notification, NotificationType } from '@/types';
