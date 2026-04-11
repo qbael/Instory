@@ -58,7 +58,7 @@ export const PostCard = memo(function PostCard({ post, onLikeToggle }: PostCardP
         <button
           type="button"
           className="cursor-pointer rounded-full p-1 text-text-secondary transition-colors hover:bg-border/30 hover:text-text-primary"
-          aria-label="More options"
+          aria-label="Thêm tùy chọn"
         >
           <MoreHorizontal className="h-5 w-5" />
         </button>
@@ -69,7 +69,7 @@ export const PostCard = memo(function PostCard({ post, onLikeToggle }: PostCardP
         <div className="aspect-square overflow-hidden bg-border">
           <img
             src={post.imageUrl}
-            alt={post.content ?? 'Post image'}
+            alt={post.content ?? 'Hình ảnh bài viết'}
             loading="lazy"
             className="h-full w-full object-cover"
           />

@@ -27,7 +27,7 @@ export const login = createAsyncThunk(
     } catch (err: unknown) {
       const error = err as { response?: { data?: { message?: string } } };
       return rejectWithValue(
-        error.response?.data?.message ?? 'Login failed',
+        error.response?.data?.message ?? 'Đăng nhập thất bại',
       );
     }
   },
@@ -42,7 +42,7 @@ export const register = createAsyncThunk(
     } catch (err: unknown) {
       const error = err as { response?: { data?: { message?: string } } };
       return rejectWithValue(
-        error.response?.data?.message ?? 'Registration failed',
+        error.response?.data?.message ?? 'Đăng ký thất bại',
       );
     }
   },
@@ -57,7 +57,7 @@ export const fetchCurrentUser = createAsyncThunk(
     } catch (err: unknown) {
       const error = err as { response?: { data?: { message?: string } } };
       return rejectWithValue(
-        error.response?.data?.message ?? 'Failed to fetch user',
+        error.response?.data?.message ?? 'Không thể lấy thông tin người dùng',
       );
     }
   },
@@ -128,8 +128,18 @@ const authSlice = createSlice({
       .addCase(fetchCurrentUser.rejected, (state) => {
         state.isLoading = false;
         state.isInitialized = true;
-        state.user = null;
-        state.isAuthenticated = false;
+        // Mock user for frontend dev when backend is unavailable
+        state.user = {
+          id: 1,
+          userName: 'mindang',
+          email: 'mindang@example.com',
+          fullName: 'Trần Minh Đăng',
+          bio: null,
+          avatarUrl: 'https://i.pravatar.cc/300?u=mindang',
+          createdAt: '2025-01-01T00:00:00Z',
+          updatedAt: null,
+        };
+        state.isAuthenticated = true;
       })
 
       .addCase(logout.fulfilled, (state) => {

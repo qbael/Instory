@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { Toaster } from 'react-hot-toast';
+import { Toaster } from 'sonner';
 import AppRouter from '@/router/AppRouter';
 import { useAppDispatch, useAppSelector } from '@/store';
 import { fetchCurrentUser } from '@/store/slices/authSlice';
@@ -19,20 +19,15 @@ export default function App() {
       <AppRouter />
       <Toaster
         position="top-right"
+        richColors
+        expand={false}
+        duration={3000}
         toastOptions={{
-          duration: 3000,
           style: {
-            background: '#fff',
-            color: '#262626',
-            borderRadius: '12px',
-            boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+            fontFamily:
+              '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
             fontSize: '14px',
-          },
-          success: {
-            iconTheme: { primary: '#58C322', secondary: '#fff' },
-          },
-          error: {
-            iconTheme: { primary: '#ED4956', secondary: '#fff' },
+            borderRadius: '12px',
           },
         }}
       />

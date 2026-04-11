@@ -2,7 +2,7 @@ import { useState, useRef, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useNavigate } from 'react-router';
-import toast from 'react-hot-toast';
+import { toast } from 'sonner';
 import { Camera } from 'lucide-react';
 import { Avatar } from '@/components/ui/Avatar';
 import { Button } from '@/components/ui/Button';
@@ -53,11 +53,11 @@ export default function EditProfilePage() {
     const file = e.target.files?.[0];
     if (!file) return;
     if (!ACCEPTED_IMAGE_TYPES.includes(file.type)) {
-      toast.error('Only JPEG, PNG, WebP and GIF are allowed');
+      toast.error('Chỉ chấp nhận ảnh JPEG, PNG, WebP và GIF');
       return;
     }
     if (file.size > MAX_IMAGE_SIZE_MB * 1024 * 1024) {
-      toast.error(`Image must be smaller than ${MAX_IMAGE_SIZE_MB}MB`);
+      toast.error(`Ảnh phải nhỏ hơn ${MAX_IMAGE_SIZE_MB}MB`);
       return;
     }
     setAvatarFile(file);
@@ -77,10 +77,10 @@ export default function EditProfilePage() {
 
       await userService.updateProfile(formData);
       await dispatch(fetchCurrentUser()).unwrap();
-      toast.success('Profile updated');
+      toast.success('Đã cập nhật hồ sơ');
       navigate(`/profile/${user?.id}`);
     } catch {
-      toast.error('Failed to update profile');
+      toast.error('Cập nhật hồ sơ thất bại');
     } finally {
       setIsSubmitting(false);
     }
@@ -88,7 +88,7 @@ export default function EditProfilePage() {
 
   return (
     <div className="mx-auto max-w-lg">
-      <h1 className="mb-6 text-xl font-semibold">Edit profile</h1>
+      <h1 className="mb-6 text-xl font-semibold">Chỉnh sửa hồ sơ</h1>
 
       {/* Avatar section */}
       <div className="mb-8 flex items-center gap-6 rounded-xl bg-bg-card/80 p-5">
@@ -113,7 +113,7 @@ export default function EditProfilePage() {
             onClick={() => fileRef.current?.click()}
             className="cursor-pointer text-sm font-semibold text-primary hover:text-primary-hover"
           >
-            Change profile photo
+            Thay đổi ảnh đại diện
           </button>
         </div>
         <input
@@ -129,19 +129,19 @@ export default function EditProfilePage() {
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
         <Input
           {...register('userName')}
-          label="Username"
+          label="Tên đăng nhập"
           error={errors.userName?.message}
         />
 
         <Input
           {...register('fullName')}
-          label="Name"
+          label="Họ và tên"
           error={errors.fullName?.message}
         />
 
         <div>
           <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-text-secondary">
-            Bio
+            Tiểu sử
           </label>
           <textarea
             {...register('bio')}
@@ -171,14 +171,14 @@ export default function EditProfilePage() {
 
         <div className="flex gap-3 pt-2">
           <Button type="submit" isLoading={isSubmitting}>
-            Submit
+            Lưu
           </Button>
           <Button
             type="button"
             variant="ghost"
             onClick={() => navigate(-1)}
           >
-            Cancel
+            Hủy
           </Button>
         </div>
       </form>

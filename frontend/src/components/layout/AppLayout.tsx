@@ -1,3 +1,4 @@
+import { useMemo } from 'react';
 import { Outlet } from 'react-router';
 import { Sidebar } from './Sidebar';
 import { TopBar } from './TopBar';
@@ -8,10 +9,14 @@ import { useSignalR } from '@/hooks/useSignalR';
 import { SignalRContext } from '@/hooks/useSignalRContext';
 
 export function AppLayout() {
-  const signalR = useSignalR();
+  const { hasNewPosts, dismissNewPosts } = useSignalR();
+  const signalRValue = useMemo(
+    () => ({ hasNewPosts, dismissNewPosts }),
+    [hasNewPosts, dismissNewPosts],
+  );
 
   return (
-    <SignalRContext.Provider value={signalR}>
+    <SignalRContext.Provider value={signalRValue}>
       <div className="min-h-screen bg-bg">
         <TopBar />
         <Sidebar />

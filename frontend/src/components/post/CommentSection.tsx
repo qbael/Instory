@@ -61,10 +61,10 @@ export function CommentSection({ postId, initialCount }: CommentSectionProps) {
         >
           {isLoading ? (
             <span className="flex items-center gap-2">
-              <Spinner size="sm" /> Loading…
+              <Spinner size="sm" /> Đang tải…
             </span>
           ) : (
-            `View all ${initialCount} comments`
+            `Xem tất cả ${initialCount} bình luận`
           )}
         </button>
       )}
@@ -108,7 +108,7 @@ export function CommentSection({ postId, initialCount }: CommentSectionProps) {
           type="text"
           value={newComment}
           onChange={(e) => setNewComment(e.target.value)}
-          placeholder="Add a comment…"
+          placeholder="Thêm bình luận…"
           maxLength={1000}
           className="flex-1 bg-transparent text-sm text-text-primary placeholder:text-text-secondary/70 focus:outline-none"
         />

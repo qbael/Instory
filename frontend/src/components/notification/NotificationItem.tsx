@@ -93,13 +93,13 @@ export const NotificationItem = memo(function NotificationItem({
 
 function notificationLabel(type: NotificationType): string {
   const labels: Record<NotificationType, string> = {
-    like: 'liked your post',
-    comment: 'commented on your post',
-    follow: 'started following you',
-    friend_request: 'sent you a friend request',
-    friend_accept: 'accepted your friend request',
-    post_share: 'shared your post',
-    mention: 'mentioned you in a comment',
+    like: 'đã thích bài viết của bạn',
+    comment: 'đã bình luận bài viết của bạn',
+    follow: 'đã bắt đầu theo dõi bạn',
+    friend_request: 'đã gửi lời mời kết bạn',
+    friend_accept: 'đã chấp nhận lời mời kết bạn',
+    post_share: 'đã chia sẻ bài viết của bạn',
+    mention: 'đã nhắc đến bạn trong bình luận',
   };
   return labels[type];
 }

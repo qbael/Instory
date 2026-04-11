@@ -54,7 +54,7 @@ export const UserCard = memo(function UserCard({
           onClick={handleFollow}
           isLoading={isLoading}
         >
-          {isFollowing ? 'Following' : 'Follow'}
+          {isFollowing ? 'Đang theo dõi' : 'Theo dõi'}
         </Button>
       )}
     </div>

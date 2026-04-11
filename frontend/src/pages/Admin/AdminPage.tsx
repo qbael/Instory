@@ -6,7 +6,7 @@ import { Spinner } from '@/components/ui/Spinner';
 import { adminService } from '@/services/adminService';
 import { useAppSelector } from '@/store';
 import { timeAgo } from '@/utils/formatDate';
-import toast from 'react-hot-toast';
+import { toast } from 'sonner';
 import type { PostReport } from '@/types';
 
 export default function AdminPage() {
@@ -32,9 +32,9 @@ export default function AdminPage() {
     try {
       await adminService.resolveReport(reportId, action);
       setReports((prev) => prev.filter((r) => r.id !== reportId));
-      toast.success(action === 'dismiss' ? 'Report dismissed' : 'Post removed');
+      toast.success(action === 'dismiss' ? 'Đã bỏ qua báo cáo' : 'Đã xóa bài viết');
     } catch {
-      toast.error('Action failed');
+      toast.error('Thao tác thất bại');
     }
   };
 
@@ -44,7 +44,7 @@ export default function AdminPage() {
     <div>
       <div className="mb-6 flex items-center gap-3">
         <ShieldCheck className="h-6 w-6 text-primary" />
-        <h1 className="text-xl font-semibold">Admin — Content Moderation</h1>
+        <h1 className="text-xl font-semibold">Quản trị — Kiểm duyệt nội dung</h1>
       </div>
 
       {isLoading && (
@@ -56,9 +56,9 @@ export default function AdminPage() {
       {!isLoading && reports.length === 0 && (
         <div className="py-20 text-center">
           <ShieldCheck className="mx-auto mb-3 h-12 w-12 text-success" />
-          <p className="text-lg font-semibold">All clear</p>
+          <p className="text-lg font-semibold">Tất cả ổn</p>
           <p className="mt-1 text-sm text-text-secondary">
-            No pending reports to review.
+            Không có báo cáo nào cần xem xét.
           </p>
         </div>
       )}
@@ -73,7 +73,7 @@ export default function AdminPage() {
             <div className="mb-3 flex items-center gap-2 text-sm text-text-secondary">
               <AlertTriangle className="h-4 w-4 text-warning" />
               <span>
-                Reported by{' '}
+                Được báo cáo bởi{' '}
                 <span className="font-semibold text-text-primary">
                   {report.reporter.userName}
                 </span>
@@ -123,7 +123,7 @@ export default function AdminPage() {
                 onClick={() => handleResolve(report.id, 'dismiss')}
               >
                 <Eye className="h-4 w-4" />
-                Dismiss
+                Bỏ qua
               </Button>
               <Button
                 variant="danger"
@@ -131,7 +131,7 @@ export default function AdminPage() {
                 onClick={() => handleResolve(report.id, 'remove_post')}
               >
                 <Trash2 className="h-4 w-4" />
-                Remove Post
+                Xóa bài viết
               </Button>
             </div>
           </div>

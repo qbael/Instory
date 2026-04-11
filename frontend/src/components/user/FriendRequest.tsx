@@ -48,7 +48,7 @@ export const FriendRequest = memo(function FriendRequest({
           >
             {request.requester.userName}
           </Link>{' '}
-          <span className="text-text-secondary">sent you a friend request</span>
+          <span className="text-text-secondary">đã gửi lời mời kết bạn cho bạn</span>
         </p>
         <p className="text-[11px] text-text-secondary">
           {timeAgo(request.createdAt)}
@@ -58,7 +58,7 @@ export const FriendRequest = memo(function FriendRequest({
       {status === 'pending' ? (
         <div className="flex gap-2">
           <Button size="sm" onClick={() => respond(true)} isLoading={isLoading}>
-            Accept
+            Chấp nhận
           </Button>
           <Button
             size="sm"
@@ -66,12 +66,12 @@ export const FriendRequest = memo(function FriendRequest({
             onClick={() => respond(false)}
             disabled={isLoading}
           >
-            Decline
+            Từ chối
           </Button>
         </div>
       ) : (
-        <span className="text-xs font-medium capitalize text-text-secondary">
-          {status}
+        <span className="text-xs font-medium text-text-secondary">
+          {status === 'accepted' ? 'Đã chấp nhận' : 'Đã từ chối'}
         </span>
       )}
     </div>

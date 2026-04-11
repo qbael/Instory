@@ -1,6 +1,6 @@
 import { useState, useRef, useCallback } from 'react';
 import { ImagePlus, X } from 'lucide-react';
-import toast from 'react-hot-toast';
+import { toast } from 'sonner';
 import { Modal } from '@/components/ui/Modal';
 import { Button } from '@/components/ui/Button';
 import { Avatar } from '@/components/ui/Avatar';
@@ -33,11 +33,11 @@ export function PostCreator() {
 
   const handleFileSelect = useCallback((file: File) => {
     if (!ACCEPTED_IMAGE_TYPES.includes(file.type)) {
-      toast.error('Only JPEG, PNG, WebP and GIF images are allowed');
+      toast.error('Chỉ chấp nhận ảnh JPEG, PNG, WebP và GIF');
       return;
     }
     if (file.size > MAX_IMAGE_SIZE_MB * 1024 * 1024) {
-      toast.error(`Image must be smaller than ${MAX_IMAGE_SIZE_MB}MB`);
+      toast.error(`Ảnh phải nhỏ hơn ${MAX_IMAGE_SIZE_MB}MB`);
       return;
     }
     setImageFile(file);
@@ -79,11 +79,11 @@ export function PostCreator() {
       if (imageFile) formData.append('image', imageFile);
 
       await postService.create(formData);
-      toast.success('Post created!');
+      toast.success('Đã tạo bài viết!');
       handleClose();
       window.dispatchEvent(new CustomEvent('post-created'));
     } catch {
-      toast.error('Failed to create post');
+      toast.error('Tạo bài viết thất bại');
     } finally {
       setIsSubmitting(false);
     }
@@ -93,7 +93,7 @@ export function PostCreator() {
     <Modal
       isOpen={isOpen}
       onClose={handleClose}
-      title="Create new post"
+      title="Tạo bài viết mới"
       size="md"
     >
       <div className="p-5">
@@ -111,7 +111,7 @@ export function PostCreator() {
         <textarea
           value={caption}
           onChange={(e) => setCaption(e.target.value)}
-          placeholder="Write a caption…"
+          placeholder="Viết chú thích…"
           maxLength={MAX_CAPTION}
           rows={4}
           className="w-full resize-none rounded-lg border border-border bg-bg px-3 py-2.5 text-sm text-text-primary placeholder:text-text-secondary/70 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
@@ -132,7 +132,7 @@ export function PostCreator() {
           <div className="relative mb-4 overflow-hidden rounded-lg">
             <img
               src={imagePreview}
-              alt="Preview"
+              alt="Xem trước"
               className="max-h-80 w-full object-contain bg-black/5"
             />
             <button
@@ -161,11 +161,11 @@ export function PostCreator() {
           >
             <ImagePlus className="mb-2 h-10 w-10 text-text-secondary" />
             <p className="text-sm font-medium text-text-secondary">
-              Drag photo here or{' '}
-              <span className="text-primary">browse</span>
+              Kéo ảnh vào đây hoặc{' '}
+              <span className="text-primary">duyệt</span>
             </p>
             <p className="mt-1 text-xs text-text-secondary/60">
-              JPEG, PNG, WebP, GIF up to {MAX_IMAGE_SIZE_MB}MB
+              JPEG, PNG, WebP, GIF tối đa {MAX_IMAGE_SIZE_MB}MB
             </p>
           </div>
         )}
@@ -186,7 +186,7 @@ export function PostCreator() {
           isLoading={isSubmitting}
           disabled={!caption.trim() && !imageFile}
         >
-          Share
+          Đăng
         </Button>
       </div>
     </Modal>
