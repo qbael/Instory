@@ -22,6 +22,8 @@ namespace Instory.API.Data;
         public DbSet<Chat> Chats => Set<Chat>();
         public DbSet<ChatParticipant> ChatParticipants => Set<ChatParticipant>();
         public DbSet<Message> Messages => Set<Message>();
+
+        public DbSet<HashtagTrend> HashtagTrends => Set<HashtagTrend>();
  
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -89,6 +91,35 @@ namespace Instory.API.Data;
                 .WithMany(u => u.Messages)
                 .HasForeignKey(m => m.SenderId)
                 .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<HashtagTrend>(builder =>
+            {
+                builder.ToTable("hashtagtrend");
+
+                builder.HasKey(x => x.Id);
+
+                builder.Property(x => x.HashtagId)
+                    .HasColumnName("hashtag_id")
+                    .IsRequired();
+
+                builder.Property(x => x.Date)
+                    .HasColumnName("date")
+                    .HasColumnType("date")
+                    .IsRequired();
+
+                builder.Property(x => x.PostCount)
+                    .HasColumnName("post_count")
+                    .HasDefaultValue(0);
+
+                
+                builder.HasOne(x => x.Hashtag)
+                    .WithMany(h => h.HashtagTrends)
+                    .HasForeignKey(x => x.HashtagId);
+            
+                builder.HasIndex(x => new { x.HashtagId, x.Date })
+                    .IsUnique();
+
+            });
         }
         
         public override int SaveChanges()

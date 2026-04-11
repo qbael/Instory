@@ -21,6 +21,24 @@ public class Post : BaseEntity
     [Column("image_url")]
     public string? ImageUrl { get; set; }
  
+    [Column("like_count")]
+    public int LikeCount { get; set; } = 0;
+
+    [Column("comment_count")]
+    public int CommentCount { get; set; } = 0;
+
+    [Column("share_count")]
+    public int ShareCount { get; set; } = 0;
+
+    [Column("allow_comment")]
+    public bool AllowComment { get; set; } = true;
+
+    [Column("is_deleted")]
+    public bool IsDeleted { get; set; } = false;
+
+    [Column("deleted_at")]
+    public DateTime? DeletedAt { get; set; }
+
     [ForeignKey(nameof(UserId))]
     public User User { get; set; } = null!;
  
