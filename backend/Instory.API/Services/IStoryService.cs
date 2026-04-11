@@ -2,7 +2,7 @@
 using Instory.API.DTOs.StoryDtos;
 using Instory.API.Helpers;
 
-namespace Instory.API.Services.impl;
+namespace Instory.API.Services;
 
 public interface IStoryService
 {

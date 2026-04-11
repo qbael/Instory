@@ -42,4 +42,6 @@ namespace Instory.API.Models;
         public ICollection<SharePost> SharedPosts { get; set; } = new List<SharePost>();
         public ICollection<PostReport> PostReports { get; set; } = new List<PostReport>();
         public ICollection<Notification> Notifications { get; set; } = new List<Notification>();
+        public ICollection<ChatParticipant> ChatParticipants { get; set; } = new List<ChatParticipant>();
+        public ICollection<Message> Messages { get; set; } = new List<Message>();
     }

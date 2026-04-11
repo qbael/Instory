@@ -8,7 +8,7 @@ import type {
   Post,
 } from '@/types';
 
-const BASE = '/posts';
+const BASE = 'v1/posts';
 
 export const postService = {
   getFeed(params?: PaginationParams) {

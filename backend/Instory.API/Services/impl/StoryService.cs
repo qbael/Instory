@@ -1,30 +1,24 @@
-﻿using Instory.API.Data;
 using Instory.API.DTOs.Story;
 using Instory.API.DTOs.StoryDtos;
+using Instory.API.Exceptions;
 using Instory.API.Helpers;
 using Instory.API.Models;
-using Instory.API.Services.impl;
-using Instory.API.Exceptions;
-using Microsoft.EntityFrameworkCore;
+using Instory.API.Repositories;
 
-namespace Instory.API.Services;
+namespace Instory.API.Services.impl;
 
-public class StoryService(InstoryDbContext db) : IStoryService 
+public class StoryService(IStoryRepository storyRepository) : IStoryService 
 {
     public async Task<PaginatedResult<StoryResponseDto>> GetAllAsync(int page, int pageSize)
     {
-        var result = await db.Stories
-            .AsNoTracking()
-            .OrderBy(s => s.CreatedAt)
-            .ToPaginatedResultAsync(page, pageSize);
+        var result = await storyRepository.GetStoriesPaginatedAsync(page, pageSize);
             
-        return result.Map(StoryResponseDto.FromEntity);    }
+        return result.Map(StoryResponseDto.FromEntity);
+    }
 
     public async Task<StoryResponseDto> GetByIdAsync(int id)
     {
-        var story = await db.Stories
-            .AsSingleQuery()
-            .FirstOrDefaultAsync(story => story.Id == id);
+        var story = await storyRepository.GetByIdAsync(id);
         
         if (story == null)
             throw new NotFoundException("Story not found with id: " + id);
@@ -42,19 +36,19 @@ public class StoryService(InstoryDbContext db) : IStoryService
             ExpiresAt = DateTime.UtcNow.AddHours(24),
         };
             
-        db.Stories.Add(story);
-        await db.SaveChangesAsync();
+        await storyRepository.AddAsync(story);
+        await storyRepository.SaveChangesAsync();
         return StoryResponseDto.FromEntity(story);
     }
 
     public async Task<bool> DeleteByIdAsync(int id)
     {
-        var story = await db.Stories.FirstOrDefaultAsync(story => story.Id == id);
+        var story = await storyRepository.GetByIdAsync(id);
         if (story == null)
-            return  false;
+            return false;
 
         story.IsDeleted = true;
-        await db.SaveChangesAsync();
+        await storyRepository.SaveChangesAsync();
         return true;
     }
-}   
+}

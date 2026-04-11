@@ -1,7 +1,7 @@
 import api from './api';
 import type { ApiResponse, Story, StoryGroup } from '@/types';
 
-const BASE = '/stories';
+const BASE = 'v1/stories';
 
 export const storyService = {
   getFeed() {

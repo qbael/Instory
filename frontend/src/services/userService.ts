@@ -10,7 +10,7 @@ import type {
   SearchResults,
 } from '@/types';
 
-const BASE = '/users';
+const BASE = 'v1/users';
 
 export const userService = {
   getProfile(username: string) {

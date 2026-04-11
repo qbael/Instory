@@ -19,6 +19,9 @@ namespace Instory.API.Data;
         public DbSet<Hashtag> Hashtags => Set<Hashtag>();
         public DbSet<PostHashtag> PostHashtags => Set<PostHashtag>();
         public DbSet<Notification> Notifications => Set<Notification>();
+        public DbSet<Chat> Chats => Set<Chat>();
+        public DbSet<ChatParticipant> ChatParticipants => Set<ChatParticipant>();
+        public DbSet<Message> Messages => Set<Message>();
  
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -59,6 +62,33 @@ namespace Instory.API.Data;
             modelBuilder.Entity<PostHashtag>()
                 .HasIndex(ph => new { ph.PostId, ph.HashtagId })
                 .IsUnique();
+
+            modelBuilder.Entity<ChatParticipant>()
+                .HasKey(cp => new { cp.ChatId, cp.UserId });
+
+            modelBuilder.Entity<ChatParticipant>()
+                .HasOne(cp => cp.Chat)
+                .WithMany(c => c.Participants)
+                .HasForeignKey(cp => cp.ChatId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<ChatParticipant>()
+                .HasOne(cp => cp.User)
+                .WithMany(u => u.ChatParticipants)
+                .HasForeignKey(cp => cp.UserId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<Message>()
+                .HasOne(m => m.Chat)
+                .WithMany(c => c.Messages)
+                .HasForeignKey(m => m.ChatId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<Message>()
+                .HasOne(m => m.Sender)
+                .WithMany(u => u.Messages)
+                .HasForeignKey(m => m.SenderId)
+                .OnDelete(DeleteBehavior.Restrict);
         }
         
         public override int SaveChanges()

@@ -1,7 +1,7 @@
 import api from './api';
 import type { ApiResponse, PaginatedResponse, PaginationParams, PostReport } from '@/types';
 
-const BASE = '/admin';
+const BASE = 'v1/admin';
 
 export const adminService = {
   getReports(params?: PaginationParams) {

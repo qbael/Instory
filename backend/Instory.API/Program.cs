@@ -9,6 +9,9 @@ using Instory.API.Exceptions;
 using Instory.API.Helpers;
 using Instory.API.Services;
 using Instory.API.Services.impl;
+using Amazon.S3;
+using Instory.API.Hubs;
+using Instory.API.Repositories.impl;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -16,6 +19,7 @@ builder.Services.AddOpenApi();
 
 builder.Services.AddValidation();
 builder.Services.AddControllers();
+builder.Services.AddSignalR();
 
 builder.Services.AddDbContext<InstoryDbContext>(options =>
     options.UseNpgsql(
@@ -55,7 +59,14 @@ builder.Services.AddAuthentication(options =>
     {
         OnMessageReceived = context =>
         {
-            if (context.Request.Cookies.TryGetValue("jwt", out var accessToken))
+            var accessTokenQuery = context.Request.Query["access_token"];
+            var path = context.HttpContext.Request.Path;
+            
+            if (!string.IsNullOrEmpty(accessTokenQuery) && path.StartsWithSegments("/hubs/chat"))
+            {
+                context.Token = accessTokenQuery;
+            }
+            else if (context.Request.Cookies.TryGetValue("jwt", out var accessToken))
             {
                 context.Token = accessToken;
             }
@@ -67,8 +78,19 @@ builder.Services.AddAuthentication(options =>
 builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
 builder.Services.AddProblemDetails();      
 
+builder.Services.AddScoped(typeof(Instory.API.Repositories.IRepository<>), typeof(Repository<>));
+builder.Services.AddScoped<Instory.API.Repositories.IUserRepository, UserRepository>();
+builder.Services.AddScoped<Instory.API.Repositories.IStoryRepository, StoryRepository>();
+builder.Services.AddScoped<Instory.API.Repositories.IChatRepository, ChatRepository>();
+
 builder.Services.AddScoped<ITokenService, TokenService>();
 builder.Services.AddScoped<IStoryService, StoryService>();
+
+// builder.Services.Configure<AwsSettings>(builder.Configuration.GetSection("AWS"));
+// builder.Services.AddAWSService<IAmazonS3>();
+// builder.Services.AddScoped<IMediaService, MediaService>();
+builder.Services.AddScoped<IChatService, ChatService>();
+builder.Services.AddScoped<IAuthService, AuthService>();
 
 var app = builder.Build();
 
@@ -90,6 +112,7 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
+app.MapHub<ChatHub>("/hubs/chat");
 app.MigrateDb();
 await app.SeedRolesAsync();  
 

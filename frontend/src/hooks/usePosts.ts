@@ -11,33 +11,43 @@ export function usePosts(feedType: FeedType = 'home') {
   const [hasMore, setHasMore] = useState(true);
   const [page, setPage] = useState(1);
 
-  const fetchPage = useCallback(
-    async (pageNum: number) => {
-      setIsLoading(true);
-      try {
-        const { data } =
-          feedType === 'home'
-            ? await postService.getFeed({
-                pageNumber: pageNum,
-                pageSize: DEFAULT_PAGE_SIZE,
-              })
-            : await postService.getUserPosts(feedType.userId, {
-                pageNumber: pageNum,
-                pageSize: DEFAULT_PAGE_SIZE,
-              });
+    const fetchPage = useCallback(
+        async (pageNum: number) => {
+            setIsLoading(true);
+            try {
+                const { data } =
+                    feedType === 'home'
+                        ? await postService.getFeed({
+                            pageNumber: pageNum,
+                            pageSize: DEFAULT_PAGE_SIZE,
+                        })
+                        : await postService.getUserPosts(feedType.userId, {
+                            pageNumber: pageNum,
+                            pageSize: DEFAULT_PAGE_SIZE,
+                        });
 
-        const result = data.data;
-        setPosts((prev) =>
-          pageNum === 1 ? result.items : [...prev, ...result.items],
-        );
-        setHasMore(result.hasNextPage);
-        setPage(pageNum);
-      } finally {
-        setIsLoading(false);
-      }
-    },
-    [feedType],
-  );
+                const result = data.data;
+
+                setPosts((prev) =>
+                    pageNum === 1 ? result.items : [...prev, ...result.items],
+                );
+                setHasMore(result.hasNextPage);
+                setPage(pageNum);
+            } catch (error: any) {
+                if (error.response?.status === 404) {
+                    console.warn('No posts found (404)');
+
+                    setHasMore(false);
+                    return;
+                }
+
+                console.error(error);
+            } finally {
+                setIsLoading(false);
+            }
+        },
+        [feedType],
+    );
 
   const loadMore = useCallback(() => {
     if (!isLoading && hasMore) fetchPage(page + 1);
