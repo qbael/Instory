@@ -19,4 +19,15 @@ public class StoryRepository : Repository<Story>, IStoryRepository
             pageSize
         );
     }
+
+    public async Task<List<Story>> GetFeedStoriesAsync()
+    {
+        return await _dbSet
+            .AsNoTracking()
+            .Where(s => !s.IsDeleted && s.ExpiresAt > DateTime.UtcNow)
+            .Include(s => s.User)
+            .Include(s => s.StoryViews)
+            .OrderBy(s => s.CreatedAt)
+            .ToListAsync();
+    }
 }

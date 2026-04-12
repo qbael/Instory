@@ -7,4 +7,5 @@ namespace Instory.API.Repositories;
 public interface IStoryRepository : IRepository<Story>
 {
     Task<PaginatedResult<Story>> GetStoriesPaginatedAsync(int page, int pageSize);
+    Task<List<Story>> GetFeedStoriesAsync();
 }

@@ -17,6 +17,37 @@ public class StoryService: IStoryService
     {
         _storyRepository = storyRepository;
     }
+    public async Task<List<StoryGroupDto>> GetFeedAsync(int currentUserId)
+    {
+        var stories = await _storyRepository.GetFeedStoriesAsync();
+
+        return stories
+            .GroupBy(s => s.UserId)
+            .Select(g =>
+            {
+                var u = g.First().User;
+                var userDto = new StoryFeedUserDto(
+                    u.Id, u.UserName!, u.Email, u.FullName, u.Bio, u.AvatarUrl,
+                    u.CreatedAt, u.UpdatedAt
+                );
+
+                var items = g.Select(s => new StoryFeedItemDto(
+                    s.Id,
+                    s.UserId,
+                    s.MediaUrl,
+                    s.Caption,
+                    s.ExpiresAt,
+                    s.CreatedAt,
+                    userDto,
+                    s.StoryViews.Count,
+                    s.StoryViews.Any(v => v.ViewerId == currentUserId)
+                )).ToList();
+
+                return new StoryGroupDto(userDto, items, items.Any(i => !i.IsViewed));
+            })
+            .ToList();
+    }
+
     public async Task<PaginatedResult<StoryResponseDto>> GetAllAsync(int page, int pageSize)
     {
         var result = await _storyRepository.GetStoriesPaginatedAsync(page, pageSize);

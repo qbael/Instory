@@ -94,6 +94,7 @@ builder.Services.AddScoped(typeof(Instory.API.Repositories.IRepository<>), typeo
 builder.Services.AddScoped<Instory.API.Repositories.IUserRepository, UserRepository>();
 builder.Services.AddScoped<Instory.API.Repositories.IStoryRepository, StoryRepository>();
 builder.Services.AddScoped<Instory.API.Repositories.IChatRepository, ChatRepository>();
+builder.Services.AddScoped<Instory.API.Repositories.IFriendshipRepository, FriendshipRepository>();
 
 builder.Services.AddScoped<ITokenService, TokenService>();
 builder.Services.AddScoped<IStoryService, StoryService>();
@@ -104,6 +105,7 @@ builder.Services.AddScoped<IMediaService, MediaService>();
 builder.Services.AddScoped<IChatService, ChatService>();
 builder.Services.AddScoped<IProfileService, ProfileService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
+builder.Services.AddScoped<IFriendshipService, FriendshipService>();
 
 var app = builder.Build();
 

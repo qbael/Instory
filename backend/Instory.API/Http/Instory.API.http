@@ -15,6 +15,16 @@ POST {{InstoryAPI_HostAddress}}/api/v1/auth/register
 Content-Type: application/json
 
 {
+  "username": "mindang",
+  "email": "mindang@gmail.com",
+  "password": "mindang",
+  "fullName": "Trần Minh Đăng"
+}
+###
+POST {{InstoryAPI_HostAddress}}/api/v1/auth/register
+Content-Type: application/json
+
+{
   "username": "quocbao",
   "email": "quocbao@gmail.com",
   "password": "quocbao",

@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+using System.Threading.Tasks;
 using Instory.API.DTOs.Friendship;
 
 namespace Instory.API.Services;

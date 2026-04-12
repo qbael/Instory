@@ -20,9 +20,9 @@ public record UserProfileDto
     public static UserProfileDto FromUser(User user, int currentUserId)
     {
         var friendsCount = user.SentFriendRequests
-                               .Count(f => f.Status == Models.Enums.FriendshipStatus.ACCEPTED)
+                               .Count(f => f.Status == Models.Enums.FriendshipStatus.Accepted)
                            + user.ReceivedFriendRequests
-                               .Count(f => f.Status == Models.Enums.FriendshipStatus.ACCEPTED);
+                               .Count(f => f.Status == Models.Enums.FriendshipStatus.Accepted);
 
         return new UserProfileDto
         {

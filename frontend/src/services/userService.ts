@@ -31,29 +31,29 @@ export const userService = {
   },
 
   sendFriendRequest(userId: number) {
-    return api.post<Friendship>(`v1/users/${userId}/friend-request`);
+    return api.post<Friendship>(`v1/friendship/${userId}/friend-request`);
   },
 
   cancelFriendRequest(userId: number) {
-    return api.delete(`v1/users/${userId}/friend-request`);
+    return api.delete(`v1/friendship/${userId}/friend-request`);
   },
 
   unfriend(userId: number) {
-    return api.delete(`v1/users/${userId}/friend`);
+    return api.delete(`v1/friendship/${userId}/friend`);
   },
 
   respondFriendRequest(requestId: number, accept: boolean) {
-    return api.put(`v1/friendships/${requestId}`, {
+    return api.patch(`v1/friendship/${requestId}`, {
       status: accept ? 'accepted' : 'declined',
     });
   },
 
   getFriendRequests(params?: PaginationParams) {
-    return api.get<PaginatedResponse<Friendship>>('v1/friendships/requests', { params });
+    return api.get<PaginatedResponse<Friendship>>('v1/friendship/requests', { params });
   },
 
   getSentFriendRequests(params?: PaginationParams) {
-    return api.get<PaginatedResponse<Friendship>>('v1/friendships/sent', { params });
+    return api.get<PaginatedResponse<Friendship>>('v1/friendship/sent', { params });
   },
 
   search(params: SearchParams) {

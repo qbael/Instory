@@ -1,7 +1,9 @@
+using System.Security.Claims;
 using Instory.API.DTOs.Story;
 using Instory.API.DTOs.StoryDtos;
 using Instory.API.Helpers;
 using Instory.API.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Instory.API.Controllers;
@@ -18,9 +20,11 @@ public class StoryController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<IActionResult> GetAll([FromQuery] int page = 1, [FromQuery] int pageSize = 10)
+    [Authorize]
+    public async Task<IActionResult> GetFeed()
     {
-        var result = await _storyService.GetAllAsync(page, pageSize);
+        var currentUserId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+        var result = await _storyService.GetFeedAsync(currentUserId);
         return Ok(result);
     }
 
