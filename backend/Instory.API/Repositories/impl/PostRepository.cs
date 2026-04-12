@@ -14,7 +14,7 @@ public class PostRepository : Repository<Post>, IPostRepository
     {
         return await _dbSet
             .Include(p => p.User)
-            .Where(p => !p.IsDeleted)
+            .Where(p => p.IsDeleted == false)
             .OrderByDescending(p => p.CreatedAt)
             .ToListAsync();
     }

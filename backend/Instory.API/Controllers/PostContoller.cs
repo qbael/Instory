@@ -1,3 +1,4 @@
+using System.Security.Claims;
 using Instory.API.DTOs;
 using Instory.API.Services;
 using Microsoft.AspNetCore.Mvc;
@@ -5,7 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace Instory.API.Controllers;
 
 [ApiController]
-[Route("/api/v1/post")]
+[Route("/api/v1/posts")]
 
 public class PostController : ControllerBase
 {
@@ -18,7 +19,7 @@ public class PostController : ControllerBase
 
 
     [HttpGet]
-    public async Task<IActionResult> GetALl()
+    public async Task<IActionResult> GetAll()
     {
         var result = await _postService.GetAllPostsAsync();
         return Ok(result);
@@ -38,7 +39,8 @@ public class PostController : ControllerBase
     [HttpPost]
     public async Task<IActionResult> Create([FromBody] CreatePostRequestDTO request)
     {
-        var result = await _postService.CreatePostAsync(1, request);
+        // var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
+        var result = await _postService.CreatePostAsync(request.UserId, request);
 
         return Ok(result);
     }

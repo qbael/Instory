@@ -1,0 +1,21 @@
+@InstoryAPI_HostAddress = http://localhost:5174
+
+GET {{InstoryAPI_HostAddress}}/api/v1/posts
+###
+GET {{InstoryAPI_HostAddress}}/api/v1/posts/1
+###
+POST {{InstoryAPI_HostAddress}}/api/v1/posts
+Content-Type: application/json
+
+{
+    "UserId": 1,
+    "Content": "Đây là bài viết test đầu tiên",
+    "ImageUrl": "https://example.com/image.jpg",
+    "AllowComment": true
+}
+
+###
+POST {{InstoryAPI_HostAddress}}/api/v1/posts/1/like
+
+###
+DELETE  {{InstoryAPI_HostAddress}}/api/v1/posts/comments/5

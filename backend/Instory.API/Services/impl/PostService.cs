@@ -14,7 +14,10 @@ public class PostService : IPostService
     public async Task<IEnumerable<PostResponseDTO>> GetAllPostsAsync()
     {
         var posts = await _postRepository.GetPostsWithUserAsync();
-        return posts.Select(MapToResonseDTO);
+        if (posts == null)
+            return new List<PostResponseDTO>();
+
+        return posts.Select(MapToResponseDTO);
     }
 
     public async Task<PostResponseDTO> CreatePostAsync(int userId, CreatePostRequestDTO request)
@@ -30,7 +33,7 @@ public class PostService : IPostService
         await _postRepository.AddAsync(post);
         await _postRepository.SaveChangesAsync();
 
-        return MapToResonseDTO(post);
+        return MapToResponseDTO(post);
     }
 
     public async Task<PostResponseDTO> GetPostByIdAsync(int id)
@@ -38,11 +41,11 @@ public class PostService : IPostService
         var post = await _postRepository.GetByIdAsync(id);
         if (post == null)
         {
-            throw new Exception("Post not found");
+            return null;
         }
-        return MapToResonseDTO(post);
+        return MapToResponseDTO(post);
     }
-    private static PostResponseDTO MapToResonseDTO(Post post)
+    private static PostResponseDTO MapToResponseDTO(Post post)
     {
         return new PostResponseDTO
         {
