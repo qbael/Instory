@@ -1,5 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using Instory.API.Models.Enums;
 
 namespace Instory.API.Models;
 
@@ -15,10 +16,9 @@ public class Friendship : BaseEntity
  
     [Column("addressee_id")]
     public int AddresseeId { get; set; }
- 
-    [MaxLength(20)]
+    
     [Column("status")]
-    public string? Status { get; set; }
+    public FriendshipStatus Status { get; set; } = FriendshipStatus.Pending;
  
     [ForeignKey(nameof(RequesterId))]
     public User Requester { get; set; } = null!;

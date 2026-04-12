@@ -149,7 +149,7 @@ const PostGrid = memo(function PostGrid({ posts }: { posts: Post[] }) {
       {posts.map((post) => (
         <Link
           key={post.id}
-          to={`/profile/${post.userId}`}
+          to={`/profile/${post.user.userName}`}
           className="group relative aspect-square overflow-hidden rounded bg-border"
         >
           {post.imageUrl ? (

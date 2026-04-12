@@ -1,3 +1,4 @@
+using System;
 using Instory.API.Data;
 using Instory.API.Models;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -5,6 +6,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
+using System.Threading.Tasks;
 using Instory.API.Exceptions;
 using Instory.API.Helpers;
 using Instory.API.Services;
@@ -12,13 +14,23 @@ using Instory.API.Services.impl;
 using Amazon.S3;
 using Instory.API.Hubs;
 using Instory.API.Repositories.impl;
+using Microsoft.AspNetCore.Builder;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddOpenApi();
 
 builder.Services.AddValidation();
-builder.Services.AddControllers();
+builder.Services.AddControllers()
+    .AddJsonOptions(opts =>
+    {
+        opts.JsonSerializerOptions.Converters.Add(
+            new System.Text.Json.Serialization.JsonStringEnumConverter()
+        );
+    });
 builder.Services.AddSignalR();
 
 builder.Services.AddDbContext<InstoryDbContext>(options =>
@@ -86,10 +98,11 @@ builder.Services.AddScoped<Instory.API.Repositories.IChatRepository, ChatReposit
 builder.Services.AddScoped<ITokenService, TokenService>();
 builder.Services.AddScoped<IStoryService, StoryService>();
 
-// builder.Services.Configure<AwsSettings>(builder.Configuration.GetSection("AWS"));
-// builder.Services.AddAWSService<IAmazonS3>();
-// builder.Services.AddScoped<IMediaService, MediaService>();
+builder.Services.Configure<AwsSettings>(builder.Configuration.GetSection("AWS"));
+builder.Services.AddAWSService<IAmazonS3>();
+builder.Services.AddScoped<IMediaService, MediaService>();
 builder.Services.AddScoped<IChatService, ChatService>();
+builder.Services.AddScoped<IProfileService, ProfileService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 
 var app = builder.Build();

@@ -1,4 +1,6 @@
-﻿namespace Instory.API.DTOs.StoryDtos;
+﻿using System;
+
+namespace Instory.API.DTOs.StoryDtos;
 
 public record StoryResponseDto(
     int Id,

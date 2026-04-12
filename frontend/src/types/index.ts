@@ -13,9 +13,7 @@ export interface User {
 
 export interface UserProfile extends User {
   postsCount: number;
-  followersCount: number;
-  followingCount: number;
-  isFollowing: boolean;
+  friendsCount: number;
   friendshipStatus: FriendshipStatus | null;
 }
 
@@ -98,15 +96,6 @@ export interface StoryHighlight {
   createdAt: string;
 }
 
-// ─── Follow ──────────────────────────────────────────────────────────────────
-
-export interface Follow {
-  id: number;
-  followerId: number;
-  followingId: number;
-  createdAt: string;
-}
-
 // ─── Friendship ──────────────────────────────────────────────────────────────
 
 export type FriendshipStatus = 'pending' | 'accepted' | 'declined';
@@ -126,7 +115,6 @@ export interface Friendship {
 export type NotificationType =
   | 'like'
   | 'comment'
-  | 'follow'
   | 'friend_request'
   | 'friend_accept'
   | 'post_share'
@@ -199,13 +187,6 @@ export interface AuthResponse {
 }
 
 // ─── API Response Wrappers ───────────────────────────────────────────────────
-
-export interface ApiResponse<T> {
-  data: T;
-  success: boolean;
-  message: string | null;
-  errors: string[];
-}
 
 export interface PaginatedResponse<T> {
   items: T[];

@@ -25,7 +25,7 @@ export const fetchNotifications = createAsyncThunk(
       pageNumber: page,
       pageSize: 20,
     });
-    return { page, ...data.data };
+    return { page, ...data };
   },
 );
 
@@ -33,7 +33,7 @@ export const fetchUnreadCount = createAsyncThunk(
   'notification/fetchUnreadCount',
   async () => {
     const { data } = await notificationService.getUnreadCount();
-    return data.data;
+    return data;
   },
 );
 

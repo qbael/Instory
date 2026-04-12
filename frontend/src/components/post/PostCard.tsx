@@ -37,7 +37,7 @@ export const PostCard = memo(function PostCard({ post, onLikeToggle }: PostCardP
     <article className="overflow-hidden rounded-lg border border-border bg-bg-card">
       {/* Header */}
       <div className="flex items-center gap-3 px-3 py-2.5">
-        <Link to={`/profile/${post.userId}`}>
+        <Link to={`/profile/${post.user.userName}`}>
           <Avatar
             src={post.user.avatarUrl}
             alt={post.user.fullName ?? post.user.userName}
@@ -46,7 +46,7 @@ export const PostCard = memo(function PostCard({ post, onLikeToggle }: PostCardP
         </Link>
         <div className="min-w-0 flex-1">
           <Link
-            to={`/profile/${post.userId}`}
+            to={`/profile/${post.user.userName}`}
             className="block truncate text-sm font-semibold text-text-primary no-underline hover:underline"
           >
             {post.user.userName}
@@ -91,7 +91,7 @@ export const PostCard = memo(function PostCard({ post, onLikeToggle }: PostCardP
         <div className="px-3 pb-2">
           <p className="text-sm">
             <Link
-              to={`/profile/${post.userId}`}
+              to={`/profile/${post.user.userName}`}
               className="mr-1.5 font-semibold text-text-primary no-underline hover:underline"
             >
               {post.user.userName}

@@ -1,105 +1,82 @@
 import { useState, useCallback } from 'react';
-import type { UserProfile } from '@/types';
+import type { UserProfile, FriendshipStatus } from '@/types';
 import { userService } from '@/services/userService';
 
-const MOCK_PROFILES: Record<string, UserProfile> = {
-  '1': {
-    id: 1,
-    userName: 'mindang',
-    email: 'mindang@example.com',
-    fullName: 'Trần Minh Đăng',
-    bio: '📸 Photography | 💻 Developer\nHCMC, Vietnam',
-    avatarUrl: 'https://i.pravatar.cc/300?u=mindang',
-    createdAt: '2025-01-01T00:00:00Z',
-    updatedAt: null,
-    postsCount: 12,
-    followersCount: 90,
-    followingCount: 100,
-    isFollowing: false,
-    friendshipStatus: null,
-  },
-  '2': {
-    id: 2,
-    userName: 'janedoe',
-    email: 'jane@example.com',
-    fullName: 'Jane Doe',
-    bio: '✨ Living my best life\n🎨 Digital artist & coffee lover',
-    avatarUrl: 'https://i.pravatar.cc/300?u=janedoe',
-    createdAt: '2025-02-15T00:00:00Z',
-    updatedAt: null,
-    postsCount: 24,
-    followersCount: 340,
-    followingCount: 180,
-    isFollowing: true,
-    friendshipStatus: null,
-  },
-  '3': {
-    id: 3,
-    userName: 'photoking',
-    email: 'photo@example.com',
-    fullName: 'Nguyễn Văn A',
-    bio: '📷 Photographer\nBookings: DM me',
-    avatarUrl: 'https://i.pravatar.cc/300?u=photoking',
-    createdAt: '2025-03-10T00:00:00Z',
-    updatedAt: null,
-    postsCount: 56,
-    followersCount: 1200,
-    followingCount: 320,
-    isFollowing: false,
-    friendshipStatus: null,
-  },
-};
-
-export function useProfile(userId: string) {
+export function useProfile(username: string) {
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
   const load = useCallback(async () => {
     setIsLoading(true);
     try {
-      const { data } = await userService.getProfile(userId);
-      setProfile(data.data);
+      const { data } = await userService.getProfile(username);
+      setProfile(data);
     } catch {
-      const mock = MOCK_PROFILES[userId];
-      if (mock) setProfile(mock);
+      setProfile(null);
     } finally {
       setIsLoading(false);
     }
-  }, [userId]);
+  }, [username]);
 
-  const toggleFollow = useCallback(async () => {
-    const numId = Number(userId);
-    let wasFollowing = false;
+  const sendFriendRequest = useCallback(async () => {
+    if (!profile) return;
 
-    setProfile((p) => {
-      if (!p) return p;
-      wasFollowing = p.isFollowing;
-      return {
-        ...p,
-        isFollowing: !p.isFollowing,
-        followersCount: p.isFollowing
-          ? p.followersCount - 1
-          : p.followersCount + 1,
-      };
-    });
+    const prevStatus = profile.friendshipStatus;
+    setProfile((p) => (p ? { ...p, friendshipStatus: 'pending' } : p));
 
     try {
-      if (wasFollowing) await userService.unfollow(numId);
-      else await userService.follow(numId);
+      await userService.sendFriendRequest(profile.id);
+    } catch {
+      setProfile((p) => (p ? { ...p, friendshipStatus: prevStatus } : p));
+    }
+  }, [profile]);
+
+  const cancelFriendRequest = useCallback(async () => {
+    if (!profile) return;
+
+    const prevStatus = profile.friendshipStatus;
+    setProfile((p) => (p ? { ...p, friendshipStatus: null } : p));
+
+    try {
+      await userService.cancelFriendRequest(profile.id);
+    } catch {
+      setProfile((p) => (p ? { ...p, friendshipStatus: prevStatus } : p));
+    }
+  }, [profile]);
+
+  const unfriend = useCallback(async () => {
+    if (!profile) return;
+
+    const prevStatus = profile.friendshipStatus;
+    const prevCount = profile.friendsCount;
+    setProfile((p) =>
+      p ? { ...p, friendshipStatus: null, friendsCount: p.friendsCount - 1 } : p,
+    );
+
+    try {
+      await userService.unfriend(profile.id);
     } catch {
       setProfile((p) =>
-        p
-          ? {
-              ...p,
-              isFollowing: !p.isFollowing,
-              followersCount: p.isFollowing
-                ? p.followersCount - 1
-                : p.followersCount + 1,
-            }
-          : p,
+        p ? { ...p, friendshipStatus: prevStatus, friendsCount: prevCount } : p,
       );
     }
-  }, [userId]);
+  }, [profile]);
 
-  return { profile, isLoading, load, toggleFollow };
+  const updateFriendshipStatus = useCallback((status: FriendshipStatus | null) => {
+    setProfile((p) => {
+      if (!p) return p;
+      const countDelta = status === 'accepted' && p.friendshipStatus !== 'accepted' ? 1 : 0;
+      return { ...p, friendshipStatus: status, friendsCount: p.friendsCount + countDelta };
+    });
+  }, []);
+
+  return {
+    profile,
+    isLoading,
+    load,
+    sendFriendRequest,
+    cancelFriendRequest,
+    unfriend,
+    updateFriendshipStatus,
+  };
 }

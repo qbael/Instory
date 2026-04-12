@@ -78,7 +78,7 @@ export default function EditProfilePage() {
       await userService.updateProfile(formData);
       await dispatch(fetchCurrentUser()).unwrap();
       toast.success('Đã cập nhật hồ sơ');
-      navigate(`/profile/${user?.id}`);
+      navigate(`/profile/${data.userName}`);
     } catch {
       toast.error('Cập nhật hồ sơ thất bại');
     } finally {

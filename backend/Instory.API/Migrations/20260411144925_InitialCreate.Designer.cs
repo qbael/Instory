@@ -12,8 +12,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Instory.API.Migrations
 {
     [DbContext(typeof(InstoryDbContext))]
-    [Migration("20260405152937_AddIdentitySupport")]
-    partial class AddIdentitySupport
+    [Migration("20260411144925_InitialCreate")]
+    partial class InitialCreate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -24,6 +24,54 @@ namespace Instory.API.Migrations
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
+
+            modelBuilder.Entity("Instory.API.Models.Chat", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<string>("Name")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("name");
+
+                    b.Property<int>("Type")
+                        .HasColumnType("integer")
+                        .HasColumnName("type");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("chats");
+                });
+
+            modelBuilder.Entity("Instory.API.Models.ChatParticipant", b =>
+                {
+                    b.Property<int>("ChatId")
+                        .HasColumnType("integer")
+                        .HasColumnName("chat_id");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("integer")
+                        .HasColumnName("user_id");
+
+                    b.HasKey("ChatId", "UserId");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("chat_participants");
+                });
 
             modelBuilder.Entity("Instory.API.Models.Comment", b =>
                 {
@@ -119,9 +167,8 @@ namespace Instory.API.Migrations
                         .HasColumnType("integer")
                         .HasColumnName("requester_id");
 
-                    b.Property<string>("Status")
-                        .HasMaxLength(20)
-                        .HasColumnType("character varying(20)")
+                    b.Property<int>("Status")
+                        .HasColumnType("integer")
                         .HasColumnName("status");
 
                     b.Property<DateTime?>("UpdatedAt")
@@ -197,6 +244,49 @@ namespace Instory.API.Migrations
                         .IsUnique();
 
                     b.ToTable("likes");
+                });
+
+            modelBuilder.Entity("Instory.API.Models.Message", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("ChatId")
+                        .HasColumnType("integer")
+                        .HasColumnName("chat_id");
+
+                    b.Property<string>("Content")
+                        .HasColumnType("text")
+                        .HasColumnName("content");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<string>("MediaUrl")
+                        .HasMaxLength(512)
+                        .HasColumnType("character varying(512)")
+                        .HasColumnName("media_url");
+
+                    b.Property<int>("SenderId")
+                        .HasColumnType("integer")
+                        .HasColumnName("sender_id");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ChatId");
+
+                    b.HasIndex("SenderId");
+
+                    b.ToTable("messages");
                 });
 
             modelBuilder.Entity("Instory.API.Models.Notification", b =>
@@ -438,6 +528,10 @@ namespace Instory.API.Migrations
                     b.Property<DateTime>("ExpiresAt")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("expires_at");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_deleted");
 
                     b.Property<string>("MediaUrl")
                         .HasMaxLength(255)
@@ -689,6 +783,25 @@ namespace Instory.API.Migrations
                     b.ToTable("AspNetUserTokens", (string)null);
                 });
 
+            modelBuilder.Entity("Instory.API.Models.ChatParticipant", b =>
+                {
+                    b.HasOne("Instory.API.Models.Chat", "Chat")
+                        .WithMany("Participants")
+                        .HasForeignKey("ChatId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Instory.API.Models.User", "User")
+                        .WithMany("ChatParticipants")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Chat");
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("Instory.API.Models.Comment", b =>
                 {
                     b.HasOne("Instory.API.Models.Post", "Post")
@@ -763,6 +876,25 @@ namespace Instory.API.Migrations
                     b.Navigation("Post");
 
                     b.Navigation("User");
+                });
+
+            modelBuilder.Entity("Instory.API.Models.Message", b =>
+                {
+                    b.HasOne("Instory.API.Models.Chat", "Chat")
+                        .WithMany("Messages")
+                        .HasForeignKey("ChatId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Instory.API.Models.User", "Sender")
+                        .WithMany("Messages")
+                        .HasForeignKey("SenderId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Chat");
+
+                    b.Navigation("Sender");
                 });
 
             modelBuilder.Entity("Instory.API.Models.Notification", b =>
@@ -925,6 +1057,13 @@ namespace Instory.API.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("Instory.API.Models.Chat", b =>
+                {
+                    b.Navigation("Messages");
+
+                    b.Navigation("Participants");
+                });
+
             modelBuilder.Entity("Instory.API.Models.Hashtag", b =>
                 {
                     b.Navigation("PostHashtags");
@@ -950,6 +1089,8 @@ namespace Instory.API.Migrations
 
             modelBuilder.Entity("Instory.API.Models.User", b =>
                 {
+                    b.Navigation("ChatParticipants");
+
                     b.Navigation("Comments");
 
                     b.Navigation("Followers");
@@ -957,6 +1098,8 @@ namespace Instory.API.Migrations
                     b.Navigation("Following");
 
                     b.Navigation("Likes");
+
+                    b.Navigation("Messages");
 
                     b.Navigation("Notifications");
 

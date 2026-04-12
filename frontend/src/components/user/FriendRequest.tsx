@@ -33,7 +33,7 @@ export const FriendRequest = memo(function FriendRequest({
 
   return (
     <div className="flex items-center gap-3 rounded-lg px-3 py-3">
-      <Link to={`/profile/${request.requesterId}`}>
+      <Link to={`/profile/${request.requester.userName}`}>
         <Avatar
           src={request.requester.avatarUrl}
           alt={request.requester.userName}
@@ -43,7 +43,7 @@ export const FriendRequest = memo(function FriendRequest({
       <div className="min-w-0 flex-1">
         <p className="text-sm">
           <Link
-            to={`/profile/${request.requesterId}`}
+            to={`/profile/${request.requester.userName}`}
             className="font-semibold text-text-primary no-underline hover:underline"
           >
             {request.requester.userName}

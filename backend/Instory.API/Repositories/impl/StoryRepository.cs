@@ -13,9 +13,10 @@ public class StoryRepository : Repository<Story>, IStoryRepository
 
     public async Task<PaginatedResult<Story>> GetStoriesPaginatedAsync(int page, int pageSize)
     {
-        return await _dbSet
-            .AsNoTracking()
-            .OrderBy(s => s.CreatedAt)
-            .ToPaginatedResultAsync(page, pageSize);
+        return await PaginatedResult<Story>.CreateAsync(
+            _dbSet.AsNoTracking().OrderBy(s => s.CreatedAt),
+            page,
+            pageSize
+        );
     }
 }

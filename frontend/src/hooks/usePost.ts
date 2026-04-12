@@ -10,7 +10,7 @@ export function usePost(postId: number) {
     setIsLoading(true);
     try {
       const { data } = await postService.getById(postId);
-      setPost(data.data);
+      setPost(data);
     } finally {
       setIsLoading(false);
     }

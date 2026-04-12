@@ -1,4 +1,5 @@
-﻿using Instory.API.DTOs.Story;
+﻿using System.Threading.Tasks;
+using Instory.API.DTOs.Story;
 using Instory.API.DTOs.StoryDtos;
 using Instory.API.Helpers;
 
@@ -9,5 +10,5 @@ public interface IStoryService
     Task<PaginatedResult<StoryResponseDto>> GetAllAsync(int page, int pageSize);
     Task<StoryResponseDto> GetByIdAsync(int id);
     Task<StoryResponseDto> CreateAsync(CreateStoryDto dto);
-    Task<bool> DeleteByIdAsync(int id);
+    Task DeleteByIdAsync(int id);
 }

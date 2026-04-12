@@ -11,13 +11,23 @@ Content-Type: application/json
   "fullName": "Test User 1"
 }
 ###
+POST {{InstoryAPI_HostAddress}}/api/v1/auth/register
+Content-Type: application/json
+
+{
+  "username": "quocbao",
+  "email": "quocbao@gmail.com",
+  "password": "quocbao",
+  "fullName": "Hồ Quốc Bảo"
+}
+###
 
 POST {{InstoryAPI_HostAddress}}/api/v1/auth/login
 Content-Type: application/json
 
 {
-  "usernameOrEmail": "testusername",
-  "password": "testpassword"
+  "usernameOrEmail": "mindang",
+  "password": "mindang"
 }
 
 > {%
@@ -35,16 +45,6 @@ POST {{InstoryAPI_HostAddress}}/api/v1/auth/refresh
 POST {{InstoryAPI_HostAddress}}/api/v1/auth/logout
 
 <<<<<<< HEAD
-###
-POST {{InstoryAPI_HostAddress}}/api/v1/auth/register
-Content-Type: application/json
-
-{
-  "username": "mindang",
-  "email": "mindang@gmail.com",
-  "password": "mindang",
-  "fullName": "Tran Minh Dang"
-}
 
 =======
 //CHAT SERVICES

@@ -1,11 +1,8 @@
 ﻿namespace Instory.API.DTOs.Story;
 using System.ComponentModel.DataAnnotations;
 
-public class CreateStoryDto
-{
-    [Required] public int UserId { get; set; }
-
-    [MaxLength(255)] public string? MediaUrl { get; set; }
-
-    public string? Caption { get; set; }
-}
+public record CreateStoryDto(
+    [Required] int UserId,
+    [MaxLength(255)] string? MediaUrl,
+    string? Caption
+);

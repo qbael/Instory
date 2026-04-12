@@ -2,7 +2,6 @@ import { memo, useState, useCallback } from 'react';
 import { Plus } from 'lucide-react';
 import { Avatar } from '@/components/ui/Avatar';
 import { StoryViewer } from '@/components/story/StoryViewer';
-import { cn } from '@/utils/cn';
 import type { StoryHighlight, StoryGroup } from '@/types';
 
 interface ProfileHighlightsProps {

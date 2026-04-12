@@ -1,6 +1,5 @@
 import api from './api';
 import type {
-  ApiResponse,
   PaginatedResponse,
   PaginationParams,
   User,
@@ -10,63 +9,54 @@ import type {
   SearchResults,
 } from '@/types';
 
-const BASE = 'v1/users';
+const BASE = 'v1/profile';
 
 export const userService = {
   getProfile(username: string) {
-    return api.get<ApiResponse<UserProfile>>(`${BASE}/${username}`);
+    return api.get<UserProfile>(`${BASE}/${username}`);
   },
 
   updateProfile(formData: FormData) {
-    return api.put<ApiResponse<User>>(`${BASE}/profile`, formData, {
+    return api.put<User>(`${BASE}/me`, formData, {
       headers: { 'Content-Type': 'multipart/form-data' },
     });
   },
 
-  getFollowers(userId: number, params?: PaginationParams) {
-    return api.get<ApiResponse<PaginatedResponse<User>>>(
-      `${BASE}/${userId}/followers`,
-      { params },
-    );
-  },
-
-  getFollowing(userId: number, params?: PaginationParams) {
-    return api.get<ApiResponse<PaginatedResponse<User>>>(
-      `${BASE}/${userId}/following`,
-      { params },
-    );
-  },
-
-  follow(userId: number) {
-    return api.post(`${BASE}/${userId}/follow`);
-  },
-
-  unfollow(userId: number) {
-    return api.delete(`${BASE}/${userId}/follow`);
+  getFriends(userId: number, params?: PaginationParams) {
+    return api.get<PaginatedResponse<User>>(`v1/users/${userId}/friends`, { params });
   },
 
   getSuggested() {
-    return api.get<ApiResponse<User[]>>(`${BASE}/suggested`);
+    return api.get<User[]>('v1/users/suggested');
   },
 
   sendFriendRequest(userId: number) {
-    return api.post<ApiResponse<Friendship>>(`${BASE}/${userId}/friend-request`);
+    return api.post<Friendship>(`v1/users/${userId}/friend-request`);
+  },
+
+  cancelFriendRequest(userId: number) {
+    return api.delete(`v1/users/${userId}/friend-request`);
+  },
+
+  unfriend(userId: number) {
+    return api.delete(`v1/users/${userId}/friend`);
   },
 
   respondFriendRequest(requestId: number, accept: boolean) {
-    return api.put(`/friendships/${requestId}`, {
+    return api.put(`v1/friendships/${requestId}`, {
       status: accept ? 'accepted' : 'declined',
     });
   },
 
   getFriendRequests(params?: PaginationParams) {
-    return api.get<ApiResponse<PaginatedResponse<Friendship>>>(
-      '/friendships/requests',
-      { params },
-    );
+    return api.get<PaginatedResponse<Friendship>>('v1/friendships/requests', { params });
+  },
+
+  getSentFriendRequests(params?: PaginationParams) {
+    return api.get<PaginatedResponse<Friendship>>('v1/friendships/sent', { params });
   },
 
   search(params: SearchParams) {
-    return api.get<ApiResponse<SearchResults>>('/search', { params });
+    return api.get<SearchResults>('v1/search', { params });
   },
 };

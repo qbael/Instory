@@ -7,10 +7,11 @@ import {
   Settings,
   MessageCircle,
   UserPlus,
+  UserMinus,
+  UserX,
   Camera,
 } from 'lucide-react';
 import { Avatar } from '@/components/ui/Avatar';
-import { Button } from '@/components/ui/Button';
 import { Spinner } from '@/components/ui/Spinner';
 import { ProfileHighlights } from '@/components/profile/ProfileHighlights';
 import { useProfile } from '@/hooks/useProfile';
@@ -18,159 +19,33 @@ import { usePosts } from '@/hooks/usePosts';
 import { useInfiniteScroll } from '@/hooks/useInfiniteScroll';
 import { useAppSelector } from '@/store';
 import { cn } from '@/utils/cn';
-import type { StoryHighlight, Post } from '@/types';
+import type { StoryHighlight } from '@/types';
 
 type OwnTab = 'posts' | 'liked' | 'saved';
 type OtherTab = 'posts';
 type Tab = OwnTab | OtherTab;
 
-// ── Mock data (xóa khi backend sẵn sàng) ────────────────────────────────────
-
-const MOCK_USER = {
-  id: 0,
-  userName: '',
-  email: '',
-  fullName: null as string | null,
-  bio: null as string | null,
-  avatarUrl: null as string | null,
-  createdAt: new Date().toISOString(),
-  updatedAt: null,
-};
-
-const MOCK_HIGHLIGHTS: StoryHighlight[] = [
-  {
-    id: 1,
-    userId: 1,
-    title: 'Du lịch',
-    coverUrl: 'https://picsum.photos/seed/hl1/200',
-    stories: [
-      {
-        id: 101,
-        userId: 1,
-        mediaUrl: 'https://picsum.photos/seed/s1/1080/1920',
-        caption: 'Đà Lạt trip 🌸',
-        expiresAt: new Date(Date.now() + 86400000).toISOString(),
-        createdAt: new Date(Date.now() - 3600000).toISOString(),
-        user: { ...MOCK_USER, id: 1 },
-        viewsCount: 42,
-        isViewed: false,
-      },
-    ],
-    createdAt: new Date().toISOString(),
-  },
-  {
-    id: 2,
-    userId: 1,
-    title: 'Ẩm thực',
-    coverUrl: 'https://picsum.photos/seed/hl2/200',
-    stories: [
-      {
-        id: 102,
-        userId: 1,
-        mediaUrl: 'https://picsum.photos/seed/s2/1080/1920',
-        caption: 'Phở Hà Nội 🍜',
-        expiresAt: new Date(Date.now() + 86400000).toISOString(),
-        createdAt: new Date(Date.now() - 7200000).toISOString(),
-        user: { ...MOCK_USER, id: 1 },
-        viewsCount: 28,
-        isViewed: true,
-      },
-    ],
-    createdAt: new Date().toISOString(),
-  },
-  {
-    id: 3,
-    userId: 1,
-    title: 'Gym',
-    coverUrl: 'https://picsum.photos/seed/hl3/200',
-    stories: [
-      {
-        id: 103,
-        userId: 1,
-        mediaUrl: 'https://picsum.photos/seed/s3/1080/1920',
-        caption: 'Leg day 💪',
-        expiresAt: new Date(Date.now() + 86400000).toISOString(),
-        createdAt: new Date(Date.now() - 10800000).toISOString(),
-        user: { ...MOCK_USER, id: 1 },
-        viewsCount: 15,
-        isViewed: false,
-      },
-    ],
-    createdAt: new Date().toISOString(),
-  },
-  {
-    id: 4,
-    userId: 1,
-    title: 'Coding',
-    coverUrl: 'https://picsum.photos/seed/hl4/200',
-    stories: [
-      {
-        id: 104,
-        userId: 1,
-        mediaUrl: 'https://picsum.photos/seed/s4/1080/1920',
-        caption: 'Late night coding 💻',
-        expiresAt: new Date(Date.now() + 86400000).toISOString(),
-        createdAt: new Date(Date.now() - 14400000).toISOString(),
-        user: { ...MOCK_USER, id: 1 },
-        viewsCount: 33,
-        isViewed: true,
-      },
-    ],
-    createdAt: new Date().toISOString(),
-  },
-];
-
-const MOCK_LIKED_POSTS: Post[] = Array.from({ length: 6 }, (_, i) => ({
-  id: 900 + i,
-  userId: 99,
-  content: `Bài viết đã thích #${i + 1}`,
-  imageUrl: `https://picsum.photos/seed/liked${i}/600`,
-  createdAt: new Date().toISOString(),
-  updatedAt: null,
-  user: { ...MOCK_USER, id: 99, userName: 'other_user' },
-  commentsCount: Math.floor(Math.random() * 20),
-  likesCount: Math.floor(Math.random() * 100),
-  sharesCount: 0,
-  isLiked: true,
-  hashtags: [],
-}));
-
-const MOCK_SAVED_POSTS: Post[] = Array.from({ length: 4 }, (_, i) => ({
-  id: 800 + i,
-  userId: 98,
-  content: `Bài viết đã lưu #${i + 1}`,
-  imageUrl: `https://picsum.photos/seed/saved${i}/600`,
-  createdAt: new Date().toISOString(),
-  updatedAt: null,
-  user: { ...MOCK_USER, id: 98, userName: 'saved_user' },
-  commentsCount: Math.floor(Math.random() * 15),
-  likesCount: Math.floor(Math.random() * 80),
-  sharesCount: 0,
-  isLiked: false,
-  hashtags: [],
-}));
-
-// ─────────────────────────────────────────────────────────────────────────────
-
 export default function ProfilePage() {
-  const { userId } = useParams<{ userId: string }>();
+  const { username } = useParams<{ username: string }>();
   const navigate = useNavigate();
   const currentUser = useAppSelector((s) => s.auth.user);
-  const isOwn = currentUser?.id === Number(userId);
+  const isOwn = currentUser?.userName === username;
 
   const {
     profile,
     isLoading: profileLoading,
     load: loadProfile,
-    toggleFollow,
-  } = useProfile(userId!);
+    sendFriendRequest,
+    cancelFriendRequest,
+    unfriend,
+  } = useProfile(username!);
   const {
     posts,
     isLoading: postsLoading,
     hasMore,
     loadMore,
     fetchPage,
-  } = usePosts({ userId: Number(userId) });
+  } = usePosts({ userId: profile?.id ?? 0 });
   const { sentinelRef } = useInfiniteScroll({
     hasMore,
     isLoading: postsLoading,
@@ -179,16 +54,19 @@ export default function ProfilePage() {
 
   const [tab, setTab] = useState<Tab>('posts');
 
-  const highlights = useMemo(() => MOCK_HIGHLIGHTS, []);
+  const highlights = useMemo<StoryHighlight[]>(() => [], []);
 
   useEffect(() => {
     loadProfile();
-    fetchPage(1);
-  }, [loadProfile, fetchPage]);
+  }, [loadProfile]);
+
+  useEffect(() => {
+    if (profile?.id) fetchPage(1);
+  }, [profile?.id, fetchPage]);
 
   useEffect(() => {
     setTab('posts');
-  }, [userId]);
+  }, [username]);
 
   if (profileLoading && !profile) {
     return (
@@ -207,11 +85,7 @@ export default function ProfilePage() {
   }
 
   const currentPosts =
-    tab === 'liked'
-      ? MOCK_LIKED_POSTS
-      : tab === 'saved'
-        ? MOCK_SAVED_POSTS
-        : posts;
+    tab === 'liked' || tab === 'saved' ? [] : posts;
 
   return (
     <div className="mx-auto max-w-[935px]">
@@ -265,13 +139,8 @@ export default function ProfilePage() {
                 bài viết
               </span>
               <button type="button" className="cursor-pointer">
-                <strong>{profile.followersCount.toLocaleString()}</strong>{' '}
-                người theo dõi
-              </button>
-              <button type="button" className="cursor-pointer">
-                Đang theo dõi{' '}
-                <strong>{profile.followingCount.toLocaleString()}</strong>{' '}
-                người dùng
+                <strong>{profile.friendsCount.toLocaleString()}</strong>{' '}
+                bạn bè
               </button>
             </div>
 
@@ -302,29 +171,45 @@ export default function ProfilePage() {
             </>
           ) : (
             <>
-              <button
-                type="button"
-                onClick={toggleFollow}
-                className={cn(
-                  'flex-1 cursor-pointer rounded-lg px-4 py-[7px] text-center text-sm font-semibold transition-colors',
-                  profile.isFollowing
-                    ? 'bg-border/60 text-text-primary hover:bg-border'
-                    : 'bg-primary text-white hover:bg-primary-hover',
-                )}
-              >
-                {profile.isFollowing ? 'Đang theo dõi' : 'Theo dõi'}
-              </button>
+              {profile.friendshipStatus === 'accepted' ? (
+                <button
+                  type="button"
+                  onClick={unfriend}
+                  className="flex-1 cursor-pointer rounded-lg bg-border/60 px-4 py-[7px] text-center text-sm font-semibold text-text-primary transition-colors hover:bg-border"
+                >
+                  <span className="inline-flex items-center gap-1.5">
+                    <UserMinus className="h-4 w-4" />
+                    Hủy kết bạn
+                  </span>
+                </button>
+              ) : profile.friendshipStatus === 'pending' ? (
+                <button
+                  type="button"
+                  onClick={cancelFriendRequest}
+                  className="flex-1 cursor-pointer rounded-lg bg-border/60 px-4 py-[7px] text-center text-sm font-semibold text-text-primary transition-colors hover:bg-border"
+                >
+                  <span className="inline-flex items-center gap-1.5">
+                    <UserX className="h-4 w-4" />
+                    Hủy lời mời
+                  </span>
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  onClick={sendFriendRequest}
+                  className="flex-1 cursor-pointer rounded-lg bg-primary px-4 py-[7px] text-center text-sm font-semibold text-white transition-colors hover:bg-primary-hover"
+                >
+                  <span className="inline-flex items-center gap-1.5">
+                    <UserPlus className="h-4 w-4" />
+                    Kết bạn
+                  </span>
+                </button>
+              )}
               <button
                 type="button"
                 className="flex-1 cursor-pointer rounded-lg bg-border/60 px-4 py-[7px] text-center text-sm font-semibold text-text-primary transition-colors hover:bg-border"
               >
                 Nhắn tin
-              </button>
-              <button
-                type="button"
-                className="shrink-0 cursor-pointer rounded-lg bg-border/60 px-3 py-[7px] text-text-primary transition-colors hover:bg-border"
-              >
-                <UserPlus className="h-4 w-4" />
               </button>
             </>
           )}
@@ -369,7 +254,7 @@ export default function ProfilePage() {
         {currentPosts.map((post) => (
           <Link
             key={post.id}
-            to={`/profile/${userId}`}
+            to={`/profile/${post.user.userName}`}
             className="group relative aspect-square overflow-hidden bg-border"
           >
             {post.imageUrl ? (

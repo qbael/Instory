@@ -1,7 +1,6 @@
 import { memo } from 'react';
 import { Link } from 'react-router';
-import { Heart, MessageCircle, UserPlus, Users, AtSign, Share2 } from 'lucide-react';
-import { Avatar } from '@/components/ui/Avatar';
+import { Heart, MessageCircle, Users, AtSign, Share2 } from 'lucide-react';
 import { timeAgo } from '@/utils/formatDate';
 import { cn } from '@/utils/cn';
 import type { Notification, NotificationType } from '@/types';
@@ -9,7 +8,6 @@ import type { Notification, NotificationType } from '@/types';
 const iconMap: Record<NotificationType, React.ElementType> = {
   like: Heart,
   comment: MessageCircle,
-  follow: UserPlus,
   friend_request: Users,
   friend_accept: Users,
   post_share: Share2,
@@ -19,7 +17,6 @@ const iconMap: Record<NotificationType, React.ElementType> = {
 const colorMap: Record<NotificationType, string> = {
   like: 'text-accent',
   comment: 'text-primary',
-  follow: 'text-primary',
   friend_request: 'text-success',
   friend_accept: 'text-success',
   post_share: 'text-primary',
@@ -39,7 +36,6 @@ export const NotificationItem = memo(function NotificationItem({
   const color = colorMap[notification.type] ?? 'text-text-secondary';
 
   const profileLink =
-    notification.type === 'follow' ||
     notification.type === 'friend_request' ||
     notification.type === 'friend_accept'
       ? `/profile/${notification.referenceId}`
@@ -96,7 +92,6 @@ function notificationLabel(type: NotificationType): string {
   const labels: Record<NotificationType, string> = {
     like: 'đã thích bài viết của bạn',
     comment: 'đã bình luận bài viết của bạn',
-    follow: 'đã bắt đầu theo dõi bạn',
     friend_request: 'đã gửi lời mời kết bạn',
     friend_accept: 'đã chấp nhận lời mời kết bạn',
     post_share: 'đã chia sẻ bài viết của bạn',

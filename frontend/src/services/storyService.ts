@@ -1,19 +1,19 @@
 import api from './api';
-import type { ApiResponse, Story, StoryGroup } from '@/types';
+import type { Story, StoryGroup } from '@/types';
 
-const BASE = 'v1/stories';
+const BASE = 'v1/story';
 
 export const storyService = {
   getFeed() {
-    return api.get<ApiResponse<StoryGroup[]>>(BASE);
+    return api.get<StoryGroup[]>(BASE);
   },
 
   getById(id: number) {
-    return api.get<ApiResponse<Story>>(`${BASE}/${id}`);
+    return api.get<Story>(`${BASE}/${id}`);
   },
 
   create(formData: FormData) {
-    return api.post<ApiResponse<Story>>(BASE, formData, {
+    return api.post<Story>(BASE, formData, {
       headers: { 'Content-Type': 'multipart/form-data' },
     });
   },

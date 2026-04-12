@@ -3,42 +3,55 @@ import { Link } from 'react-router';
 import { Avatar } from '@/components/ui/Avatar';
 import { Button } from '@/components/ui/Button';
 import { userService } from '@/services/userService';
-import type { User } from '@/types';
+import type { User, FriendshipStatus } from '@/types';
 
 interface UserCardProps {
   user: User;
-  showFollowButton?: boolean;
+  friendshipStatus?: FriendshipStatus | null;
+  showFriendButton?: boolean;
 }
 
 export const UserCard = memo(function UserCard({
   user,
-  showFollowButton = true,
+  friendshipStatus: initialStatus = null,
+  showFriendButton = true,
 }: UserCardProps) {
-  const [isFollowing, setIsFollowing] = useState(false);
+  const [status, setStatus] = useState<FriendshipStatus | null>(initialStatus);
   const [isLoading, setIsLoading] = useState(false);
 
-  const handleFollow = async () => {
+  const handleFriendAction = async () => {
     setIsLoading(true);
     try {
-      if (isFollowing) {
-        await userService.unfollow(user.id);
+      if (status === 'accepted') {
+        await userService.unfriend(user.id);
+        setStatus(null);
+      } else if (status === 'pending') {
+        await userService.cancelFriendRequest(user.id);
+        setStatus(null);
       } else {
-        await userService.follow(user.id);
+        await userService.sendFriendRequest(user.id);
+        setStatus('pending');
       }
-      setIsFollowing((prev) => !prev);
     } finally {
       setIsLoading(false);
     }
   };
 
+  const buttonLabel =
+    status === 'accepted'
+      ? 'Bạn bè'
+      : status === 'pending'
+        ? 'Đã gửi lời mời'
+        : 'Kết bạn';
+
   return (
     <div className="flex items-center gap-3 rounded-lg px-3 py-2.5 transition-colors hover:bg-border/10">
-      <Link to={`/profile/${user.id}`}>
+      <Link to={`/profile/${user.userName}`}>
         <Avatar src={user.avatarUrl} alt={user.userName} size="md" />
       </Link>
       <div className="min-w-0 flex-1">
         <Link
-          to={`/profile/${user.id}`}
+          to={`/profile/${user.userName}`}
           className="block truncate text-sm font-semibold text-text-primary no-underline hover:underline"
         >
           {user.userName}
@@ -47,14 +60,14 @@ export const UserCard = memo(function UserCard({
           <p className="truncate text-xs text-text-secondary">{user.fullName}</p>
         )}
       </div>
-      {showFollowButton && (
+      {showFriendButton && (
         <Button
-          variant={isFollowing ? 'secondary' : 'primary'}
+          variant={status ? 'secondary' : 'primary'}
           size="sm"
-          onClick={handleFollow}
+          onClick={handleFriendAction}
           isLoading={isLoading}
         >
-          {isFollowing ? 'Đang theo dõi' : 'Theo dõi'}
+          {buttonLabel}
         </Button>
       )}
     </div>

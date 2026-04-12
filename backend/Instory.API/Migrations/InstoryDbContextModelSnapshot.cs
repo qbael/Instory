@@ -164,9 +164,8 @@ namespace Instory.API.Migrations
                         .HasColumnType("integer")
                         .HasColumnName("requester_id");
 
-                    b.Property<string>("Status")
-                        .HasMaxLength(20)
-                        .HasColumnType("character varying(20)")
+                    b.Property<int>("Status")
+                        .HasColumnType("integer")
                         .HasColumnName("status");
 
                     b.Property<DateTime?>("UpdatedAt")

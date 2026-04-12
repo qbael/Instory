@@ -17,7 +17,7 @@ export function useSearch() {
     setIsLoading(true);
     try {
       const { data } = await userService.search({ query: q });
-      setResults(data.data);
+      setResults(data);
     } finally {
       setIsLoading(false);
     }

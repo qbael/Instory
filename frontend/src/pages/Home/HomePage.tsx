@@ -61,7 +61,7 @@ export default function HomePage() {
             Chào mừng đến với Instory
           </p>
           <p className="mt-1 text-sm text-text-secondary">
-            Hãy theo dõi mọi người để xem bài viết của họ tại đây.
+            Hãy kết bạn với mọi người để xem bài viết của họ tại đây.
           </p>
         </div>
       )}

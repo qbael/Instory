@@ -14,7 +14,7 @@ export function StoryBar() {
   useEffect(() => {
     storyService
       .getFeed()
-      .then(({ data }) => setGroups(data.data))
+      .then(({ data }) => setGroups(data))
       .catch(() => {});
   }, []);
 

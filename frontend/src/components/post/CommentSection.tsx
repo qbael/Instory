@@ -28,7 +28,7 @@ export function CommentSection({ postId, initialCount }: CommentSectionProps) {
         pageNumber: 1,
         pageSize: 20,
       });
-      setComments(data.data.items);
+      setComments(data.items);
       setIsLoaded(true);
     } finally {
       setIsLoading(false);
@@ -43,7 +43,7 @@ export function CommentSection({ postId, initialCount }: CommentSectionProps) {
     setIsSubmitting(true);
     try {
       const { data } = await postService.addComment({ postId, content });
-      setComments((prev) => [...prev, data.data]);
+      setComments((prev) => [...prev, data]);
       setNewComment('');
     } finally {
       setIsSubmitting(false);
