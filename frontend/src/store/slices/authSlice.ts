@@ -128,18 +128,18 @@ const authSlice = createSlice({
       .addCase(fetchCurrentUser.rejected, (state) => {
         state.isLoading = false;
         state.isInitialized = true;
-        // Mock user for frontend dev when backend is unavailable
-        state.user = {
-          id: 1,
-          userName: 'mindang',
-          email: 'mindang@example.com',
-          fullName: 'Trần Minh Đăng',
-          bio: null,
-          avatarUrl: 'https://i.pravatar.cc/300?u=mindang',
-          createdAt: '2025-01-01T00:00:00Z',
-          updatedAt: null,
-        };
-        state.isAuthenticated = true;
+        // // Mock user for frontend dev when backend is unavailable
+        // state.user = {
+        //   id: 1,
+        //   userName: 'mindang',
+        //   email: 'mindang@example.com',
+        //   fullName: 'Trần Minh Đăng',
+        //   bio: null,
+        //   avatarUrl: 'https://i.pravatar.cc/300?u=mindang',
+        //   createdAt: '2025-01-01T00:00:00Z',
+        //   updatedAt: null,
+        // };
+        state.isAuthenticated = false;
       })
 
       .addCase(logout.fulfilled, (state) => {

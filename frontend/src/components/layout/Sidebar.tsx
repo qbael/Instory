@@ -7,6 +7,7 @@ import {
   User,
   LogOut,
   Camera,
+  MessageCircle,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { cn } from '@/utils/cn';
@@ -33,6 +34,7 @@ export function Sidebar() {
   const navItems: NavEntry[] = [
     { icon: Home, label: 'Trang chủ', to: '/' },
     { icon: Search, label: 'Tìm kiếm', to: '/search' },
+    { icon: MessageCircle, label: 'Tin nhắn', to: '/chat' },
     { icon: Heart, label: 'Thông báo', to: '/notifications', badge: unreadCount },
     {
       icon: SquarePlus,

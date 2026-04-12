@@ -14,7 +14,11 @@ public class ChatRepository : Repository<Chat>, IChatRepository
     {
         return await _dbSet
             .Where(c => c.Type == ChatType.Direct)
-            .Where(c => c.Participants.Any(p => p.UserId == user1Id) && c.Participants.Any(p => p.UserId == user2Id))
+            .Where(c => c.Participants
+                .Where(p => p.UserId == user1Id || p.UserId == user2Id)
+                .Select(p => p.UserId)
+                .Distinct()
+                .Count() == 2)
             .FirstOrDefaultAsync();
     }
 

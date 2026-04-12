@@ -1,5 +1,5 @@
 import { Link, useLocation } from 'react-router';
-import { Home, Search, SquarePlus, Heart, User } from 'lucide-react';
+import { Home, Search, SquarePlus, Heart, User, MessageCircle } from 'lucide-react';
 import { cn } from '@/utils/cn';
 import { useAppSelector, useAppDispatch } from '@/store';
 import { openModal } from '@/store/slices/uiSlice';
@@ -14,6 +14,7 @@ export function MobileNav() {
     { icon: Home, to: '/' },
     { icon: Search, to: '/search' },
     { icon: SquarePlus, action: () => dispatch(openModal({ modal: 'createPost' })) },
+    { icon: MessageCircle, to: '/chat' },
     { icon: Heart, to: '/notifications', badge: unreadCount > 0 },
     { icon: User, to: `/profile/${user?.id}` },
   ];

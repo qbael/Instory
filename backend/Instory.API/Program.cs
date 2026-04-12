@@ -17,6 +17,21 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddOpenApi();
 
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("FrontendPolicy", policy =>
+    {
+        policy
+            .WithOrigins(
+                "http://localhost:5173",  // Vite dev server
+                "http://localhost:5174"   // fallback
+            )
+            .AllowAnyHeader()
+            .AllowAnyMethod()
+            .AllowCredentials(); // required for SignalR + cookies
+    });
+});
+
 builder.Services.AddValidation();
 builder.Services.AddControllers();
 builder.Services.AddSignalR();
@@ -86,9 +101,18 @@ builder.Services.AddScoped<Instory.API.Repositories.IChatRepository, ChatReposit
 builder.Services.AddScoped<ITokenService, TokenService>();
 builder.Services.AddScoped<IStoryService, StoryService>();
 
-// builder.Services.Configure<AwsSettings>(builder.Configuration.GetSection("AWS"));
-// builder.Services.AddAWSService<IAmazonS3>();
-// builder.Services.AddScoped<IMediaService, MediaService>();
+builder.Services.Configure<AwsSettings>(builder.Configuration.GetSection("AWS"));
+builder.Services.AddSingleton<IAmazonS3>(sp =>
+{
+    var awsSettings = sp.GetRequiredService<Microsoft.Extensions.Options.IOptions<AwsSettings>>().Value;
+    var credentials = new Amazon.Runtime.BasicAWSCredentials(awsSettings.AccessKey, awsSettings.SecretKey);
+    var config = new AmazonS3Config
+    {
+        RegionEndpoint = Amazon.RegionEndpoint.GetBySystemName(awsSettings.Region)
+    };
+    return new AmazonS3Client(credentials, config);
+});
+builder.Services.AddScoped<IMediaService, MediaService>();
 builder.Services.AddScoped<IChatService, ChatService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 
@@ -105,6 +129,8 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+
+app.UseCors("FrontendPolicy");
 
 app.UseExceptionHandler();
 

@@ -9,3 +9,4 @@ export const SearchPage = lazy(() => import('@/pages/Search/SearchPage'));
 export const NotificationsPage = lazy(() => import('@/pages/Notifications/NotificationsPage'));
 export const AdminPage = lazy(() => import('@/pages/Admin/AdminPage'));
 export const NotFoundPage = lazy(() => import('@/pages/NotFoundPage'));
+export const ChatPage = lazy(() => import('@/pages/Chat/ChatPage'));

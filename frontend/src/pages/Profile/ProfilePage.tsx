@@ -10,7 +10,6 @@ import {
   Camera,
 } from 'lucide-react';
 import { Avatar } from '@/components/ui/Avatar';
-import { Button } from '@/components/ui/Button';
 import { Spinner } from '@/components/ui/Spinner';
 import { ProfileHighlights } from '@/components/profile/ProfileHighlights';
 import { useProfile } from '@/hooks/useProfile';
