@@ -9,10 +9,12 @@ import {
   UserPlus,
   UserMinus,
   UserX,
+  UserCheck,
   Camera,
 } from 'lucide-react';
 import { Avatar } from '@/components/ui/Avatar';
 import { Spinner } from '@/components/ui/Spinner';
+import { AlertDialog } from '@/components/ui/AlertDialog';
 import { ProfileHighlights } from '@/components/profile/ProfileHighlights';
 import { useProfile } from '@/hooks/useProfile';
 import { usePosts } from '@/hooks/usePosts';
@@ -37,6 +39,8 @@ export default function ProfilePage() {
     load: loadProfile,
     sendFriendRequest,
     cancelFriendRequest,
+    acceptFriendRequest,
+    rejectFriendRequest,
     unfriend,
   } = useProfile(username!);
   const {
@@ -53,6 +57,7 @@ export default function ProfilePage() {
   });
 
   const [tab, setTab] = useState<Tab>('posts');
+  const [unfriendDialogOpen, setUnfriendDialogOpen] = useState(false);
 
   const highlights = useMemo<StoryHighlight[]>(() => [], []);
 
@@ -174,7 +179,7 @@ export default function ProfilePage() {
               {profile.friendshipStatus === 'accepted' ? (
                 <button
                   type="button"
-                  onClick={unfriend}
+                  onClick={() => setUnfriendDialogOpen(true)}
                   className="flex-1 cursor-pointer rounded-lg bg-border/60 px-4 py-[7px] text-center text-sm font-semibold text-text-primary transition-colors hover:bg-border"
                 >
                   <span className="inline-flex items-center gap-1.5">
@@ -182,7 +187,7 @@ export default function ProfilePage() {
                     Hủy kết bạn
                   </span>
                 </button>
-              ) : profile.friendshipStatus === 'pending' ? (
+              ) : profile.friendshipStatus === 'pending' && profile.isRequester ? (
                 <button
                   type="button"
                   onClick={cancelFriendRequest}
@@ -193,6 +198,29 @@ export default function ProfilePage() {
                     Hủy lời mời
                   </span>
                 </button>
+              ) : profile.friendshipStatus === 'pending' && !profile.isRequester ? (
+                <>
+                  <button
+                    type="button"
+                    onClick={acceptFriendRequest}
+                    className="flex-1 cursor-pointer rounded-lg bg-primary px-4 py-[7px] text-center text-sm font-semibold text-white transition-colors hover:bg-primary-hover"
+                  >
+                    <span className="inline-flex items-center gap-1.5">
+                      <UserCheck className="h-4 w-4" />
+                      Chấp nhận
+                    </span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={rejectFriendRequest}
+                    className="flex-1 cursor-pointer rounded-lg bg-border/60 px-4 py-[7px] text-center text-sm font-semibold text-text-primary transition-colors hover:bg-border"
+                  >
+                    <span className="inline-flex items-center gap-1.5">
+                      <UserX className="h-4 w-4" />
+                      Từ chối
+                    </span>
+                  </button>
+                </>
               ) : (
                 <button
                   type="button"
@@ -289,6 +317,17 @@ export default function ProfilePage() {
           {postsLoading && <Spinner />}
         </div>
       )}
+
+      <AlertDialog
+        open={unfriendDialogOpen}
+        onOpenChange={setUnfriendDialogOpen}
+        title={`Hủy kết bạn với ${profile.fullName ?? profile.userName}?`}
+        description="Sau khi hủy, bạn sẽ không thể xem các bài viết riêng tư của họ."
+        confirmLabel="Hủy kết bạn"
+        cancelLabel="Không"
+        variant="danger"
+        onConfirm={unfriend}
+      />
     </div>
   );
 }

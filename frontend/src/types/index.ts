@@ -15,6 +15,8 @@ export interface UserProfile extends User {
   postsCount: number;
   friendsCount: number;
   friendshipStatus: FriendshipStatus | null;
+  friendshipRequestId: number | null;
+  isRequester: boolean | null;
 }
 
 // ─── Post ────────────────────────────────────────────────────────────────────

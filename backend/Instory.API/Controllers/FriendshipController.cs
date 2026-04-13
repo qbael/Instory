@@ -53,6 +53,15 @@ public class FriendshipController : ControllerBase
         return NoContent();
     }
 
+    [HttpPatch("{requesterId}/respond")]
+    public async Task<IActionResult> RespondByRequesterId(int requesterId, [FromBody] RespondFriendshipDto dto)
+    {
+        var currentUserId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+        var accept = dto.Status == FriendshipStatus.Accepted;
+        await _friendshipService.RespondByRequesterIdAsync(currentUserId, requesterId, accept);
+        return NoContent();
+    }
+
     [HttpGet("requests")]
     public async Task<IActionResult> GetPendingRequests()
     {

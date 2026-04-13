@@ -47,6 +47,18 @@ public class FriendshipService : IFriendshipService
         await _friendshipRepository.SaveChangesAsync();
     }
 
+    public async Task RespondByRequesterIdAsync(int currentUserId, int requesterId, bool accept)
+    {
+        var friendship = await _friendshipRepository.GetBetweenUsersAsync(requesterId, currentUserId)
+                         ?? throw new NotFoundException("Friendship not found");
+
+        if (friendship.AddresseeId != currentUserId)
+            throw new UnauthorizedAccessException("You are not the recipient of this request");
+
+        friendship.Status = accept ? FriendshipStatus.Accepted : FriendshipStatus.Declined;
+        await _friendshipRepository.SaveChangesAsync();
+    }
+
     public async Task UnfriendAsync(int userId1, int userId2)
     {
         var friendship = await _friendshipRepository.GetBetweenUsersAsync(userId1, userId2)

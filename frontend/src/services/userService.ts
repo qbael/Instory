@@ -48,6 +48,12 @@ export const userService = {
     });
   },
 
+  respondFriendRequestByUserId(requesterId: number, accept: boolean) {
+    return api.patch(`v1/friendship/${requesterId}/respond`, {
+      status: accept ? 'accepted' : 'declined',
+    });
+  },
+
   getFriendRequests(params?: PaginationParams) {
     return api.get<PaginatedResponse<Friendship>>('v1/friendship/requests', { params });
   },

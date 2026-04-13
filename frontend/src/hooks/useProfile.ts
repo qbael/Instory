@@ -44,6 +44,37 @@ export function useProfile(username: string) {
     }
   }, [profile]);
 
+  const acceptFriendRequest = useCallback(async () => {
+    if (!profile) return;
+
+    const prevStatus = profile.friendshipStatus;
+    const prevCount = profile.friendsCount;
+    setProfile((p) =>
+      p ? { ...p, friendshipStatus: 'accepted', friendsCount: p.friendsCount + 1 } : p,
+    );
+
+    try {
+      await userService.respondFriendRequestByUserId(profile.id, true);
+    } catch {
+      setProfile((p) =>
+        p ? { ...p, friendshipStatus: prevStatus, friendsCount: prevCount } : p,
+      );
+    }
+  }, [profile]);
+
+  const rejectFriendRequest = useCallback(async () => {
+    if (!profile) return;
+
+    const prevStatus = profile.friendshipStatus;
+    setProfile((p) => (p ? { ...p, friendshipStatus: null } : p));
+
+    try {
+      await userService.respondFriendRequestByUserId(profile.id, false);
+    } catch {
+      setProfile((p) => (p ? { ...p, friendshipStatus: prevStatus } : p));
+    }
+  }, [profile]);
+
   const unfriend = useCallback(async () => {
     if (!profile) return;
 
@@ -76,6 +107,8 @@ export function useProfile(username: string) {
     load,
     sendFriendRequest,
     cancelFriendRequest,
+    acceptFriendRequest,
+    rejectFriendRequest,
     unfriend,
     updateFriendshipStatus,
   };
