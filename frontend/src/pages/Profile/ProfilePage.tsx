@@ -15,6 +15,12 @@ import {
 import { Avatar } from '@/components/ui/Avatar';
 import { Spinner } from '@/components/ui/Spinner';
 import { AlertDialog } from '@/components/ui/AlertDialog';
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+} from '@/components/ui/DropdownMenu';
 import { ProfileHighlights } from '@/components/profile/ProfileHighlights';
 import { useProfile } from '@/hooks/useProfile';
 import { usePosts } from '@/hooks/usePosts';
@@ -177,16 +183,28 @@ export default function ProfilePage() {
           ) : (
             <>
               {profile.friendshipStatus === 'accepted' ? (
-                <button
-                  type="button"
-                  onClick={() => setUnfriendDialogOpen(true)}
-                  className="flex-1 cursor-pointer rounded-lg bg-border/60 px-4 py-[7px] text-center text-sm font-semibold text-text-primary transition-colors hover:bg-border"
-                >
-                  <span className="inline-flex items-center gap-1.5">
-                    <UserMinus className="h-4 w-4" />
-                    Hủy kết bạn
-                  </span>
-                </button>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <button
+                      type="button"
+                      className="flex-1 cursor-pointer rounded-lg bg-border/60 px-4 py-[7px] text-center text-sm font-semibold text-text-primary transition-colors hover:bg-border"
+                    >
+                      <span className="inline-flex items-center gap-1.5">
+                        <UserCheck className="h-4 w-4" />
+                        Bạn bè
+                      </span>
+                    </button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="start">
+                    <DropdownMenuItem
+                      className="text-red-500 focus:text-red-500"
+                      onSelect={() => setUnfriendDialogOpen(true)}
+                    >
+                      <UserMinus className="h-4 w-4" />
+                      Hủy kết bạn
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
               ) : profile.friendshipStatus === 'pending' && profile.isRequester ? (
                 <button
                   type="button"

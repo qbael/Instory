@@ -28,7 +28,7 @@ export function CommentSection({ postId, initialCount }: CommentSectionProps) {
         pageNumber: 1,
         pageSize: 20,
       });
-      setComments(data.items);
+      setComments(data.data);
       setIsLoaded(true);
     } finally {
       setIsLoading(false);

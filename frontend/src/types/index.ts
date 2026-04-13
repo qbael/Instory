@@ -115,16 +115,20 @@ export interface Friendship {
 // ─── Notification ────────────────────────────────────────────────────────────
 
 export type NotificationType =
-  | 'like'
-  | 'comment'
-  | 'friend_request'
-  | 'friend_accept'
-  | 'post_share'
-  | 'mention';
+  | 'FriendRequestReceived'
+  | 'FriendRequestAccepted'
+  | 'NewMessage'
+  | 'PostLiked'
+  | 'PostCommented'
+  | 'PostSaved';
 
 export interface Notification {
   id: number;
   userId: number;
+  actorId: number | null;
+  actorName: string | null;
+  actorUsername: string | null;
+  actorAvatar: string | null;
   type: NotificationType;
   referenceId: number | null;
   message: string | null;
@@ -191,8 +195,8 @@ export interface AuthResponse {
 // ─── API Response Wrappers ───────────────────────────────────────────────────
 
 export interface PaginatedResponse<T> {
-  items: T[];
-  pageNumber: number;
+  data: T[];
+  page: number;
   pageSize: number;
   totalCount: number;
   totalPages: number;

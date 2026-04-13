@@ -33,7 +33,12 @@ builder.Services.AddCors(options =>
 });
 
 builder.Services.AddValidation();
-builder.Services.AddControllers();
+builder.Services.AddControllers()
+    .AddJsonOptions(options =>
+    {
+        options.JsonSerializerOptions.Converters.Add(
+            new System.Text.Json.Serialization.JsonStringEnumConverter());
+    });
 builder.Services.AddSignalR();
 
 builder.Services.AddDbContext<InstoryDbContext>(options =>
@@ -77,7 +82,7 @@ builder.Services.AddAuthentication(options =>
             var accessTokenQuery = context.Request.Query["access_token"];
             var path = context.HttpContext.Request.Path;
             
-            if (!string.IsNullOrEmpty(accessTokenQuery) && path.StartsWithSegments("/hubs/chat"))
+            if (!string.IsNullOrEmpty(accessTokenQuery) && path.StartsWithSegments("/hubs"))
             {
                 context.Token = accessTokenQuery;
             }
@@ -97,9 +102,13 @@ builder.Services.AddScoped(typeof(Instory.API.Repositories.IRepository<>), typeo
 builder.Services.AddScoped<Instory.API.Repositories.IUserRepository, UserRepository>();
 builder.Services.AddScoped<Instory.API.Repositories.IStoryRepository, StoryRepository>();
 builder.Services.AddScoped<Instory.API.Repositories.IChatRepository, ChatRepository>();
+builder.Services.AddScoped<Instory.API.Repositories.IFriendshipRepository, FriendshipRepository>();
+builder.Services.AddScoped<Instory.API.Repositories.INotificationRepository, NotificationRepository>();
 
 builder.Services.AddScoped<ITokenService, TokenService>();
 builder.Services.AddScoped<IStoryService, StoryService>();
+builder.Services.AddScoped<IFriendshipService, FriendshipService>();
+builder.Services.AddScoped<INotificationService, NotificationService>();
 
 builder.Services.Configure<AwsSettings>(builder.Configuration.GetSection("AWS"));
 builder.Services.AddSingleton<IAmazonS3>(sp =>
@@ -115,6 +124,7 @@ builder.Services.AddSingleton<IAmazonS3>(sp =>
 builder.Services.AddScoped<IMediaService, MediaService>();
 builder.Services.AddScoped<IChatService, ChatService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
+builder.Services.AddScoped<IProfileService, ProfileService>();
 
 var app = builder.Build();
 
@@ -138,6 +148,7 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
+app.MapHub<NotificationHub>("/hubs/notifications");
 app.MapHub<ChatHub>("/hubs/chat");
 app.MigrateDb();
 await app.SeedRolesAsync();  

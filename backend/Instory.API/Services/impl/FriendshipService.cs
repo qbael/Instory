@@ -9,10 +9,14 @@ namespace Instory.API.Services.impl;
 public class FriendshipService : IFriendshipService
 {
     private readonly IFriendshipRepository _friendshipRepository;
+    private readonly INotificationService _notificationService;
+    private readonly IChatService _chatService;
 
-    public FriendshipService(IFriendshipRepository friendshipRepository)
+    public FriendshipService(IFriendshipRepository friendshipRepository, INotificationService notificationService, IChatService chatService)
     {
         _friendshipRepository = friendshipRepository;
+        _notificationService = notificationService;
+        _chatService = chatService;
     }
 
     public async Task<FriendshipResponseDto> SendRequestAsync(int requesterId, int addresseeId)
@@ -25,6 +29,13 @@ public class FriendshipService : IFriendshipService
 
         await _friendshipRepository.AddAsync(friendship);
         await _friendshipRepository.SaveChangesAsync();
+
+        _ = TrySendNotification(() => _notificationService.CreateAndSendAsync(
+            addresseeId, requesterId,
+            NotificationType.FriendRequestReceived.ToString(),
+            friendship.Id,
+            "sent you a friend request"));
+
         return FriendshipResponseDto.FromEntity(friendship);
     }
 
@@ -43,8 +54,18 @@ public class FriendshipService : IFriendshipService
                          ?? throw new NotFoundException("Friendship not found");
 
         friendship.Status = accept ? FriendshipStatus.Accepted : FriendshipStatus.Declined;
-
         await _friendshipRepository.SaveChangesAsync();
+
+        if (accept)
+        {
+            _ = TrySendNotification(() => _notificationService.CreateAndSendAsync(
+                friendship.RequesterId, currentUserId,
+                NotificationType.FriendRequestAccepted.ToString(),
+                friendshipId,
+                "accepted your friend request"));
+
+            await TryCreateFriendChat(currentUserId, friendship.RequesterId);
+        }
     }
 
     public async Task RespondByRequesterIdAsync(int currentUserId, int requesterId, bool accept)
@@ -57,6 +78,17 @@ public class FriendshipService : IFriendshipService
 
         friendship.Status = accept ? FriendshipStatus.Accepted : FriendshipStatus.Declined;
         await _friendshipRepository.SaveChangesAsync();
+
+        if (accept)
+        {
+            _ = TrySendNotification(() => _notificationService.CreateAndSendAsync(
+                requesterId, currentUserId,
+                NotificationType.FriendRequestAccepted.ToString(),
+                friendship.Id,
+                "accepted your friend request"));
+
+            await TryCreateFriendChat(currentUserId, requesterId);
+        }
     }
 
     public async Task UnfriendAsync(int userId1, int userId2)
@@ -78,5 +110,21 @@ public class FriendshipService : IFriendshipService
     {
         var friendships = await _friendshipRepository.GetSentPendingRequestsAsync(userId);
         return friendships.Select(FriendshipResponseDto.FromEntity).ToList();
+    }
+
+    private static async Task TrySendNotification(Func<Task> send)
+    {
+        try { await send(); }
+        catch { /* notification failure must not break the main operation */ }
+    }
+
+    private async Task TryCreateFriendChat(int acceptorId, int requesterId)
+    {
+        try
+        {
+            var chat = await _chatService.GetOrCreateDirectChatAsync(acceptorId, requesterId);
+            await _chatService.SendMessageAsync(acceptorId, chat.Id, "Chúng ta đã là bạn bè! 👋");
+        }
+        catch { /* chat creation must not break the main operation */ }
     }
 }

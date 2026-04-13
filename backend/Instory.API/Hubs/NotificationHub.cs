@@ -5,7 +5,7 @@ using System.Security.Claims;
 namespace Instory.API.Hubs;
 
 [Authorize]
-public class ChatHub : Hub
+public class NotificationHub : Hub
 {
     public override async Task OnConnectedAsync()
     {

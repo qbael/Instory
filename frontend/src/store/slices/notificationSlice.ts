@@ -75,11 +75,11 @@ const notificationSlice = createSlice({
       })
       .addCase(fetchNotifications.fulfilled, (state, action) => {
         state.isLoading = false;
-        const { page, items, hasNextPage } = action.payload;
+        const { page, data, hasNextPage } = action.payload;
         if (page === 1) {
-          state.items = items;
+          state.items = data;
         } else {
-          state.items.push(...items);
+          state.items.push(...data);
         }
         state.hasMore = hasNextPage;
         state.currentPage = page;

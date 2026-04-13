@@ -34,9 +34,9 @@ export function usePosts(feedType: FeedType = 'home') {
 
                 const result = data;
                 setPosts((prev) =>
-                    pageNum === 1 ? result.items : [...prev, ...result.items],
+                    pageNum === 1 ? result.data : [...prev, ...result.data],
                 );
-                setHasMore(result.hasNextPage && result.items.length > 0);
+                setHasMore(result.hasNextPage && result.data.length > 0);
                 setPage(pageNum);
             } catch {
                 if (pageNum === 1) {

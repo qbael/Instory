@@ -22,7 +22,7 @@ export function useProfile(username: string) {
     if (!profile) return;
 
     const prevStatus = profile.friendshipStatus;
-    setProfile((p) => (p ? { ...p, friendshipStatus: 'pending' } : p));
+    setProfile((p) => (p ? { ...p, friendshipStatus: 'pending', isRequester: true } : p));
 
     try {
       await userService.sendFriendRequest(profile.id);

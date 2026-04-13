@@ -18,7 +18,7 @@ export default function AdminPage() {
     setIsLoading(true);
     try {
       const { data } = await adminService.getReports({ pageNumber: 1, pageSize: 50 });
-      setReports(data.items);
+      setReports(data.data);
     } finally {
       setIsLoading(false);
     }
