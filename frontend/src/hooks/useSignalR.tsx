@@ -9,7 +9,7 @@ import {
 import { toast } from 'sonner';
 import { Heart, MessageCircle, UserPlus, Users, Bookmark } from 'lucide-react';
 import { useAppDispatch, useAppSelector } from '@/store';
-import { addRealtimeNotification } from '@/store/slices/notificationSlice';
+import { addRealtimeNotification, fetchUnreadCount } from '@/store/slices/notificationSlice';
 import { SIGNALR_URL } from '@/utils/constants';
 import type { Notification, NotificationType } from '@/types';
 
@@ -45,11 +45,6 @@ function getNavigateTo(n: Notification): string | undefined {
   }
 }
 
-function getInitials(name: string | null | undefined): string {
-  if (!name) return '?';
-  return name.split(' ').map((w) => w[0]).slice(0, 2).join('').toUpperCase();
-}
-
 // ─── Hook ─────────────────────────────────────────────────────────────────────
 
 export function useSignalR() {
@@ -62,6 +57,13 @@ export function useSignalR() {
 
   const dismissNewPosts = useCallback(() => setHasNewPosts(false), []);
 
+  // Fetch initial unread count as soon as the user is authenticated
+  useEffect(() => {
+    if (isAuthenticated) {
+      dispatch(fetchUnreadCount());
+    }
+  }, [isAuthenticated, dispatch]);
+
   // Stable refs — SignalR handlers always see latest values without triggering reconnect
   const navigateRef = useRef(navigate);
   const locationRef = useRef(location.pathname);
@@ -71,10 +73,12 @@ export function useSignalR() {
   // SignalR connect/disconnect — only depends on isAuthenticated
   useEffect(() => {
     if (!isAuthenticated) {
-      connectionRef.current?.stop();
+      connectionRef.current?.stop().catch(() => {});
       connectionRef.current = null;
       return;
     }
+
+    let isMounted = true;
 
     const connection = new HubConnectionBuilder()
       .withUrl(`${SIGNALR_URL}/notifications`, { withCredentials: true })
@@ -92,90 +96,27 @@ export function useSignalR() {
       const Icon = cfg?.icon ?? MessageCircle;
       const navigateTo = getNavigateTo(notification);
 
-      toast.custom(
-        (id) => (
-          <div
-            onClick={() => {
-              toast.dismiss(id);
-              if (navigateTo) navigateRef.current(navigateTo);
-            }}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '12px',
-              width: '340px',
-              cursor: 'pointer',
-              borderRadius: '12px',
-              border: '1px solid var(--color-border)',
-              background: 'var(--color-bg-card)',
-              padding: '12px 16px',
-              boxShadow: '0 4px 24px rgba(0,0,0,0.15)',
-            }}
-          >
-            {/* Avatar + icon badge */}
-            <div style={{ position: 'relative', flexShrink: 0 }}>
-              {notification.actorAvatar ? (
-                <img
-                  src={notification.actorAvatar}
-                  alt={notification.actorName ?? ''}
-                  style={{ width: 40, height: 40, borderRadius: '50%', objectFit: 'cover' }}
-                />
-              ) : (
-                <div style={{
-                  width: 40, height: 40, borderRadius: '50%',
-                  background: 'var(--color-border)',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  fontSize: 13, fontWeight: 600,
-                  color: 'var(--color-text-secondary)',
-                }}>
-                  {getInitials(notification.actorName)}
-                </div>
-              )}
-              <span style={{
-                position: 'absolute', bottom: -2, right: -2,
-                width: 20, height: 20, borderRadius: '50%',
-                background: cfg?.color ?? '#3b82f6',
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                boxShadow: '0 0 0 2px var(--color-bg-card)',
-              }}>
-                <Icon style={{ width: 10, height: 10, color: '#fff' }} />
-              </span>
-            </div>
-
-            {/* Text */}
-            <div style={{ minWidth: 0, flex: 1 }}>
-              <p style={{
-                margin: 0, fontSize: 13, lineHeight: 1.4,
-                color: 'var(--color-text-primary)',
-                overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-              }}>
-                {notification.actorName && (
-                  <span style={{ fontWeight: 600 }}>{notification.actorName} </span>
-                )}
-                {actionText[notification.type] ?? notification.message}
-              </p>
-              <p style={{ margin: '2px 0 0', fontSize: 11, color: 'var(--color-text-secondary)' }}>
-                Vừa xong
-              </p>
-            </div>
-          </div>
-        ),
-        { duration: 5000 },
-      );
+      toast(notification.actorName ?? 'Thông báo mới', {
+        description: actionText[notification.type] ?? notification.message,
+        icon: <Icon size={16} color={cfg?.color ?? '#3b82f6'} />,
+        duration: 5000,
+        action: navigateTo
+          ? { label: 'Xem', onClick: () => navigateRef.current(navigateTo) }
+          : undefined,
+      });
     });
 
     connection.on('NewPost', () => setHasNewPosts(true));
 
-    connection.start().catch((err) => console.error('SignalR connection failed:', err));
+    connection.start().catch((err) => {
+      if (isMounted) console.error('SignalR connection failed:', err);
+    });
     connectionRef.current = connection;
 
     return () => {
-      if (
-        connection.state !== HubConnectionState.Disconnected &&
-        connection.state !== HubConnectionState.Disconnecting
-      ) {
-        connection.stop();
-      }
+      isMounted = false;
+      connection.stop().catch(() => {});
+      connectionRef.current = null;
     };
   }, [isAuthenticated, dispatch]);
 

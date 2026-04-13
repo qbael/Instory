@@ -106,7 +106,7 @@ public class ChatService : IChatService
 
             if (pId != senderId)
             {
-                _ = TrySendNotification(() => _notificationService.CreateAndSendAsync(
+                await TrySendNotification(() => _notificationService.CreateAndSendAsync(
                     pId, senderId,
                     Models.Enums.NotificationType.NewMessage.ToString(),
                     chatId,

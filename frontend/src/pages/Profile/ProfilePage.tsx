@@ -25,7 +25,8 @@ import { ProfileHighlights } from '@/components/profile/ProfileHighlights';
 import { useProfile } from '@/hooks/useProfile';
 import { usePosts } from '@/hooks/usePosts';
 import { useInfiniteScroll } from '@/hooks/useInfiniteScroll';
-import { useAppSelector } from '@/store';
+import { useAppSelector, useAppDispatch } from '@/store';
+import { getOrCreateDirectChat } from '@/store/slices/chatSlice';
 import { cn } from '@/utils/cn';
 import type { StoryHighlight } from '@/types';
 
@@ -36,6 +37,7 @@ type Tab = OwnTab | OtherTab;
 export default function ProfilePage() {
   const { username } = useParams<{ username: string }>();
   const navigate = useNavigate();
+  const dispatch = useAppDispatch();
   const currentUser = useAppSelector((s) => s.auth.user);
   const isOwn = currentUser?.userName === username;
 
@@ -253,6 +255,10 @@ export default function ProfilePage() {
               )}
               <button
                 type="button"
+                onClick={async () => {
+                  await dispatch(getOrCreateDirectChat(profile.id));
+                  navigate('/chat');
+                }}
                 className="flex-1 cursor-pointer rounded-lg bg-border/60 px-4 py-[7px] text-center text-sm font-semibold text-text-primary transition-colors hover:bg-border"
               >
                 Nhắn tin

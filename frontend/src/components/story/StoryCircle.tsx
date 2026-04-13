@@ -51,7 +51,7 @@ export const StoryCircle = memo(function StoryCircle({
         )}
       </div>
       <span className="w-full truncate text-center text-[11px]">
-        {isOwn ? 'Story của bạn' : name}
+        {isOwn ? 'Tin của bạn' : name}
       </span>
     </button>
   );

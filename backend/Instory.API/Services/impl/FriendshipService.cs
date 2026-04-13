@@ -30,7 +30,7 @@ public class FriendshipService : IFriendshipService
         await _friendshipRepository.AddAsync(friendship);
         await _friendshipRepository.SaveChangesAsync();
 
-        _ = TrySendNotification(() => _notificationService.CreateAndSendAsync(
+        await TrySendNotification(() => _notificationService.CreateAndSendAsync(
             addresseeId, requesterId,
             NotificationType.FriendRequestReceived.ToString(),
             friendship.Id,
@@ -58,7 +58,7 @@ public class FriendshipService : IFriendshipService
 
         if (accept)
         {
-            _ = TrySendNotification(() => _notificationService.CreateAndSendAsync(
+            await TrySendNotification(() => _notificationService.CreateAndSendAsync(
                 friendship.RequesterId, currentUserId,
                 NotificationType.FriendRequestAccepted.ToString(),
                 friendshipId,
@@ -81,7 +81,7 @@ public class FriendshipService : IFriendshipService
 
         if (accept)
         {
-            _ = TrySendNotification(() => _notificationService.CreateAndSendAsync(
+            await TrySendNotification(() => _notificationService.CreateAndSendAsync(
                 requesterId, currentUserId,
                 NotificationType.FriendRequestAccepted.ToString(),
                 friendship.Id,
