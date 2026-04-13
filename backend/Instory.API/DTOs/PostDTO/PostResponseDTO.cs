@@ -10,4 +10,5 @@ public class PostResponseDTO
     public int CommentCount { get; set; }
     public int ShareCount { get; set; }
     public DateTime CreatedAt { get; set; } // Giả định có từ BaseEntity
+    public bool IsLiked { get; set; } = false;
 }

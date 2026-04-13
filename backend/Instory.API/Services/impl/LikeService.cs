@@ -1,3 +1,4 @@
+using Instory.API.DTOs;
 using Instory.API.Models;
 using Instory.API.Repositories;
 
@@ -33,4 +34,11 @@ public class LikeService : ILikeService
         await _postRepository.SaveChangesAsync(); // save change in Like and Post
         return true;
     }
+
+    // public async Task<IEnumerable<Like>> GetUserLikedPostsAsync(int userId)
+    // {
+    //     var posts = await _likeRepository.GetLikePostIdsByUserIdAsync(userId);
+
+
+    // }
 }

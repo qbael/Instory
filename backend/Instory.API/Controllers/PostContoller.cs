@@ -21,7 +21,8 @@ public class PostController : ControllerBase
     [HttpGet]
     public async Task<IActionResult> GetAll()
     {
-        var result = await _postService.GetAllPostsAsync();
+        var currentUserId = User.GetUserId();
+        var result = await _postService.GetAllPostsAsync(currentUserId);
         return Ok(result);
     }
 

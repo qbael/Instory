@@ -9,18 +9,18 @@ public class Post : BaseEntity
     [Key]
     [Column("id")]
     public int Id { get; set; }
- 
+
     [Required]
     [Column("user_id")]
     public int UserId { get; set; }
- 
+
     [Column("content", TypeName = "text")]
     public string? Content { get; set; }
- 
+
     [MaxLength(255)]
     [Column("image_url")]
     public string? ImageUrl { get; set; }
- 
+
     [Column("like_count")]
     public int LikeCount { get; set; } = 0;
 
@@ -41,7 +41,7 @@ public class Post : BaseEntity
 
     [ForeignKey(nameof(UserId))]
     public User User { get; set; } = null!;
- 
+
     public ICollection<Comment> Comments { get; set; } = new List<Comment>();
     public ICollection<Like> Likes { get; set; } = new List<Like>();
     public ICollection<SharePost> SharePosts { get; set; } = new List<SharePost>();

@@ -28,6 +28,7 @@ export const PostActions = memo(function PostActions({
             onClick={onLike}
             className="cursor-pointer transition-transform active:scale-110"
             aria-label={isLiked ? 'Bỏ thích' : 'Thích'}
+            title={isLiked ? 'Bỏ thích' : 'Thích'}
           >
             <Heart
               className={cn(
@@ -43,6 +44,7 @@ export const PostActions = memo(function PostActions({
             onClick={onCommentClick}
             className="cursor-pointer text-text-primary hover:text-text-secondary"
             aria-label="Bình luận"
+            title='Bình luận'
           >
             <MessageCircle className="h-6 w-6" />
           </button>
@@ -51,6 +53,7 @@ export const PostActions = memo(function PostActions({
             onClick={onShare}
             className="cursor-pointer text-text-primary hover:text-text-secondary"
             aria-label="Chia sẻ"
+            title='Chia sẻ'
           >
             <Send className="h-6 w-6" />
           </button>
@@ -59,6 +62,7 @@ export const PostActions = memo(function PostActions({
           type="button"
           className="cursor-pointer text-text-primary hover:text-text-secondary"
           aria-label="Lưu"
+          title='Lưu'
         >
           <Bookmark className="h-6 w-6" />
         </button>
