@@ -3,12 +3,14 @@ import { useDispatch, useSelector } from 'react-redux';
 import authReducer from './slices/authSlice';
 import notificationReducer from './slices/notificationSlice';
 import uiReducer from './slices/uiSlice';
+import chatReducer from './slices/chatSlice';
 
 export const store = configureStore({
   reducer: {
     auth: authReducer,
     notification: notificationReducer,
     ui: uiReducer,
+    chat: chatReducer,
   },
 });
 

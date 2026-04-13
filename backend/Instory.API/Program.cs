@@ -1,4 +1,3 @@
-using System;
 using Instory.API.Data;
 using Instory.API.Models;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -6,7 +5,6 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
-using System.Threading.Tasks;
 using Instory.API.Exceptions;
 using Instory.API.Helpers;
 using Instory.API.Services;
@@ -14,23 +12,28 @@ using Instory.API.Services.impl;
 using Amazon.S3;
 using Instory.API.Hubs;
 using Instory.API.Repositories.impl;
-using Microsoft.AspNetCore.Builder;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddOpenApi();
 
-builder.Services.AddValidation();
-builder.Services.AddControllers()
-    .AddJsonOptions(opts =>
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("FrontendPolicy", policy =>
     {
-        opts.JsonSerializerOptions.Converters.Add(
-            new System.Text.Json.Serialization.JsonStringEnumConverter()
-        );
+        policy
+            .WithOrigins(
+                "http://localhost:5173",  // Vite dev server
+                "http://localhost:5174"   // fallback
+            )
+            .AllowAnyHeader()
+            .AllowAnyMethod()
+            .AllowCredentials(); // required for SignalR + cookies
     });
+});
+
+builder.Services.AddValidation();
+builder.Services.AddControllers();
 builder.Services.AddSignalR();
 
 builder.Services.AddDbContext<InstoryDbContext>(options =>
@@ -94,18 +97,24 @@ builder.Services.AddScoped(typeof(Instory.API.Repositories.IRepository<>), typeo
 builder.Services.AddScoped<Instory.API.Repositories.IUserRepository, UserRepository>();
 builder.Services.AddScoped<Instory.API.Repositories.IStoryRepository, StoryRepository>();
 builder.Services.AddScoped<Instory.API.Repositories.IChatRepository, ChatRepository>();
-builder.Services.AddScoped<Instory.API.Repositories.IFriendshipRepository, FriendshipRepository>();
 
 builder.Services.AddScoped<ITokenService, TokenService>();
 builder.Services.AddScoped<IStoryService, StoryService>();
 
 builder.Services.Configure<AwsSettings>(builder.Configuration.GetSection("AWS"));
-builder.Services.AddAWSService<IAmazonS3>();
+builder.Services.AddSingleton<IAmazonS3>(sp =>
+{
+    var awsSettings = sp.GetRequiredService<Microsoft.Extensions.Options.IOptions<AwsSettings>>().Value;
+    var credentials = new Amazon.Runtime.BasicAWSCredentials(awsSettings.AccessKey, awsSettings.SecretKey);
+    var config = new AmazonS3Config
+    {
+        RegionEndpoint = Amazon.RegionEndpoint.GetBySystemName(awsSettings.Region)
+    };
+    return new AmazonS3Client(credentials, config);
+});
 builder.Services.AddScoped<IMediaService, MediaService>();
 builder.Services.AddScoped<IChatService, ChatService>();
-builder.Services.AddScoped<IProfileService, ProfileService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
-builder.Services.AddScoped<IFriendshipService, FriendshipService>();
 
 var app = builder.Build();
 
@@ -120,6 +129,8 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+
+app.UseCors("FrontendPolicy");
 
 app.UseExceptionHandler();
 

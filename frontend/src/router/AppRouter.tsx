@@ -15,6 +15,7 @@ import {
   NotificationsPage,
   AdminPage,
   NotFoundPage,
+  ChatPage,
 } from './routes';
 
 export default function AppRouter() {
@@ -38,6 +39,7 @@ export default function AppRouter() {
               <Route path="profile/:username" element={<ProfilePage />} />
               <Route path="search" element={<SearchPage />} />
               <Route path="notifications" element={<NotificationsPage />} />
+              <Route path="chat" element={<ChatPage />} />
               <Route path="admin" element={<AdminPage />} />
             </Route>
           </Route>

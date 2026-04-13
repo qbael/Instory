@@ -14,5 +14,6 @@ export const ROUTES = {
   EDIT_PROFILE: '/profile/edit',
   SEARCH: '/search',
   NOTIFICATIONS: '/notifications',
+  CHAT: '/chat',
   ADMIN: '/admin',
 } as const;

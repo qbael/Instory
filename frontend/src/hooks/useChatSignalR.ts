@@ -1,0 +1,52 @@
+import { useEffect, useRef } from 'react';
+import {
+  HubConnectionBuilder,
+  HubConnectionState,
+  LogLevel,
+  type HubConnection,
+} from '@microsoft/signalr';
+import { useAppDispatch, useAppSelector } from '@/store';
+import { receiveMessage } from '@/store/slices/chatSlice';
+import { SIGNALR_URL } from '@/utils/constants';
+import type { ChatMessage } from '@/types/chat';
+
+export function useChatSignalR() {
+  const dispatch = useAppDispatch();
+  const isAuthenticated = useAppSelector((s) => s.auth.isAuthenticated);
+  const connectionRef = useRef<HubConnection | null>(null);
+
+  useEffect(() => {
+    if (!isAuthenticated) {
+      if (connectionRef.current) {
+        connectionRef.current.stop();
+        connectionRef.current = null;
+      }
+      return;
+    }
+
+    const connection = new HubConnectionBuilder()
+      .withUrl(`${SIGNALR_URL}/chat`, { withCredentials: true })
+      .withAutomaticReconnect([0, 2000, 5000, 10000, 30000])
+      .configureLogging(LogLevel.Warning)
+      .build();
+
+    connection.on('ReceiveMessage', (message: ChatMessage) => {
+      dispatch(receiveMessage(message));
+    });
+
+    connection
+      .start()
+      .catch((err) => console.error('ChatHub SignalR connection failed:', err));
+
+    connectionRef.current = connection;
+
+    return () => {
+      if (
+        connection.state !== HubConnectionState.Disconnected &&
+        connection.state !== HubConnectionState.Disconnecting
+      ) {
+        connection.stop();
+      }
+    };
+  }, [isAuthenticated, dispatch]);
+}

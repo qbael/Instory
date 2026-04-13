@@ -1,6 +1,7 @@
 using System.ComponentModel.DataAnnotations;
 using System.Security.Claims;
 using Instory.API.Services;
+using Instory.API.DTOs.ChatDtos;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -29,13 +30,22 @@ public class ChatController : ControllerBase
     {
         var userId = GetCurrentUserId();
         var chats = await _chatService.GetUserChatsAsync(userId);
-        return Ok(chats.Select(c => new 
+        return Ok(chats.Select(c => new ChatResponseDto
         {
-            c.Id,
-            c.Type,
-            c.Name,
-            Participants = c.Participants.Select(p => new { p.UserId, p.User.FullName, p.User.AvatarUrl }),
-            LastMessage = c.Messages.FirstOrDefault()
+            Id = c.Id,
+            Type = c.Type.ToString(),
+            Name = c.Name,
+            Participants = c.Participants.Select(p => new ChatParticipantDto { UserId = p.UserId, FullName = p.User.FullName, AvatarUrl = p.User.AvatarUrl }),
+            LastMessage = c.Messages.Select(m => new ChatMessageResponseDto {
+                Id = m.Id,
+                ChatId = m.ChatId,
+                SenderId = m.SenderId,
+                SenderName = m.Sender != null ? m.Sender.FullName : null,
+                SenderAvatar = m.Sender != null ? m.Sender.AvatarUrl : null,
+                Content = m.Content,
+                MediaUrl = m.MediaUrl,
+                CreatedAt = m.CreatedAt
+            }).FirstOrDefault()
         }));
     }
 
@@ -46,16 +56,16 @@ public class ChatController : ControllerBase
         try
         {
             var messages = await _chatService.GetChatMessagesAsync(chatId, userId);
-            return Ok(messages.Select(m => new 
+            return Ok(messages.Select(m => new ChatMessageResponseDto
             {
-                m.Id,
-                m.ChatId,
-                m.SenderId,
+                Id = m.Id,
+                ChatId = m.ChatId,
+                SenderId = m.SenderId,
                 SenderName = m.Sender?.FullName,
                 SenderAvatar = m.Sender?.AvatarUrl,
-                m.Content,
-                m.MediaUrl,
-                m.CreatedAt
+                Content = m.Content,
+                MediaUrl = m.MediaUrl,
+                CreatedAt = m.CreatedAt
             }));
         }
         catch (Exception ex)
@@ -108,15 +118,15 @@ public class ChatController : ControllerBase
         {
             var message = await _chatService.SendMessageAsync(userId, dto.ChatId, dto.Content, null);
 
-            var messageObj = new {
-                message.Id,
-                message.ChatId,
-                message.SenderId,
+            var messageObj = new ChatMessageResponseDto {
+                Id = message.Id,
+                ChatId = message.ChatId,
+                SenderId = message.SenderId,
                 SenderName = message.Sender?.FullName,
                 SenderAvatar = message.Sender?.AvatarUrl,
-                message.Content,
-                message.MediaUrl,
-                message.CreatedAt
+                Content = message.Content,
+                MediaUrl = message.MediaUrl,
+                CreatedAt = message.CreatedAt
             };
 
             return Ok(messageObj);
@@ -135,15 +145,15 @@ public class ChatController : ControllerBase
         {
             var message = await _chatService.SendMessageAsync(userId, chatId, content, file);
             
-            var messageObj = new {
-                message.Id,
-                message.ChatId,
-                message.SenderId,
+            var messageObj = new ChatMessageResponseDto {
+                Id = message.Id,
+                ChatId = message.ChatId,
+                SenderId = message.SenderId,
                 SenderName = message.Sender?.FullName,
                 SenderAvatar = message.Sender?.AvatarUrl,
-                message.Content,
-                message.MediaUrl,
-                message.CreatedAt
+                Content = message.Content,
+                MediaUrl = message.MediaUrl,
+                CreatedAt = message.CreatedAt
             };
 
             return Ok(messageObj);
