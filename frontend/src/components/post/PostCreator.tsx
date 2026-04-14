@@ -118,16 +118,19 @@ export function PostCreator() {
   const handleSubmit = async () => {
     if (!caption.trim() && imageFiles.length === 0) return;
     setIsSubmitting(true);
+
     try {
       const formData = new FormData();
       if (caption.trim()) formData.append('content', caption.trim());
       // append multiple images (backend should accept repeated 'images' fields)
-      imageFiles.forEach((f) => formData.append('images', f));
+      imageFiles.forEach((f) => formData.append('Images', f));
 
       await postService.create(formData);
+
       toast.success('Đã tạo bài viết!');
       handleClose();
       window.dispatchEvent(new CustomEvent('post-created'));
+
     } catch {
       toast.error('Tạo bài viết thất bại');
     } finally {

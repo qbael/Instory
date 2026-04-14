@@ -38,7 +38,7 @@ public class PostController : ControllerBase
     }
 
     [HttpPost]
-    public async Task<IActionResult> Create([FromBody] CreatePostRequestDTO request)
+    public async Task<IActionResult> Create([FromForm] CreatePostRequestDTO request)
     {
         var userId = User.GetUserId();
         var result = await _postService.CreatePostAsync(userId, request);

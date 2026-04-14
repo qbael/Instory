@@ -100,7 +100,7 @@ builder.Services.AddScoped<Instory.API.Repositories.IChatRepository, ChatReposit
 builder.Services.AddScoped<Instory.API.Repositories.IPostRepository, PostRepository>();
 builder.Services.AddScoped<Instory.API.Repositories.ICommentRepository, CommentRepository>();
 builder.Services.AddScoped<Instory.API.Repositories.ILikeRepository, LikeRepository>();
-
+builder.Services.AddScoped<Instory.API.Repositories.IPostImageRepository, PostImageRepository>();
 
 builder.Services.AddScoped<ITokenService, TokenService>();
 builder.Services.AddScoped<IStoryService, StoryService>();
@@ -122,6 +122,7 @@ builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IPostService, PostService>();
 builder.Services.AddScoped<ICommentService, CommentService>();
 builder.Services.AddScoped<ILikeService, LikeService>();
+// builder.Services.AddScoped<IPostImageService, PostImageService>();
 
 var app = builder.Build();
 

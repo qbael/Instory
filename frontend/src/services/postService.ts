@@ -19,9 +19,10 @@ export const postService = {
   },
 
   create(formData: FormData) {
-    return api.post<Post>(BASE, formData, {
-      headers: { 'Content-Type': 'multipart/form-data' },
-    });
+    // return api.post<Post>(BASE, formData, {
+    //   headers: { 'Content-Type': 'multipart/form-data' },
+    // });
+    return api.post(BASE, formData); 
   },
 
   update(id: number, formData: FormData) {

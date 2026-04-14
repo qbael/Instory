@@ -1,3 +1,5 @@
+using Instory.API.Models;
+
 namespace Instory.API.DTOs;
 
 public class PostResponseDTO
@@ -11,4 +13,6 @@ public class PostResponseDTO
     public int ShareCount { get; set; }
     public DateTime CreatedAt { get; set; } // Giả định có từ BaseEntity
     public bool IsLiked { get; set; } = false;
+
+    public List<PostImage> Images { get; set; } = new List<PostImage>();
 }
