@@ -287,7 +287,12 @@ namespace Instory.API.Migrations
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                     user_id = table.Column<int>(type: "integer", nullable: false),
                     content = table.Column<string>(type: "text", nullable: true),
-                    image_url = table.Column<string>(type: "character varying(255)", maxLength: 255, nullable: true),
+                    like_count = table.Column<int>(type: "integer", nullable: false),
+                    comment_count = table.Column<int>(type: "integer", nullable: false),
+                    share_count = table.Column<int>(type: "integer", nullable: false),
+                    allow_comment = table.Column<bool>(type: "boolean", nullable: false),
+                    is_deleted = table.Column<bool>(type: "boolean", nullable: false),
+                    deleted_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
                     created_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     updated_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: true)
                 },
@@ -382,6 +387,27 @@ namespace Instory.API.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "hashtagtrend",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    hashtag_id = table.Column<int>(type: "integer", nullable: false),
+                    date = table.Column<DateTime>(type: "date", nullable: false),
+                    post_count = table.Column<int>(type: "integer", nullable: false, defaultValue: 0)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_hashtagtrend", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_hashtagtrend_hashtags_hashtag_id",
+                        column: x => x.hashtag_id,
+                        principalTable: "hashtags",
+                        principalColumn: "id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "comments",
                 columns: table => new
                 {
@@ -458,6 +484,27 @@ namespace Instory.API.Migrations
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
                         name: "FK_post_hashtags_posts_post_id",
+                        column: x => x.post_id,
+                        principalTable: "posts",
+                        principalColumn: "id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "post_images",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    imageurl = table.Column<string>(type: "character varying(255)", maxLength: 255, nullable: false),
+                    post_id = table.Column<int>(type: "integer", nullable: false),
+                    sort_order = table.Column<int>(type: "integer", nullable: false, defaultValue: 0)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_post_images", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_post_images_posts_post_id",
                         column: x => x.post_id,
                         principalTable: "posts",
                         principalColumn: "id",
@@ -624,6 +671,12 @@ namespace Instory.API.Migrations
                 column: "requester_id");
 
             migrationBuilder.CreateIndex(
+                name: "IX_hashtagtrend_hashtag_id_date",
+                table: "hashtagtrend",
+                columns: new[] { "hashtag_id", "date" },
+                unique: true);
+
+            migrationBuilder.CreateIndex(
                 name: "IX_likes_post_id_user_id",
                 table: "likes",
                 columns: new[] { "post_id", "user_id" },
@@ -659,6 +712,11 @@ namespace Instory.API.Migrations
                 table: "post_hashtags",
                 columns: new[] { "post_id", "hashtag_id" },
                 unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_post_images_post_id",
+                table: "post_images",
+                column: "post_id");
 
             migrationBuilder.CreateIndex(
                 name: "IX_post_reports_post_id",
@@ -732,6 +790,9 @@ namespace Instory.API.Migrations
                 name: "friendships");
 
             migrationBuilder.DropTable(
+                name: "hashtagtrend");
+
+            migrationBuilder.DropTable(
                 name: "likes");
 
             migrationBuilder.DropTable(
@@ -742,6 +803,9 @@ namespace Instory.API.Migrations
 
             migrationBuilder.DropTable(
                 name: "post_hashtags");
+
+            migrationBuilder.DropTable(
+                name: "post_images");
 
             migrationBuilder.DropTable(
                 name: "post_reports");

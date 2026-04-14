@@ -12,8 +12,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Instory.API.Migrations
 {
     [DbContext(typeof(InstoryDbContext))]
-    [Migration("20260414023143_AddPostImages")]
-    partial class AddPostImages
+    [Migration("20260414082031_InitialCreate")]
+    partial class InitialCreate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -167,9 +167,8 @@ namespace Instory.API.Migrations
                         .HasColumnType("integer")
                         .HasColumnName("requester_id");
 
-                    b.Property<string>("Status")
-                        .HasMaxLength(20)
-                        .HasColumnType("character varying(20)")
+                    b.Property<int>("Status")
+                        .HasColumnType("integer")
                         .HasColumnName("status");
 
                     b.Property<DateTime?>("UpdatedAt")
