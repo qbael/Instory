@@ -76,7 +76,7 @@ builder.Services.AddAuthentication(options =>
         {
             var accessTokenQuery = context.Request.Query["access_token"];
             var path = context.HttpContext.Request.Path;
-            
+
             if (!string.IsNullOrEmpty(accessTokenQuery) && path.StartsWithSegments("/hubs/chat"))
             {
                 context.Token = accessTokenQuery;
@@ -91,12 +91,16 @@ builder.Services.AddAuthentication(options =>
 });
 
 builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
-builder.Services.AddProblemDetails();      
+builder.Services.AddProblemDetails();
 
 builder.Services.AddScoped(typeof(Instory.API.Repositories.IRepository<>), typeof(Repository<>));
 builder.Services.AddScoped<Instory.API.Repositories.IUserRepository, UserRepository>();
 builder.Services.AddScoped<Instory.API.Repositories.IStoryRepository, StoryRepository>();
 builder.Services.AddScoped<Instory.API.Repositories.IChatRepository, ChatRepository>();
+builder.Services.AddScoped<Instory.API.Repositories.IPostRepository, PostRepository>();
+builder.Services.AddScoped<Instory.API.Repositories.ICommentRepository, CommentRepository>();
+builder.Services.AddScoped<Instory.API.Repositories.ILikeRepository, LikeRepository>();
+
 
 builder.Services.AddScoped<ITokenService, TokenService>();
 builder.Services.AddScoped<IStoryService, StoryService>();
@@ -115,6 +119,9 @@ builder.Services.AddSingleton<IAmazonS3>(sp =>
 builder.Services.AddScoped<IMediaService, MediaService>();
 builder.Services.AddScoped<IChatService, ChatService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
+builder.Services.AddScoped<IPostService, PostService>();
+builder.Services.AddScoped<ICommentService, CommentService>();
+builder.Services.AddScoped<ILikeService, LikeService>();
 
 var app = builder.Build();
 
@@ -140,6 +147,6 @@ app.UseAuthorization();
 app.MapControllers();
 app.MapHub<ChatHub>("/hubs/chat");
 app.MigrateDb();
-await app.SeedRolesAsync();  
+await app.SeedRolesAsync();
 
 app.Run();

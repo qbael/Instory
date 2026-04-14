@@ -54,8 +54,8 @@ export const postService = {
     return api.post<Comment>(`${BASE}/${dto.postId}/comments`, { content: dto.content });
   },
 
-  deleteComment(postId: number, commentId: number) {
-    return api.delete(`${BASE}/${postId}/comments/${commentId}`);
+  deleteComment(commentId: number) {
+    return api.delete(`${BASE}/comments/${commentId}`);
   },
 
   report(postId: number, reason: string) {
