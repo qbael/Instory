@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback } from 'react';
+import { useState, useRef, useCallback, useEffect } from 'react';
 import { ImagePlus, X } from 'lucide-react';
 import { toast } from 'sonner';
 import { Modal } from '@/components/ui/Modal';
@@ -18,8 +18,9 @@ export function PostCreator() {
   const user = useAppSelector((s) => s.auth.user);
 
   const [caption, setCaption] = useState('');
-  const [imageFile, setImageFile] = useState<File | null>(null);
-  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [imageFiles, setImageFiles] = useState<File[]>([]);
+  const [imagePreviews, setImagePreviews] = useState<string[]>([]);
+  const [currentIndex, setCurrentIndex] = useState(0);
   const [isDragging, setIsDragging] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
@@ -27,56 +28,101 @@ export function PostCreator() {
   const handleClose = useCallback(() => {
     dispatch(closeModal());
     setCaption('');
-    setImageFile(null);
-    setImagePreview(null);
+    setImageFiles([]);
+    setImagePreviews([]);
   }, [dispatch]);
 
-  const handleFileSelect = useCallback((file: File) => {
-    if (!ACCEPTED_IMAGE_TYPES.includes(file.type)) {
-      toast.error('Chỉ chấp nhận ảnh JPEG, PNG, WebP và GIF');
-      return;
-    }
-    if (file.size > MAX_IMAGE_SIZE_MB * 1024 * 1024) {
-      toast.error(`Ảnh phải nhỏ hơn ${MAX_IMAGE_SIZE_MB}MB`);
-      return;
-    }
-    setImageFile(file);
-    const reader = new FileReader();
-    reader.onload = (e) => setImagePreview(e.target?.result as string);
-    reader.readAsDataURL(file);
+  const handleFileSelect = useCallback((files: File[]) => {
+    const accepted: File[] = [];
+    files.forEach((file) => {
+      if (!ACCEPTED_IMAGE_TYPES.includes(file.type)) {
+        toast.error('Chỉ chấp nhận ảnh JPEG, PNG, WebP và GIF');
+        return;
+      }
+      if (file.size > MAX_IMAGE_SIZE_MB * 1024 * 1024) {
+        toast.error(`Ảnh phải nhỏ hơn ${MAX_IMAGE_SIZE_MB}MB`);
+        return;
+      }
+      accepted.push(file);
+    });
+
+    if (accepted.length === 0) return;
+
+    // append files and generate previews
+    accepted.forEach((file) => {
+      setImageFiles((prev) => [...prev, file]);
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        setImagePreviews((prev) => [...prev, e.target?.result as string]);
+      };
+      reader.readAsDataURL(file);
+    });
+
+    // focus to first image when new images are added
+    setCurrentIndex(0);
   }, []);
 
   const onDrop = useCallback(
     (e: React.DragEvent) => {
       e.preventDefault();
       setIsDragging(false);
-      const file = e.dataTransfer.files[0];
-      if (file) handleFileSelect(file);
+        const list = Array.from(e.dataTransfer.files || []);
+        if (list.length) handleFileSelect(list);
     },
     [handleFileSelect],
   );
 
   const onFileChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
-      const file = e.target.files?.[0];
-      if (file) handleFileSelect(file);
+      const list = Array.from(e.target.files || []);
+      if (list.length) handleFileSelect(list);
     },
     [handleFileSelect],
   );
 
-  const removeImage = useCallback(() => {
-    setImageFile(null);
-    setImagePreview(null);
+  const removeAllImages = useCallback(() => {
+    setImageFiles([]);
+    setImagePreviews([]);
+    setCurrentIndex(0);
     if (fileRef.current) fileRef.current.value = '';
   }, []);
 
+  const removeImageAt = useCallback((index: number) => {
+    setImageFiles((prev) => prev.filter((_, i) => i !== index));
+    setImagePreviews((prev) => {
+      const next = prev.filter((_, i) => i !== index);
+      return next;
+    });
+    setCurrentIndex((ci) => {
+      const newIdx = ci > 0 ? ci - (ci === index ? 1 : 0) : 0;
+      return Math.max(0, newIdx);
+    });
+  }, []);
+
+  useEffect(() => {
+    // clamp currentIndex when previews change
+    setCurrentIndex((ci) => {
+      if (imagePreviews.length === 0) return 0;
+      return Math.min(ci, imagePreviews.length - 1);
+    });
+  }, [imagePreviews]);
+
+  const prevImage = useCallback(() => {
+    setCurrentIndex((ci) => (ci - 1 + imagePreviews.length) % imagePreviews.length);
+  }, [imagePreviews.length]);
+
+  const nextImage = useCallback(() => {
+    setCurrentIndex((ci) => (ci + 1) % imagePreviews.length);
+  }, [imagePreviews.length]);
+
   const handleSubmit = async () => {
-    if (!caption.trim() && !imageFile) return;
+    if (!caption.trim() && imageFiles.length === 0) return;
     setIsSubmitting(true);
     try {
       const formData = new FormData();
       if (caption.trim()) formData.append('content', caption.trim());
-      if (imageFile) formData.append('image', imageFile);
+      // append multiple images (backend should accept repeated 'images' fields)
+      imageFiles.forEach((f) => formData.append('images', f));
 
       await postService.create(formData);
       toast.success('Đã tạo bài viết!');
@@ -128,20 +174,64 @@ export function PostCreator() {
         </p>
 
         {/* Image upload / preview */}
-        {imagePreview ? (
-          <div className="relative mb-4 overflow-hidden rounded-lg">
-            <img
-              src={imagePreview}
-              alt="Xem trước"
-              className="max-h-80 w-full object-contain bg-black/5"
-            />
-            <button
-              type="button"
-              onClick={removeImage}
-              className="absolute right-2 top-2 cursor-pointer rounded-full bg-black/60 p-1.5 text-white transition-colors hover:bg-black/80"
-            >
-              <X className="h-4 w-4" />
-            </button>
+        {imagePreviews.length > 0 ? (
+          <div className="relative mb-4">
+            <div className="relative flex items-center justify-center overflow-hidden rounded-lg px-4">
+              <div className="flex items-center justify-center bg-black/5">
+                <img
+                src={imagePreviews[currentIndex]}
+                alt={`Xem trước ${currentIndex + 1}`}
+                className="max-h-80 w-full object-contain bg-black/5"
+                />
+              </div>
+              <button
+                type="button"
+                onClick={() => removeImageAt(currentIndex)}
+                className="absolute right-2 top-0 cursor-pointer rounded-full bg-black/60 p-1.5 text-white transition-colors hover:bg-black/80"
+              >
+                <X className="h-4 w-4" />
+              </button>
+
+              {imagePreviews.length > 1 && (
+                <>
+                  <button
+                    type="button"
+                    onClick={prevImage}
+                    className="absolute left-0 top-1/2 -translate-y-1/2 rounded-full bg-black/40 p-2 text-white hover:bg-black/60 cursor-pointer"
+                    aria-label="Previous"
+                  >
+                    ‹
+                  </button>
+                  <button
+                    type="button"
+                    onClick={nextImage}
+                    className="absolute right-0 top-1/2 -translate-y-1/2 rounded-full bg-black/40 p-2 text-white hover:bg-black/60 cursor-pointer"
+                    aria-label="Next"
+                  >
+                    ›
+                  </button>
+                </>
+              )}
+            </div>
+
+            <div className="mt-2 flex items-center justify-between">
+              <div className="flex gap-2">
+                {imagePreviews.map((src, idx) => (
+                  <button
+                    key={idx}
+                    type="button"
+                    onClick={() => setCurrentIndex(idx)}
+                    className={cn(
+                      'overflow-hidden rounded-md ring-offset-2',
+                      idx === currentIndex ? 'ring-2 ring-primary' : ''
+                    )}
+                  >
+                    <img src={src} className="h-12 w-12 object-cover" alt={`thumb-${idx}`} />
+                  </button>
+                ))}
+              </div>
+              <div className="text-xs text-text-secondary/70">{currentIndex + 1}/{imagePreviews.length}</div>
+            </div>
           </div>
         ) : (
           <div
@@ -176,15 +266,35 @@ export function PostCreator() {
           accept={ACCEPTED_IMAGE_TYPES.join(',')}
           onChange={onFileChange}
           className="hidden"
+          multiple
         />
 
-        {/* Submit */}
+        {/* Visible image button + Submit */}
+        <div className="mb-3 flex items-center gap-2">
+          <Button
+            onClick={() => fileRef.current?.click()}
+            size="sm"
+            type="button"
+          >
+            <ImagePlus className="mr-2 h-4 w-4" /> Thêm ảnh
+          </Button>
+          {imageFiles.length > 0 ? (
+            <button
+              type="button"
+              onClick={removeAllImages}
+              className="inline-flex items-center gap-1 rounded-md border border-border px-2 py-1 text-sm text-text-primary"
+            >
+              <X className="h-4 w-4" /> Xóa tất cả
+            </button>
+          ) : null}
+        </div>
+
         <Button
           onClick={handleSubmit}
           fullWidth
           size="lg"
           isLoading={isSubmitting}
-          disabled={!caption.trim() && !imageFile}
+          disabled={!caption.trim() && imageFiles.length === 0}
         >
           Đăng
         </Button>

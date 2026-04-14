@@ -22,7 +22,7 @@ public class PostService : IPostService
             Id = p.Id,
             UserId = p.UserId,
             Content = p.Content,
-            ImageUrl = p.ImageUrl,
+            // ImageUrl = p.ImageUrl,
             LikeCount = p.LikeCount,
             CommentCount = p.CommentCount,
             ShareCount = p.ShareCount,
@@ -38,7 +38,7 @@ public class PostService : IPostService
         {
             UserId = userId,
             Content = request.Content,
-            ImageUrl = request.ImageUrl,
+            // ImageUrl = request.ImageUrl,
             AllowComment = request.AllowComment
         };
 
@@ -64,7 +64,7 @@ public class PostService : IPostService
             Id = post.Id,
             UserId = post.UserId,
             Content = post.Content,
-            ImageUrl = post.ImageUrl,
+            // ImageUrl = post.ImageUrl,
             LikeCount = post.LikeCount,
             CommentCount = post.CommentCount,
             ShareCount = post.ShareCount,

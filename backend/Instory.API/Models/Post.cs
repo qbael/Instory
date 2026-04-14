@@ -17,9 +17,9 @@ public class Post : BaseEntity
     [Column("content", TypeName = "text")]
     public string? Content { get; set; }
 
-    [MaxLength(255)]
-    [Column("image_url")]
-    public string? ImageUrl { get; set; }
+    // [MaxLength(255)]
+    // [Column("image_url")]
+    // public string? ImageUrl { get; set; }
 
     [Column("like_count")]
     public int LikeCount { get; set; } = 0;
@@ -47,4 +47,5 @@ public class Post : BaseEntity
     public ICollection<SharePost> SharePosts { get; set; } = new List<SharePost>();
     public ICollection<PostReport> PostReports { get; set; } = new List<PostReport>();
     public ICollection<PostHashtag> PostHashtags { get; set; } = new List<PostHashtag>();
+    public ICollection<PostImage> PostImages { get; set; } = new List<PostImage>();
 }

@@ -40,8 +40,8 @@ public class PostController : ControllerBase
     [HttpPost]
     public async Task<IActionResult> Create([FromBody] CreatePostRequestDTO request)
     {
-        // var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
-        var result = await _postService.CreatePostAsync(request.UserId, request);
+        var userId = User.GetUserId();
+        var result = await _postService.CreatePostAsync(userId, request);
 
         return Ok(result);
     }
