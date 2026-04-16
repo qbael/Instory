@@ -1,6 +1,6 @@
-import { createSlice, createAsyncThunk, type PayloadAction } from '@reduxjs/toolkit';
-import type { Notification } from '@/types';
-import { notificationService } from '@/services/notificationService';
+import {createAsyncThunk, createSlice, type PayloadAction} from '@reduxjs/toolkit';
+import type {Notification} from '@/types';
+import {notificationService} from '@/services/notificationService';
 
 interface NotificationState {
   items: Notification[];
@@ -25,7 +25,7 @@ export const fetchNotifications = createAsyncThunk(
       pageNumber: page,
       pageSize: 20,
     });
-    return { page, ...data };
+    return { ...data };
   },
 );
 

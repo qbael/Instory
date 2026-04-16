@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using Instory.API.Models.Enums;
 
 namespace Instory.API.Models;
 
@@ -25,6 +26,9 @@ public class Story : BaseEntity
     [Column("expires_at")]
     public DateTime ExpiresAt { get; set; }
     
+    [Column("media_type")]
+    public MediaType MediaType { get; set; } = MediaType.Image;
+
     [Column("is_deleted")]
     public bool IsDeleted { get; set; } = false;
  

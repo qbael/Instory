@@ -22,6 +22,8 @@ namespace Instory.API.Data;
         public DbSet<Chat> Chats => Set<Chat>();
         public DbSet<ChatParticipant> ChatParticipants => Set<ChatParticipant>();
         public DbSet<Message> Messages => Set<Message>();
+        public DbSet<StoryHighlight> StoryHighlights => Set<StoryHighlight>();
+        public DbSet<StoryHighlightStory> StoryHighlightStories => Set<StoryHighlightStory>();
  
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -101,6 +103,21 @@ namespace Instory.API.Data;
                 .WithMany()
                 .HasForeignKey(n => n.ActorId)
                 .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<StoryHighlightStory>()
+                .HasKey(x => new { x.HighlightId, x.StoryId });
+
+            modelBuilder.Entity<StoryHighlightStory>()
+                .HasOne(x => x.Highlight)
+                .WithMany(h => h.HighlightStories)
+                .HasForeignKey(x => x.HighlightId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<StoryHighlightStory>()
+                .HasOne(x => x.Story)
+                .WithMany()
+                .HasForeignKey(x => x.StoryId)
+                .OnDelete(DeleteBehavior.Cascade);
         }
         
         public override int SaveChanges()

@@ -4,7 +4,11 @@ export const SIGNALR_URL = import.meta.env.VITE_SIGNALR_URL as string ?? '/hubs'
 export const DEFAULT_PAGE_SIZE = 20;
 export const STORY_DURATION_HOURS = 24;
 export const MAX_IMAGE_SIZE_MB = 10;
+export const MAX_VIDEO_SIZE_MB = 100;
+export const MAX_VIDEO_DURATION_SECONDS = 15;
 export const ACCEPTED_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
+export const ACCEPTED_VIDEO_TYPES = ['video/mp4', 'video/quicktime', 'video/webm'];
+export const ACCEPTED_MEDIA_TYPES = [...ACCEPTED_IMAGE_TYPES, ...ACCEPTED_VIDEO_TYPES];
 
 export const ROUTES = {
   HOME: '/',
@@ -16,4 +20,5 @@ export const ROUTES = {
   NOTIFICATIONS: '/notifications',
   CHAT: '/chat',
   ADMIN: '/admin',
+  STORY_ARCHIVE: '/stories/archive',
 } as const;

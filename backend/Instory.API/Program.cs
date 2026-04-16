@@ -104,9 +104,11 @@ builder.Services.AddScoped<Instory.API.Repositories.IStoryRepository, StoryRepos
 builder.Services.AddScoped<Instory.API.Repositories.IChatRepository, ChatRepository>();
 builder.Services.AddScoped<Instory.API.Repositories.IFriendshipRepository, FriendshipRepository>();
 builder.Services.AddScoped<Instory.API.Repositories.INotificationRepository, NotificationRepository>();
+builder.Services.AddScoped<Instory.API.Repositories.IHighlightRepository, HighlightRepository>();
 
 builder.Services.AddScoped<ITokenService, TokenService>();
 builder.Services.AddScoped<IStoryService, StoryService>();
+builder.Services.AddScoped<IHighlightService, HighlightService>();
 builder.Services.AddScoped<IFriendshipService, FriendshipService>();
 builder.Services.AddScoped<INotificationService, NotificationService>();
 

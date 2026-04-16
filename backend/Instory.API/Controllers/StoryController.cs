@@ -29,6 +29,7 @@ public class StoryController : ControllerBase
     }
 
     [HttpGet("{id}")]
+    [Authorize]
     public async Task<IActionResult> GetById(int id)
     {
         var result = await _storyService.GetByIdAsync(id);
@@ -36,16 +37,30 @@ public class StoryController : ControllerBase
     }
 
     [HttpPost]
-    public async Task<IActionResult> Create([FromBody] CreateStoryDto dto)
+    [Authorize]
+    [Consumes("multipart/form-data")]
+    public async Task<IActionResult> Create([FromForm] CreateStoryDto dto)
     {
-        var result = await _storyService.CreateAsync(dto);
+        var currentUserId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+        var result = await _storyService.CreateAsync(dto, currentUserId);
+        return CreatedAtAction(nameof(GetById), new { id = result.Id }, result);
+    }
+
+    [HttpGet("archive")]
+    [Authorize]
+    public async Task<IActionResult> GetArchive([FromQuery] int page = 1, [FromQuery] int pageSize = 20)
+    {
+        var currentUserId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+        var result = await _storyService.GetArchiveAsync(currentUserId, page, pageSize);
         return Ok(result);
     }
 
     [HttpDelete("{id}")]
+    [Authorize]
     public async Task<IActionResult> Delete(int id)
     {
-        await _storyService.DeleteByIdAsync(id);
+        var currentUserId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+        await _storyService.DeleteByIdAsync(id, currentUserId);
         return NoContent();
     }
 }

@@ -46,4 +46,5 @@ namespace Instory.API.Models;
         public ICollection<Notification> Notifications { get; set; } = new List<Notification>();
         public ICollection<ChatParticipant> ChatParticipants { get; set; } = new List<ChatParticipant>();
         public ICollection<Message> Messages { get; set; } = new List<Message>();
+        public ICollection<StoryHighlight> StoryHighlights { get; set; } = new List<StoryHighlight>();
     }

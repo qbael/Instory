@@ -1,17 +1,12 @@
-import { useEffect, useRef, useCallback, useState } from 'react';
-import { useNavigate, useLocation } from 'react-router';
-import {
-  HubConnectionBuilder,
-  HubConnectionState,
-  LogLevel,
-  type HubConnection,
-} from '@microsoft/signalr';
-import { toast } from 'sonner';
-import { Heart, MessageCircle, UserPlus, Users, Bookmark } from 'lucide-react';
-import { useAppDispatch, useAppSelector } from '@/store';
-import { addRealtimeNotification, fetchUnreadCount } from '@/store/slices/notificationSlice';
-import { SIGNALR_URL } from '@/utils/constants';
-import type { Notification, NotificationType } from '@/types';
+import {useCallback, useEffect, useRef, useState} from 'react';
+import {useLocation, useNavigate} from 'react-router';
+import {type HubConnection, HubConnectionBuilder, LogLevel,} from '@microsoft/signalr';
+import {toast} from 'sonner';
+import {Bookmark, Heart, MessageCircle, UserPlus, Users} from 'lucide-react';
+import {useAppDispatch, useAppSelector} from '@/store';
+import {addRealtimeNotification, fetchUnreadCount} from '@/store/slices/notificationSlice';
+import {SIGNALR_URL} from '@/utils/constants';
+import type {Notification, NotificationType} from '@/types';
 
 // ─── Config ───────────────────────────────────────────────────────────────────
 

@@ -74,6 +74,7 @@ export interface Story {
   userId: number;
   mediaUrl: string | null;
   caption: string | null;
+  mediaType: 'Image' | 'Video';
   expiresAt: string;
   createdAt: string;
   user: User;

@@ -16,6 +16,7 @@ public record StoryFeedItemDto(
     int UserId,
     string? MediaUrl,
     string? Caption,
+    string MediaType,
     DateTime ExpiresAt,
     DateTime CreatedAt,
     StoryFeedUserDto User,

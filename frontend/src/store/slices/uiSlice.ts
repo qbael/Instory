@@ -7,6 +7,7 @@ type ModalType =
   | 'postDetail'
   | 'friends'
   | 'confirmDelete'
+  | 'createStory'
   | null;
 
 interface UiState {

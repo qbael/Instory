@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo } from 'react';
+import { useEffect, useState } from 'react';
 import { useParams, Link, useNavigate } from 'react-router';
 import {
   Grid3X3,
@@ -22,6 +22,7 @@ import {
   DropdownMenuItem,
 } from '@/components/ui/DropdownMenu';
 import { ProfileHighlights } from '@/components/profile/ProfileHighlights';
+import { highlightService } from '@/services/highlightService';
 import { useProfile } from '@/hooks/useProfile';
 import { usePosts } from '@/hooks/usePosts';
 import { useInfiniteScroll } from '@/hooks/useInfiniteScroll';
@@ -67,7 +68,7 @@ export default function ProfilePage() {
   const [tab, setTab] = useState<Tab>('posts');
   const [unfriendDialogOpen, setUnfriendDialogOpen] = useState(false);
 
-  const highlights = useMemo<StoryHighlight[]>(() => [], []);
+  const [highlights, setHighlights] = useState<StoryHighlight[]>([]);
 
   useEffect(() => {
     loadProfile();
@@ -76,6 +77,15 @@ export default function ProfilePage() {
   useEffect(() => {
     if (profile?.id) fetchPage(1);
   }, [profile?.id, fetchPage]);
+
+  useEffect(() => {
+    if (profile?.id) {
+      highlightService
+        .getByUser(profile.id)
+        .then(({ data }) => setHighlights(data))
+        .catch(() => {});
+    }
+  }, [profile?.id]);
 
   useEffect(() => {
     setTab('posts');
@@ -175,12 +185,12 @@ export default function ProfilePage() {
               >
                 Chỉnh sửa trang cá nhân
               </button>
-              <button
-                type="button"
+              <Link
+                to="/stories/archive"
                 className="flex-1 cursor-pointer rounded-lg bg-border/60 px-4 py-[7px] text-center text-sm font-semibold text-text-primary transition-colors hover:bg-border"
               >
                 Xem kho lưu trữ
-              </button>
+              </Link>
             </>
           ) : (
             <>

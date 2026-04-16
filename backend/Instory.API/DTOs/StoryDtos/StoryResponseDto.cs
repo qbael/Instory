@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 
 namespace Instory.API.DTOs.StoryDtos;
 
@@ -7,8 +7,10 @@ public record StoryResponseDto(
     int UserId,
     string? MediaUrl,
     string? Caption,
+    string MediaType,
     DateTime ExpiresAt,
-    bool IsDeleted
+    bool IsDeleted,
+    DateTime CreatedAt
 )
 {
     public static StoryResponseDto FromEntity(Models.Story story) => new(
@@ -16,7 +18,9 @@ public record StoryResponseDto(
         story.UserId,
         story.MediaUrl,
         story.Caption,
+        story.MediaType.ToString(),
         story.ExpiresAt,
-        story.IsDeleted
+        story.IsDeleted,
+        story.CreatedAt
     );
 }

@@ -30,4 +30,15 @@ public class StoryRepository : Repository<Story>, IStoryRepository
             .OrderBy(s => s.CreatedAt)
             .ToListAsync();
     }
+
+    public async Task<PaginatedResult<Story>> GetArchivedStoriesAsync(int userId, int page, int pageSize)
+    {
+        var query = _dbSet
+            .AsNoTracking()
+            .Where(s => s.UserId == userId && !s.IsDeleted && s.ExpiresAt <= DateTime.UtcNow)
+            .Include(s => s.User)
+            .OrderByDescending(s => s.ExpiresAt);
+
+        return await PaginatedResult<Story>.CreateAsync(query, page, pageSize);
+    }
 }
