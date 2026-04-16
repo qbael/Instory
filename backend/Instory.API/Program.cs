@@ -105,12 +105,13 @@ builder.Services.AddScoped<Instory.API.Repositories.IChatRepository, ChatReposit
 builder.Services.AddScoped<Instory.API.Repositories.IFriendshipRepository, FriendshipRepository>();
 builder.Services.AddScoped<Instory.API.Repositories.INotificationRepository, NotificationRepository>();
 builder.Services.AddScoped<Instory.API.Repositories.IHighlightRepository, HighlightRepository>();
+builder.Services.AddScoped<Instory.API.Repositories.IPostRepository, PostRepository>();
+builder.Services.AddScoped<Instory.API.Repositories.ICommentRepository, CommentRepository>();
+builder.Services.AddScoped<Instory.API.Repositories.ILikeRepository, LikeRepository>();
+builder.Services.AddScoped<Instory.API.Repositories.IPostImageRepository, PostImageRepository>();
 
 builder.Services.AddScoped<ITokenService, TokenService>();
 builder.Services.AddScoped<IStoryService, StoryService>();
-builder.Services.AddScoped<IHighlightService, HighlightService>();
-builder.Services.AddScoped<IFriendshipService, FriendshipService>();
-builder.Services.AddScoped<INotificationService, NotificationService>();
 
 builder.Services.Configure<AwsSettings>(builder.Configuration.GetSection("AWS"));
 builder.Services.AddSingleton<IAmazonS3>(sp =>
@@ -123,10 +124,15 @@ builder.Services.AddSingleton<IAmazonS3>(sp =>
     };
     return new AmazonS3Client(credentials, config);
 });
+builder.Services.AddScoped<INotificationService, NotificationService>();
 builder.Services.AddScoped<IMediaService, MediaService>();
 builder.Services.AddScoped<IChatService, ChatService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IProfileService, ProfileService>();
+builder.Services.AddScoped<IPostService, PostService>();
+builder.Services.AddScoped<ICommentService, CommentService>();
+builder.Services.AddScoped<ILikeService, LikeService>();
+// builder.Services.AddScoped<IPostImageService, PostImageService>();
 
 var app = builder.Build();
 
@@ -153,6 +159,6 @@ app.MapControllers();
 app.MapHub<NotificationHub>("/hubs/notifications");
 app.MapHub<ChatHub>("/hubs/chat");
 app.MigrateDb();
-await app.SeedRolesAsync();  
+await app.SeedRolesAsync();
 
 app.Run();

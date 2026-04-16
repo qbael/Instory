@@ -261,6 +261,7 @@ namespace Instory.API.Migrations
                     id = table.Column<int>(type: "integer", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                     user_id = table.Column<int>(type: "integer", nullable: false),
+                    actor_id = table.Column<int>(type: "integer", nullable: true),
                     type = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: true),
                     reference_id = table.Column<int>(type: "integer", nullable: true),
                     message = table.Column<string>(type: "text", nullable: true),
@@ -271,6 +272,12 @@ namespace Instory.API.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_notifications", x => x.id);
+                    table.ForeignKey(
+                        name: "FK_notifications_AspNetUsers_actor_id",
+                        column: x => x.actor_id,
+                        principalTable: "AspNetUsers",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
                         name: "FK_notifications_AspNetUsers_user_id",
                         column: x => x.user_id,
@@ -287,7 +294,12 @@ namespace Instory.API.Migrations
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                     user_id = table.Column<int>(type: "integer", nullable: false),
                     content = table.Column<string>(type: "text", nullable: true),
-                    image_url = table.Column<string>(type: "character varying(255)", maxLength: 255, nullable: true),
+                    like_count = table.Column<int>(type: "integer", nullable: false),
+                    comment_count = table.Column<int>(type: "integer", nullable: false),
+                    share_count = table.Column<int>(type: "integer", nullable: false),
+                    allow_comment = table.Column<bool>(type: "boolean", nullable: false),
+                    is_deleted = table.Column<bool>(type: "boolean", nullable: false),
+                    deleted_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
                     created_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     updated_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: true)
                 },
@@ -312,6 +324,7 @@ namespace Instory.API.Migrations
                     media_url = table.Column<string>(type: "character varying(255)", maxLength: 255, nullable: true),
                     caption = table.Column<string>(type: "text", nullable: true),
                     expires_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    media_type = table.Column<int>(type: "integer", nullable: false),
                     is_deleted = table.Column<bool>(type: "boolean", nullable: false),
                     created_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     updated_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: true)
@@ -321,6 +334,29 @@ namespace Instory.API.Migrations
                     table.PrimaryKey("PK_stories", x => x.id);
                     table.ForeignKey(
                         name: "FK_stories_AspNetUsers_user_id",
+                        column: x => x.user_id,
+                        principalTable: "AspNetUsers",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "story_highlights",
+                columns: table => new
+                {
+                    id = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    user_id = table.Column<int>(type: "integer", nullable: false),
+                    title = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
+                    cover_url = table.Column<string>(type: "character varying(255)", maxLength: 255, nullable: true),
+                    created_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    updated_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_story_highlights", x => x.id);
+                    table.ForeignKey(
+                        name: "FK_story_highlights_AspNetUsers_user_id",
                         column: x => x.user_id,
                         principalTable: "AspNetUsers",
                         principalColumn: "Id",
@@ -377,6 +413,27 @@ namespace Instory.API.Migrations
                         name: "FK_messages_chats_chat_id",
                         column: x => x.chat_id,
                         principalTable: "chats",
+                        principalColumn: "id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "hashtagtrend",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    hashtag_id = table.Column<int>(type: "integer", nullable: false),
+                    date = table.Column<DateTime>(type: "date", nullable: false),
+                    post_count = table.Column<int>(type: "integer", nullable: false, defaultValue: 0)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_hashtagtrend", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_hashtagtrend_hashtags_hashtag_id",
+                        column: x => x.hashtag_id,
+                        principalTable: "hashtags",
                         principalColumn: "id",
                         onDelete: ReferentialAction.Cascade);
                 });
@@ -458,6 +515,27 @@ namespace Instory.API.Migrations
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
                         name: "FK_post_hashtags_posts_post_id",
+                        column: x => x.post_id,
+                        principalTable: "posts",
+                        principalColumn: "id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "post_images",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    imageurl = table.Column<string>(type: "character varying(255)", maxLength: 255, nullable: false),
+                    post_id = table.Column<int>(type: "integer", nullable: false),
+                    sort_order = table.Column<int>(type: "integer", nullable: false, defaultValue: 0)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_post_images", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_post_images_posts_post_id",
                         column: x => x.post_id,
                         principalTable: "posts",
                         principalColumn: "id",
@@ -550,6 +628,30 @@ namespace Instory.API.Migrations
                         onDelete: ReferentialAction.Cascade);
                 });
 
+            migrationBuilder.CreateTable(
+                name: "story_highlight_stories",
+                columns: table => new
+                {
+                    highlight_id = table.Column<int>(type: "integer", nullable: false),
+                    story_id = table.Column<int>(type: "integer", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_story_highlight_stories", x => new { x.highlight_id, x.story_id });
+                    table.ForeignKey(
+                        name: "FK_story_highlight_stories_stories_story_id",
+                        column: x => x.story_id,
+                        principalTable: "stories",
+                        principalColumn: "id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_story_highlight_stories_story_highlights_highlight_id",
+                        column: x => x.highlight_id,
+                        principalTable: "story_highlights",
+                        principalColumn: "id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
             migrationBuilder.CreateIndex(
                 name: "IX_AspNetRoleClaims_RoleId",
                 table: "AspNetRoleClaims",
@@ -624,6 +726,12 @@ namespace Instory.API.Migrations
                 column: "requester_id");
 
             migrationBuilder.CreateIndex(
+                name: "IX_hashtagtrend_hashtag_id_date",
+                table: "hashtagtrend",
+                columns: new[] { "hashtag_id", "date" },
+                unique: true);
+
+            migrationBuilder.CreateIndex(
                 name: "IX_likes_post_id_user_id",
                 table: "likes",
                 columns: new[] { "post_id", "user_id" },
@@ -645,6 +753,11 @@ namespace Instory.API.Migrations
                 column: "sender_id");
 
             migrationBuilder.CreateIndex(
+                name: "IX_notifications_actor_id",
+                table: "notifications",
+                column: "actor_id");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_notifications_user_id",
                 table: "notifications",
                 column: "user_id");
@@ -659,6 +772,11 @@ namespace Instory.API.Migrations
                 table: "post_hashtags",
                 columns: new[] { "post_id", "hashtag_id" },
                 unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_post_images_post_id",
+                table: "post_images",
+                column: "post_id");
 
             migrationBuilder.CreateIndex(
                 name: "IX_post_reports_post_id",
@@ -688,6 +806,16 @@ namespace Instory.API.Migrations
             migrationBuilder.CreateIndex(
                 name: "IX_stories_user_id",
                 table: "stories",
+                column: "user_id");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_story_highlight_stories_story_id",
+                table: "story_highlight_stories",
+                column: "story_id");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_story_highlights_user_id",
+                table: "story_highlights",
                 column: "user_id");
 
             migrationBuilder.CreateIndex(
@@ -732,6 +860,9 @@ namespace Instory.API.Migrations
                 name: "friendships");
 
             migrationBuilder.DropTable(
+                name: "hashtagtrend");
+
+            migrationBuilder.DropTable(
                 name: "likes");
 
             migrationBuilder.DropTable(
@@ -744,10 +875,16 @@ namespace Instory.API.Migrations
                 name: "post_hashtags");
 
             migrationBuilder.DropTable(
+                name: "post_images");
+
+            migrationBuilder.DropTable(
                 name: "post_reports");
 
             migrationBuilder.DropTable(
                 name: "share_posts");
+
+            migrationBuilder.DropTable(
+                name: "story_highlight_stories");
 
             migrationBuilder.DropTable(
                 name: "story_views");
@@ -763,6 +900,9 @@ namespace Instory.API.Migrations
 
             migrationBuilder.DropTable(
                 name: "posts");
+
+            migrationBuilder.DropTable(
+                name: "story_highlights");
 
             migrationBuilder.DropTable(
                 name: "stories");

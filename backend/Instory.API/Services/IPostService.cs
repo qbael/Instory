@@ -1,0 +1,11 @@
+using Instory.API.DTOs;
+using Instory.API.Models;
+
+public interface IPostService
+{
+    Task<PostResponseDTO> CreatePostAsync(int userId, CreatePostRequestDTO request);
+
+    Task<PostResponseDTO> GetPostByIdAsync(int id);
+    Task<IEnumerable<PostResponseDTO>> GetAllPostsAsync(int currrentUserId);
+
+}

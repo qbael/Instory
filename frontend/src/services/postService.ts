@@ -19,9 +19,10 @@ export const postService = {
   },
 
   create(formData: FormData) {
-    return api.post<Post>(BASE, formData, {
-      headers: { 'Content-Type': 'multipart/form-data' },
-    });
+    // return api.post<Post>(BASE, formData, {
+    //   headers: { 'Content-Type': 'multipart/form-data' },
+    // });
+    return api.post(BASE, formData); 
   },
 
   update(id: number, formData: FormData) {
@@ -54,8 +55,8 @@ export const postService = {
     return api.post<Comment>(`${BASE}/${dto.postId}/comments`, { content: dto.content });
   },
 
-  deleteComment(postId: number, commentId: number) {
-    return api.delete(`${BASE}/${postId}/comments/${commentId}`);
+  deleteComment(commentId: number) {
+    return api.delete(`${BASE}/comments/${commentId}`);
   },
 
   report(postId: number, reason: string) {

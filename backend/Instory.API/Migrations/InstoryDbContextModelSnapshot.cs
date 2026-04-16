@@ -208,6 +208,36 @@ namespace Instory.API.Migrations
                     b.ToTable("hashtags");
                 });
 
+            modelBuilder.Entity("Instory.API.Models.HashtagTrend", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("Date")
+                        .HasColumnType("date")
+                        .HasColumnName("date");
+
+                    b.Property<int>("HashtagId")
+                        .HasColumnType("integer")
+                        .HasColumnName("hashtag_id");
+
+                    b.Property<int>("PostCount")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasDefaultValue(0)
+                        .HasColumnName("post_count");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("HashtagId", "Date")
+                        .IsUnique();
+
+                    b.ToTable("hashtagtrend", (string)null);
+                });
+
             modelBuilder.Entity("Instory.API.Models.Like", b =>
                 {
                     b.Property<int>("Id")
@@ -346,6 +376,14 @@ namespace Instory.API.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
+                    b.Property<bool>("AllowComment")
+                        .HasColumnType("boolean")
+                        .HasColumnName("allow_comment");
+
+                    b.Property<int>("CommentCount")
+                        .HasColumnType("integer")
+                        .HasColumnName("comment_count");
+
                     b.Property<string>("Content")
                         .HasColumnType("text")
                         .HasColumnName("content");
@@ -354,10 +392,21 @@ namespace Instory.API.Migrations
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("created_at");
 
-                    b.Property<string>("ImageUrl")
-                        .HasMaxLength(255)
-                        .HasColumnType("character varying(255)")
-                        .HasColumnName("image_url");
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("deleted_at");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_deleted");
+
+                    b.Property<int>("LikeCount")
+                        .HasColumnType("integer")
+                        .HasColumnName("like_count");
+
+                    b.Property<int>("ShareCount")
+                        .HasColumnType("integer")
+                        .HasColumnName("share_count");
 
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("timestamp with time zone")
@@ -399,6 +448,37 @@ namespace Instory.API.Migrations
                         .IsUnique();
 
                     b.ToTable("post_hashtags");
+                });
+
+            modelBuilder.Entity("Instory.API.Models.PostImage", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("ImageUrl")
+                        .IsRequired()
+                        .HasMaxLength(255)
+                        .HasColumnType("character varying(255)")
+                        .HasColumnName("imageurl");
+
+                    b.Property<int>("PostId")
+                        .HasColumnType("integer")
+                        .HasColumnName("post_id");
+
+                    b.Property<int>("SortOrder")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasDefaultValue(0)
+                        .HasColumnName("sort_order");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("PostId");
+
+                    b.ToTable("post_images", (string)null);
                 });
 
             modelBuilder.Entity("Instory.API.Models.PostReport", b =>
@@ -922,6 +1002,17 @@ namespace Instory.API.Migrations
                     b.Navigation("Requester");
                 });
 
+            modelBuilder.Entity("Instory.API.Models.HashtagTrend", b =>
+                {
+                    b.HasOne("Instory.API.Models.Hashtag", "Hashtag")
+                        .WithMany("HashtagTrends")
+                        .HasForeignKey("HashtagId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Hashtag");
+                });
+
             modelBuilder.Entity("Instory.API.Models.Like", b =>
                 {
                     b.HasOne("Instory.API.Models.Post", "Post")
@@ -1004,6 +1095,17 @@ namespace Instory.API.Migrations
                         .IsRequired();
 
                     b.Navigation("Hashtag");
+
+                    b.Navigation("Post");
+                });
+
+            modelBuilder.Entity("Instory.API.Models.PostImage", b =>
+                {
+                    b.HasOne("Instory.API.Models.Post", "Post")
+                        .WithMany("PostImages")
+                        .HasForeignKey("PostId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.Navigation("Post");
                 });
@@ -1166,6 +1268,8 @@ namespace Instory.API.Migrations
 
             modelBuilder.Entity("Instory.API.Models.Hashtag", b =>
                 {
+                    b.Navigation("HashtagTrends");
+
                     b.Navigation("PostHashtags");
                 });
 
@@ -1176,6 +1280,8 @@ namespace Instory.API.Migrations
                     b.Navigation("Likes");
 
                     b.Navigation("PostHashtags");
+
+                    b.Navigation("PostImages");
 
                     b.Navigation("PostReports");
 

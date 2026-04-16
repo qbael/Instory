@@ -91,7 +91,6 @@ namespace Instory.API.Data;
                 .WithMany(u => u.Messages)
                 .HasForeignKey(m => m.SenderId)
                 .OnDelete(DeleteBehavior.Restrict);
-
             modelBuilder.Entity<Notification>()
                 .HasOne(n => n.User)
                 .WithMany(u => u.Notifications)
@@ -118,6 +117,58 @@ namespace Instory.API.Data;
                 .WithMany()
                 .HasForeignKey(x => x.StoryId)
                 .OnDelete(DeleteBehavior.Cascade);
+            modelBuilder.Entity<HashtagTrend>(builder =>
+            {
+                builder.ToTable("hashtagtrend");
+
+                builder.HasKey(x => x.Id);
+
+                builder.Property(x => x.HashtagId)
+                    .HasColumnName("hashtag_id")
+                    .IsRequired();
+
+                builder.Property(x => x.Date)
+                    .HasColumnName("date")
+                    .HasColumnType("date")
+                    .IsRequired();
+
+                builder.Property(x => x.PostCount)
+                    .HasColumnName("post_count")
+                    .HasDefaultValue(0);
+
+
+                builder.HasOne(x => x.Hashtag)
+                    .WithMany(h => h.HashtagTrends)
+                    .HasForeignKey(x => x.HashtagId);
+
+                builder.HasIndex(x => new { x.HashtagId, x.Date })
+                    .IsUnique();
+            });
+
+            modelBuilder.Entity<PostImage>(builder =>
+            {
+                builder.ToTable("post_images");
+
+                builder.HasKey(pi => pi.Id);
+
+                builder.Property(pi => pi.ImageUrl)
+                    .HasColumnName("imageurl")
+                    .HasMaxLength(255)
+                    .IsRequired();
+
+                builder.Property(pi => pi.PostId)
+                    .HasColumnName("post_id")
+                    .IsRequired();
+
+                builder.Property(pi => pi.SortOrder)
+                    .HasColumnName("sort_order")
+                    .HasDefaultValue(0);
+
+                builder.HasOne(pi => pi.Post)
+                    .WithMany(p => p.PostImages)
+                    .HasForeignKey(pi => pi.PostId)
+                    .OnDelete(DeleteBehavior.Cascade);
+            });
         }
         
         public override int SaveChanges()
