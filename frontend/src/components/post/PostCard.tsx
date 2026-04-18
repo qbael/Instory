@@ -65,14 +65,30 @@ export const PostCard = memo(function PostCard({ post, onLikeToggle }: PostCardP
       </div>
 
       {/* Image */}
-      {post.imageUrl && (
-        <div className="aspect-square overflow-hidden bg-border">
-          <img
-            src={post.imageUrl}
-            alt={post.content ?? 'Hình ảnh bài viết'}
-            loading="lazy"
-            className="h-full w-full object-cover"
-          />
+      {post.images && post.images.length > 0 && (
+        <div className={`grid gap-1 ${
+          post.images.length === 1 ? 'grid-cols-1' :
+          post.images.length === 2 ? 'grid-cols-2' :
+          post.images.length === 3 ? 'grid-cols-3' : 'grid-cols-2'
+        }`}>
+          {post.images.slice(0, 4).map((img, i) => {
+            const src = (img as any).imageUrl || (img as any).url || img;
+            return (
+              <div key={i} className="relative aspect-square overflow-hidden bg-border">
+                <img
+                  src="https://picsum.photos/300/200"
+                  alt={`Hình ${i + 1}`}
+                  loading="lazy"
+                  className="h-full w-full object-cover"
+                />
+                {i === 3 && post.images.length > 4 && (
+                  <div className="absolute inset-0 flex items-center justify-center bg-black/40 text-white text-lg">
+                    +{post.images.length - 4}
+                  </div>
+                )}
+              </div>
+            );
+          })}
         </div>
       )}
 

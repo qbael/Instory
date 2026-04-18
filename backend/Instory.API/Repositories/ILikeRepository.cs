@@ -7,5 +7,5 @@ public interface ILikeRepository : IRepository<Like>
     Task<Like?> GetLikeAsync(int postId, int userId);
 
     //Liked Posts
-    Task<IEnumerable<Like>> GetLikePostIdsByUserIdAsync(int userId);
+    Task<HashSet<int>> GetLikePostIdsByUserIdAsync(int userId);
 }

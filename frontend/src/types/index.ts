@@ -24,8 +24,7 @@ export interface UserProfile extends User {
 export interface Post {
   id: number;
   userId: number;
-  content: string | null;
-  imageUrl: string | null;
+  content: string | null;  
   createdAt: string;
   updatedAt: string | null;
   user: User;
@@ -34,6 +33,12 @@ export interface Post {
   sharesCount: number;
   isLiked: boolean;
   hashtags: string[];
+  images: PostImage[];
+}
+export interface PostImage {
+  id: number;
+  imageUrl: string;
+  sortOrder: number;
 }
 
 export interface CreatePostDto {

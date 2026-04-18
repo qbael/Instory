@@ -7,8 +7,6 @@ import { usePosts } from '@/hooks/usePosts';
 import { useInfiniteScroll } from '@/hooks/useInfiniteScroll';
 import { useSignalRContext } from '@/hooks/useSignalRContext';
 import { Spinner } from '@/components/ui/Spinner';
-import type { Post } from '@/types';
-import { postService } from '@/services/postService';
 
 export default function HomePage() {
   const { posts, isLoading, hasMore, loadMore, fetchPage, toggleLike, refresh } =
@@ -19,19 +17,10 @@ export default function HomePage() {
     onLoadMore: loadMore,
   });
   const { hasNewPosts, dismissNewPosts } = useSignalRContext();
-  // const [posts, setPosts] = useState<Post[]>([]);
-  // const getAllPosts = useCallback(async () => {
-  //   try {
-  //     postService.getFeed({ pageNumber: 1, pageSize: 100 }).then(({ data }) => {
-  //       setPosts(data.data.items);
-  //     });
-  //   } catch {
-  //     setPosts([]);
-  //   }
-  // },[])
-  // useEffect(() => {
-  //   fetchPage(1);
-  // }, [fetchPage]);
+ 
+  useEffect(() => {
+    console.log('Posts in state updated:', posts);
+  }, [posts]);
 
   const handleNewPosts = useCallback(() => {
     refresh();

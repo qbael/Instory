@@ -34,10 +34,11 @@ export function usePosts(feedType: FeedType = 'home') {
 
                 const result = data;
                 setPosts((prev) =>
-                    pageNum === 1 ? result.items : [...prev, ...result.items],
+                    pageNum === 1 ? result.data : [...prev, ...result.data],
                 );
-                setHasMore(result.hasNextPage && result.items.length > 0);
+                setHasMore(result.hasNextPage && result.data.length > 0);
                 setPage(pageNum);
+                console.log('Data fetched:', result.data);
             } catch {
                 if (pageNum === 1) {
                     setPosts([]);
@@ -51,6 +52,10 @@ export function usePosts(feedType: FeedType = 'home') {
         [userIdParam],
     );
 
+    useEffect(() => {
+        fetchPage(1);
+    }, [fetchPage]);
+    
     const loadMore = useCallback(() => {
         if (!fetchingRef.current && hasMore) fetchPage(page + 1);
     }, [hasMore, page, fetchPage]);

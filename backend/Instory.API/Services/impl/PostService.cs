@@ -1,4 +1,5 @@
 using Instory.API.DTOs;
+using Instory.API.Helpers;
 using Instory.API.Models;
 using Instory.API.Repositories;
 
@@ -6,36 +7,58 @@ public class PostService : IPostService
 {
     private readonly IPostRepository _postRepository;
     private readonly IPostImageRepository _postImageRepository;
-    public PostService(IPostRepository postRepository, IPostImageRepository postImageRepository)
+
+    private readonly ILikeRepository _likeRepository;
+    public PostService(IPostRepository postRepository, IPostImageRepository postImageRepository, ILikeRepository likeRepository)
     {
         _postRepository = postRepository;
         _postImageRepository = postImageRepository;
+        _likeRepository = likeRepository;
     }
 
-    public async Task<IEnumerable<PostResponseDTO>> GetAllPostsAsync(int currrentUserId)
+    public async Task<PaginatedResult<PostResponseDTO>> GetAllPostsAsync(int currentUserId, int page, int pageSize)
     {
-        var posts = await _postRepository.GetPostsWithUserAsync();
-        if (posts == null)
-            return new List<PostResponseDTO>();
+        var query = _postRepository.GetPostsAsync();
 
-        return posts.Select(p => new PostResponseDTO
+        var paginatedPosts = await PaginatedResult<Post>.CreateAsync(query, page, pageSize);
+
+        var likedPostIds = await _likeRepository.GetLikePostIdsByUserIdAsync(currentUserId);
+
+        return paginatedPosts.Map(p => new PostResponseDTO
         {
             Id = p.Id,
             UserId = p.UserId,
             Content = p.Content,
-            // ImageUrl = p.ImageUrl,
             LikeCount = p.LikeCount,
             CommentCount = p.CommentCount,
             ShareCount = p.ShareCount,
             CreatedAt = p.CreatedAt,
-            // EF convert --> Exists in sql, do not load whole likes only check if exist like of current user
-            IsLiked = p.Likes.Any(l => l.UserId == currrentUserId),
-            Images = p.PostImages.OrderBy(pi => pi.SortOrder).ToList()
-        }).ToList();
+
+            IsLiked = likedPostIds.Contains(p.Id),
+
+            User = new UserDTO
+            {
+                Id = p.User.Id,
+                Username = p.User.UserName,
+                AvatarUrl = p.User.AvatarUrl,
+                FullName = p.User.FullName,
+                CreatedAt = p.User.CreatedAt
+            },
+            Images = p.PostImages
+            .OrderBy(pi => pi.SortOrder)
+            .Select(pi => new PostImageDTO
+            {
+                Id = pi.Id,
+                ImageUrl = pi.ImageUrl,
+                SortOrder = pi.SortOrder
+            })
+            .ToList()
+        });
     }
 
     public async Task<PostResponseDTO> CreatePostAsync(int userId, CreatePostRequestDTO request)
     {
+        // 1. Tạo post
         var post = new Post
         {
             UserId = userId,
@@ -46,33 +69,60 @@ public class PostService : IPostService
         await _postRepository.AddAsync(post);
         await _postRepository.SaveChangesAsync();
 
-        if (request.Images != null && request.Images.Count > 0)
+        // 2. Xử lý upload ảnh
+        if (request.Images?.Any() == true)
         {
+            // Lấy đường dẫn tuyệt đối tới wwwroot/uploads
+            var folder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploads");
+
+            // Tạo folder nếu chưa tồn tại
+            if (!Directory.Exists(folder))
+            {
+                Directory.CreateDirectory(folder);
+            }
+
             var postImages = new List<PostImage>();
             int sortOrder = 1;
+
             foreach (var file in request.Images)
             {
-                //generate unique filename
-                var filename = Guid.NewGuid() + Path.GetExtension(file.FileName);
+                if (file.Length == 0) continue;
 
-                //save file to wwwroot/images/posts
-                var filePath = Path.Combine("wwwroot/uploads", filename);
+                // (Optional) validate đơn giản
+                var allowedTypes = new[] { "image/jpeg", "image/png", "image/jpg" };
+                if (!allowedTypes.Contains(file.ContentType))
+                {
+                    throw new Exception("File không hợp lệ (chỉ chấp nhận jpg/png)");
+                }
+
+                // Tạo tên file unique
+                var fileName = Guid.NewGuid() + Path.GetExtension(file.FileName);
+
+                var filePath = Path.Combine(folder, fileName);
+
+                // Lưu file
                 using (var stream = new FileStream(filePath, FileMode.Create))
                 {
                     await file.CopyToAsync(stream);
                 }
 
+                // Lưu DB
                 postImages.Add(new PostImage
                 {
                     PostId = post.Id,
-                    ImageUrl = "/uploads" + filename,
+                    ImageUrl = "/uploads/" + fileName,
                     SortOrder = sortOrder++
                 });
             }
 
-            await _postImageRepository.AddRangeAsync(postImages);
-            await _postImageRepository.SaveChangesAsync();
+            if (postImages.Any())
+            {
+                await _postImageRepository.AddRangeAsync(postImages);
+                await _postImageRepository.SaveChangesAsync();
+            }
         }
+
+        // 3. Trả response
         return MapToResponseDTO(post);
     }
     public async Task<PostResponseDTO> GetPostByIdAsync(int id)

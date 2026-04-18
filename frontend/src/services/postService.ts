@@ -11,7 +11,7 @@ const BASE = 'v1/posts';
 
 export const postService = {
   getFeed(params?: PaginationParams) {
-    return api.get<PaginatedResponse<Post>>(BASE, { params });
+  return api.get(`${BASE}/feed`, { params });
   },
 
   getById(id: number) {
