@@ -1,4 +1,6 @@
 using Instory.API.Data;
+using Instory.API.DTOs;
+using Instory.API.Helpers;
 using Instory.API.Models;
 using Microsoft.EntityFrameworkCore;
 
@@ -10,14 +12,13 @@ public class PostRepository : Repository<Post>, IPostRepository
     {
     }
 
-    public async Task<IEnumerable<Post>> GetPostsWithUserAsync()
+    public IQueryable<Post> GetPostsAsync()
     {
-        return await _dbSet
-            .Include(p => p.User)
+        return _dbSet
+            .Where(p => !p.IsDeleted)
             .Include(p => p.PostImages)
-            .Where(p => p.IsDeleted == false)
-            .OrderByDescending(p => p.CreatedAt)
-            .ToListAsync();
+            .Include(p => p.User)
+            .OrderByDescending(p => p.CreatedAt);
     }
 
     public async Task<Post?> GetPostDetailAsync(int id)

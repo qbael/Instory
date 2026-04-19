@@ -18,10 +18,6 @@ public class Post : BaseEntity
     [Column("content", TypeName = "text")]
     public string? Content { get; set; }
 
-    // [MaxLength(255)]
-    // [Column("image_url")]
-    // public string? ImageUrl { get; set; }
-
     [Column("like_count")]
     public int LikeCount { get; set; } = 0;
 

@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 [ApiController]
-[Route("/api/v1/posts/{postId}")]
+[Route("/api/v1/posts/{postId}/like")]
 public class LikeController : ControllerBase
 {
     private readonly ILikeService _likeService;
@@ -13,17 +13,8 @@ public class LikeController : ControllerBase
         _likeService = likeService;
     }
 
-    // [HttpPost("like")]
-    // public async Task<IActionResult> Like(int postId, [FromBody] int userId)
-    // {
-    //     var result = await _likeService.ToggleLikeAsync(postId, userId);
-
-    //     if (!result) return NotFound(new ServiceResponse<string> { Success = false, Message = "Không tìm thấy bài viết" });
-
-    //     return Ok(new ServiceResponse<string> { Success = true, Message = "Đã thích bài viết" });
-    // }
     [Authorize] // require login
-    [HttpPost("like")]
+    [HttpPost]
     public async Task<IActionResult> Like(int postId)
     {
         var userId = User.GetUserId();
@@ -35,7 +26,7 @@ public class LikeController : ControllerBase
         return Ok(new ServiceResponse<string> { Success = true, Message = "Đã thích bài viết" });
     }
     [Authorize] // require login
-    [HttpDelete("like")]
+    [HttpDelete]
     public async Task<IActionResult> Unlike(int postId)
     {
         var userId = User.GetUserId();

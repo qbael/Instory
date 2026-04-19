@@ -9,4 +9,13 @@ public static class ClaimsPrincipalExtensions
 
         return int.TryParse(id, out var userId) ? userId : 0;
     }
+
+    public static string GetUserName(this ClaimsPrincipal user)
+    {
+        return user.FindFirst(ClaimTypes.Name)?.Value
+            ?? user.FindFirst("username")?.Value
+            ?? "Unknown";
+    }
+
+
 }

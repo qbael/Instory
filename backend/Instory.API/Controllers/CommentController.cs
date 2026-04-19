@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.Authorization;
 namespace Instory.API.Controllers;
 
 [ApiController]
-[Route("api/v1/posts/comments")]
+[Route("api/v1/posts/{postId}/comments")]
 public class CommentsController : ControllerBase
 {
     private readonly ICommentService _commentService;
@@ -14,6 +14,25 @@ public class CommentsController : ControllerBase
     public CommentsController(ICommentService commentService)
     {
         _commentService = commentService;
+    }
+
+    //Get    
+    [HttpGet]
+    public async Task<IActionResult> GetComments(
+        int postId,
+        [FromQuery] int page = 1,
+        [FromQuery] int pageSize = 10)
+    {
+        // Validate cơ bản
+        if (page < 1 || pageSize < 1)
+        {
+            return BadRequest("Page và PageSize phải lớn hơn 0.");
+        }
+
+        // Gọi Service
+        var result = await _commentService.GetCommentsAsync(postId, page, pageSize);
+
+        return Ok(result);
     }
 
     // POST: api/v1/posts/1/comments
@@ -25,11 +44,10 @@ public class CommentsController : ControllerBase
 
         var request = new CreateCommentRequestDTO
         {
-            PostId = postId,
             Content = dto.Content
         };
 
-        var result = await _commentService.AddCommentAsync(userId, request);
+        var result = await _commentService.AddCommentAsync(userId, postId, request);
 
         return Ok(new ServiceResponse<CommentResponseDTO>
         {

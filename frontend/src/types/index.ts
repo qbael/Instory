@@ -25,7 +25,6 @@ export interface Post {
   id: number;
   userId: number;
   content: string | null;
-  imageUrl: string | null;
   createdAt: string;
   updatedAt: string | null;
   user: User;
@@ -34,6 +33,12 @@ export interface Post {
   sharesCount: number;
   isLiked: boolean;
   hashtags: string[];
+  images: PostImage[];
+}
+export interface PostImage {
+  id: number;
+  imageUrl: string;
+  sortOrder: number;
 }
 
 export interface CreatePostDto {
@@ -45,8 +50,8 @@ export interface CreatePostDto {
 
 export interface Comment {
   id: number;
-  postId: number;
-  userId: number;
+  // postId: number;
+  // userId: number;
   content: string | null;
   createdAt: string;
   updatedAt: string | null;
@@ -74,7 +79,7 @@ export interface Story {
   userId: number;
   mediaUrl: string | null;
   caption: string | null;
-  mediaType: 'Image' | 'Video';
+  mediaType: "Image" | "Video";
   expiresAt: string;
   createdAt: string;
   user: User;
@@ -101,7 +106,7 @@ export interface StoryHighlight {
 
 // ─── Friendship ──────────────────────────────────────────────────────────────
 
-export type FriendshipStatus = 'pending' | 'accepted' | 'declined';
+export type FriendshipStatus = "pending" | "accepted" | "declined";
 
 export interface Friendship {
   id: number;
@@ -116,12 +121,12 @@ export interface Friendship {
 // ─── Notification ────────────────────────────────────────────────────────────
 
 export type NotificationType =
-  | 'FriendRequestReceived'
-  | 'FriendRequestAccepted'
-  | 'NewMessage'
-  | 'PostLiked'
-  | 'PostCommented'
-  | 'PostSaved';
+  | "FriendRequestReceived"
+  | "FriendRequestAccepted"
+  | "NewMessage"
+  | "PostLiked"
+  | "PostCommented"
+  | "PostSaved";
 
 export interface Notification {
   id: number;
@@ -147,7 +152,7 @@ export interface Hashtag {
 
 // ─── Post Report ─────────────────────────────────────────────────────────────
 
-export type ReportStatus = 'pending' | 'reviewed' | 'resolved';
+export type ReportStatus = "pending" | "reviewed" | "resolved";
 
 export interface PostReport {
   id: number;
@@ -198,6 +203,8 @@ export interface AuthResponse {
 export interface PaginatedResponse<T> {
   data: T[];
   page: number;
+  items: T[];
+  pageNumber: number;
   pageSize: number;
   totalCount: number;
   totalPages: number;
@@ -210,9 +217,15 @@ export interface PaginationParams {
   pageSize?: number;
 }
 
+export interface ApiResponse<T> {
+  data: T;
+  message: string;
+  statusCode: number;
+  success: boolean;
+}
 // ─── Search ──────────────────────────────────────────────────────────────────
 
-export type SearchType = 'people' | 'posts' | 'tags';
+export type SearchType = "people" | "posts" | "tags";
 
 export interface SearchParams extends PaginationParams {
   query: string;
