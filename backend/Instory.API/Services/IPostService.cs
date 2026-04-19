@@ -9,4 +9,6 @@ public interface IPostService
     Task<PostResponseDTO> GetPostByIdAsync(int id);
     Task<PaginatedResult<PostResponseDTO>> GetAllPostsAsync(int currrentUserId, int page, int pageSize);
 
+    Task<bool> DeletePostAsync(int userId, int postId);
+
 }

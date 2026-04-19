@@ -11,9 +11,10 @@ interface CommentSectionProps {
   postId: number;
   initialCount: number;
   showComments?: boolean;
+  increaseCommentCount?: (postId: number) => void;
 }
 
-export function CommentSection({ postId, initialCount ,showComments }: CommentSectionProps) {
+export function CommentSection({ postId, initialCount ,showComments, increaseCommentCount }: CommentSectionProps) {
   const user = useAppSelector((s) => s.auth.user);
   const [comments, setComments] = useState<Comment[]>([]);
   const [isLoaded, setIsLoaded] = useState(false);
@@ -45,10 +46,15 @@ export function CommentSection({ postId, initialCount ,showComments }: CommentSe
     setIsSubmitting(true);
     try {      
       // Gọi API với { content } để backend nhận đúng định dạng
-      const response = await postService.addComment(postId, { content });
-      console.log('Add comment response:', response);
+      // const response = await postService.addComment(postId, { content });
+      // console.log('Add comment response:', response);
+      // // SỬA Ở ĐÂY: Lấy data ở tầng thứ 2
+      // const newAddedComment = response.data.data;      
+
+      const {data} = await postService.addComment(postId, content );
+      console.log('Add comment response:', data);
       // SỬA Ở ĐÂY: Lấy data ở tầng thứ 2
-      const newAddedComment = response.data.data;      
+      const newAddedComment = data.data;    
       
       const completeComment = {
           ...newAddedComment,
@@ -59,6 +65,9 @@ export function CommentSection({ postId, initialCount ,showComments }: CommentSe
           }
       } as Comment;
       setComments((prev) => [completeComment, ...prev]);
+      if (increaseCommentCount) {
+        increaseCommentCount(postId);
+      }
       setNewComment('');
     } finally {
       setIsSubmitting(false);

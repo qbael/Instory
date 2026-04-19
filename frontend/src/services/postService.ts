@@ -1,5 +1,6 @@
 import api from './api';
 import type {
+  ApiResponse,
   Comment,
   CreateCommentDto,
   PaginatedResponse,
@@ -51,15 +52,15 @@ export const postService = {
     return api.get<PaginatedResponse<Comment>>(`${BASE}/${postId}/comments`, { params });
   },
 
-  // addComment(postId: number, content: string) {
-  //   return api.post<Comment>(
-  //     `${BASE}/${postId}/comments`,
-  //     { content }
-  //   );
-  // },  
-addComment(postId: number, payload: { content: string }) {        
-        return api.post(`${BASE}/${postId}/comments`, payload);
-    },
+  addComment(postId: number, content: string) {
+    return api.post<ApiResponse<Comment>>(
+      `${BASE}/${postId}/comments`,
+      { content }
+    );
+  },  
+  // addComment(postId: number, payload: { content: string }) {        
+  //       return api.post(`${BASE}/${postId}/comments`, payload);
+  // },
   deleteComment(commentId: number) {
     return api.delete(`${BASE}/comments/${commentId}`);
   },

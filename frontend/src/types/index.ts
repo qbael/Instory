@@ -211,6 +211,12 @@ export interface PaginationParams {
   pageSize?: number;
 }
 
+export interface ApiResponse<T> {
+  data: T;
+  message: string;
+  statusCode: number;
+  success: boolean;
+}
 // ─── Search ──────────────────────────────────────────────────────────────────
 
 export type SearchType = 'people' | 'posts' | 'tags';

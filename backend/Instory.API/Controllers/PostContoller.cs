@@ -49,4 +49,16 @@ public class PostController : ControllerBase
 
         return Ok(result);
     }
+
+    [HttpDelete("{id}")]
+    public async Task<IActionResult> Delete(int id)
+    {
+        var userId = User.GetUserId();
+        var success = await _postService.DeletePostAsync(userId, id);
+        if (!success)
+        {
+            return NotFound();
+        }
+        return NoContent();
+    }
 }

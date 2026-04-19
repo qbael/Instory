@@ -2,6 +2,7 @@ using Instory.API.DTOs;
 using Instory.API.Helpers;
 using Instory.API.Models;
 using Instory.API.Repositories;
+using Instory.API.Services;
 
 public class PostService : IPostService
 {
@@ -9,11 +10,13 @@ public class PostService : IPostService
     private readonly IPostImageRepository _postImageRepository;
 
     private readonly ILikeRepository _likeRepository;
-    public PostService(IPostRepository postRepository, IPostImageRepository postImageRepository, ILikeRepository likeRepository)
+    private readonly IMediaService _mediaService;
+    public PostService(IPostRepository postRepository, IPostImageRepository postImageRepository, ILikeRepository likeRepository, IMediaService mediaService)
     {
         _postRepository = postRepository;
         _postImageRepository = postImageRepository;
         _likeRepository = likeRepository;
+        _mediaService = mediaService;
     }
 
     public async Task<PaginatedResult<PostResponseDTO>> GetAllPostsAsync(int currentUserId, int page, int pageSize)
@@ -69,18 +72,9 @@ public class PostService : IPostService
         await _postRepository.AddAsync(post);
         await _postRepository.SaveChangesAsync();
 
-        // 2. Xử lý upload ảnh
+        // 2. Upload ảnh qua MediaService
         if (request.Images?.Any() == true)
         {
-            // Lấy đường dẫn tuyệt đối tới wwwroot/uploads
-            var folder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploads");
-
-            // Tạo folder nếu chưa tồn tại
-            if (!Directory.Exists(folder))
-            {
-                Directory.CreateDirectory(folder);
-            }
-
             var postImages = new List<PostImage>();
             int sortOrder = 1;
 
@@ -88,29 +82,19 @@ public class PostService : IPostService
             {
                 if (file.Length == 0) continue;
 
-                // (Optional) validate đơn giản
                 var allowedTypes = new[] { "image/jpeg", "image/png", "image/jpg" };
                 if (!allowedTypes.Contains(file.ContentType))
                 {
                     throw new Exception("File không hợp lệ (chỉ chấp nhận jpg/png)");
                 }
 
-                // Tạo tên file unique
-                var fileName = Guid.NewGuid() + Path.GetExtension(file.FileName);
+                //  upload lên S3
+                var imageUrl = await _mediaService.UploadFileAsync(file, "posts");
 
-                var filePath = Path.Combine(folder, fileName);
-
-                // Lưu file
-                using (var stream = new FileStream(filePath, FileMode.Create))
-                {
-                    await file.CopyToAsync(stream);
-                }
-
-                // Lưu DB
                 postImages.Add(new PostImage
                 {
                     PostId = post.Id,
-                    ImageUrl = "/uploads/" + fileName,
+                    ImageUrl = imageUrl,
                     SortOrder = sortOrder++
                 });
             }
@@ -133,6 +117,19 @@ public class PostService : IPostService
             return null;
         }
         return MapToResponseDTO(post);
+    }
+
+    public async Task<bool> DeletePostAsync(int userId, int postId)
+    {
+        var post = await _postRepository.GetByIdAsync(postId);
+        if (post == null || post.UserId != userId)
+        {
+            return false;
+        }
+
+        post.IsDeleted = true;
+        await _postRepository.SaveChangesAsync();
+        return true;
     }
     private static PostResponseDTO MapToResponseDTO(Post post)
     {
