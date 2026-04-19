@@ -50,8 +50,8 @@ export interface CreatePostDto {
 
 export interface Comment {
   id: number;
-  postId: number;
-  userId: number;
+  // postId: number;
+  // userId: number;
   content: string | null;
   createdAt: string;
   updatedAt: string | null;
@@ -196,6 +196,7 @@ export interface AuthResponse {
 // ─── API Response Wrappers ───────────────────────────────────────────────────
 
 export interface PaginatedResponse<T> {
+  data: T[];
   items: T[];
   pageNumber: number;
   pageSize: number;

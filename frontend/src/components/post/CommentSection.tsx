@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, use, useEffect } from 'react';
 import { Send } from 'lucide-react';
 import { Avatar } from '@/components/ui/Avatar';
 import { Spinner } from '@/components/ui/Spinner';
@@ -10,9 +10,10 @@ import type { Comment } from '@/types';
 interface CommentSectionProps {
   postId: number;
   initialCount: number;
+  showComments?: boolean;
 }
 
-export function CommentSection({ postId, initialCount }: CommentSectionProps) {
+export function CommentSection({ postId, initialCount ,showComments }: CommentSectionProps) {
   const user = useAppSelector((s) => s.auth.user);
   const [comments, setComments] = useState<Comment[]>([]);
   const [isLoaded, setIsLoaded] = useState(false);
@@ -28,7 +29,8 @@ export function CommentSection({ postId, initialCount }: CommentSectionProps) {
         pageNumber: 1,
         pageSize: 20,
       });
-      setComments(data.items);
+      setComments(data.data || []);
+      // console.log('Loaded comments:', data.data);
       setIsLoaded(true);
     } finally {
       setIsLoading(false);
@@ -41,19 +43,36 @@ export function CommentSection({ postId, initialCount }: CommentSectionProps) {
     if (!content || isSubmitting) return;
 
     setIsSubmitting(true);
-    try {
-      const { data } = await postService.addComment({ postId, content });
-      setComments((prev) => [...prev, data]);
+    try {      
+      // Gọi API với { content } để backend nhận đúng định dạng
+      const response = await postService.addComment(postId, { content });
+      console.log('Add comment response:', response);
+      // SỬA Ở ĐÂY: Lấy data ở tầng thứ 2
+      const newAddedComment = response.data.data;      
+      
+      const completeComment = {
+          ...newAddedComment,
+          createdAt: newAddedComment.createdAt || new Date().toISOString(),
+          user: {
+              userName: user?.userName, // Lấy từ state Auth của bạn
+              avatarUrl: user?.avatarUrl  // Lấy từ state Auth của bạn
+          }
+      } as Comment;
+      setComments((prev) => [completeComment, ...prev]);
       setNewComment('');
     } finally {
       setIsSubmitting(false);
     }
   };
-
+  useEffect(() => {
+    if (showComments && !isLoaded) {
+      loadComments();
+    }
+  }, [showComments, postId]);
   return (
     <div className="border-t border-border">
       {/* Load comments trigger */}
-      {!isLoaded && initialCount > 0 && (
+      {/* {!isLoaded && initialCount > 0 && (
         <button
           type="button"
           onClick={loadComments}
@@ -67,7 +86,7 @@ export function CommentSection({ postId, initialCount }: CommentSectionProps) {
             `Xem tất cả ${initialCount} bình luận`
           )}
         </button>
-      )}
+      )} */}
 
       {/* Comment list */}
       {comments.length > 0 && (
@@ -75,15 +94,15 @@ export function CommentSection({ postId, initialCount }: CommentSectionProps) {
           {comments.map((c) => (
             <div key={c.id} className="flex gap-2.5">
               <Avatar
-                src={c.user.avatarUrl}
-                alt={c.user.userName}
+                src={c.user?.avatarUrl || ''}
+                alt={c.user?.userName || 'User'}
                 size="xs"
                 className="mt-0.5"
               />
               <div className="min-w-0 flex-1">
                 <p className="text-sm">
-                  <span className="mr-1.5 font-semibold">{c.user.userName}</span>
-                  {c.content}
+                  <span className="mr-1.5 font-semibold">{c.user?.userName || 'Unknown'}</span>
+                  {c.content }
                 </p>
                 <p className="mt-0.5 text-[11px] text-text-secondary">
                   {timeAgo(c.createdAt)}
@@ -95,15 +114,16 @@ export function CommentSection({ postId, initialCount }: CommentSectionProps) {
       )}
 
       {/* Add comment input */}
+      <div className='flex items-center gap-2 border-t border-border px-3 py-2.5 w-full'>
+        <Avatar
+        src={user?.avatarUrl}
+        alt={user?.userName ?? ''}
+        size="xs"
+      />
       <form
         onSubmit={handleSubmit}
-        className="flex items-center gap-2 border-t border-border px-3 py-2.5"
+        className='w-full flex items-center gap-2'        
       >
-        <Avatar
-          src={user?.avatarUrl}
-          alt={user?.userName ?? ''}
-          size="xs"
-        />
         <input
           type="text"
           value={newComment}
@@ -120,6 +140,7 @@ export function CommentSection({ postId, initialCount }: CommentSectionProps) {
           {isSubmitting ? <Spinner size="sm" /> : <Send className="h-4 w-4" />}
         </button>
       </form>
+      </div>
     </div>
   );
 }

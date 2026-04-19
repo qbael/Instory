@@ -29,9 +29,9 @@ public class PostService : IPostService
             Id = p.Id,
             UserId = p.UserId,
             Content = p.Content,
-            LikeCount = p.LikeCount,
-            CommentCount = p.CommentCount,
-            ShareCount = p.ShareCount,
+            LikesCount = p.LikeCount,
+            CommentsCount = p.CommentCount,
+            SharesCount = p.ShareCount,
             CreatedAt = p.CreatedAt,
 
             IsLiked = likedPostIds.Contains(p.Id),
@@ -39,7 +39,7 @@ public class PostService : IPostService
             User = new UserDTO
             {
                 Id = p.User.Id,
-                Username = p.User.UserName,
+                UserName = p.User.UserName,
                 AvatarUrl = p.User.AvatarUrl,
                 FullName = p.User.FullName,
                 CreatedAt = p.User.CreatedAt
@@ -142,9 +142,9 @@ public class PostService : IPostService
             UserId = post.UserId,
             Content = post.Content,
             // ImageUrl = post.ImageUrl,
-            LikeCount = post.LikeCount,
-            CommentCount = post.CommentCount,
-            ShareCount = post.ShareCount,
+            LikesCount = post.LikeCount,
+            CommentsCount = post.CommentCount,
+            SharesCount = post.ShareCount,
             CreatedAt = post.CreatedAt,
             // Images = post.PostImages.OrderBy(pi => pi.SortOrder).ToList()
         };

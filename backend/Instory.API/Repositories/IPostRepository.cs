@@ -12,5 +12,4 @@ public interface IPostRepository : IRepository<Post>
 
     Task<IEnumerable<Post>> GetPostsByUserIdAsync(int userId);
 
-
 }

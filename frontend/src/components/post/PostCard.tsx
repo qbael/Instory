@@ -77,6 +77,7 @@ export const PostCard = memo(function PostCard({ post, onLikeToggle }: PostCardP
               <div key={i} className="relative aspect-square overflow-hidden bg-border">
                 <img
                   src="https://picsum.photos/300/200"
+                  // src={src}
                   alt={`Hình ${i + 1}`}
                   loading="lazy"
                   className="h-full w-full object-cover"
@@ -97,6 +98,7 @@ export const PostCard = memo(function PostCard({ post, onLikeToggle }: PostCardP
         isLiked={post.isLiked}
         likesCount={post.likesCount}
         commentsCount={post.commentsCount}
+        sharesCount={post.sharesCount}
         onLike={() => onLikeToggle(post.id)}
         onCommentClick={() => setShowComments(true)}
         onShare={() => {}}
@@ -119,7 +121,7 @@ export const PostCard = memo(function PostCard({ post, onLikeToggle }: PostCardP
 
       {/* Comments */}
       {showComments && (
-        <CommentSection postId={post.id} initialCount={post.commentsCount} />
+        <CommentSection postId={post.id} initialCount={post.commentsCount} showComments={showComments} />
       )}
     </article>
   );

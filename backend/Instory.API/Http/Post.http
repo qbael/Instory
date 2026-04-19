@@ -27,4 +27,15 @@ Content-Type: image/png
 POST {{InstoryAPI_HostAddress}}/api/v1/posts/1/like
 
 ###
-DELETE  {{InstoryAPI_HostAddress}}/api/v1/posts/comments/5
+
+@token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1laWRlbnRpZmllciI6IjIiLCJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9lbWFpbGFkZHJlc3MiOiJoaWhpMDYwNTA1QGdtYWlsLmNvbSIsImh0dHA6Ly9zY2hlbWFzLnhtbHNvYXAub3JnL3dzLzIwMDUvMDUvaWRlbnRpdHkvY2xhaW1zL25hbWUiOiJoaWhpIiwianRpIjoiMzEzNjRlNjUtY2ZjMi00ZTVkLTg2NjItMGRiZjgwZWM3ZDkzIiwiaHR0cDovL3NjaGVtYXMubWljcm9zb2Z0LmNvbS93cy8yMDA4LzA2L2lkZW50aXR5L2NsYWltcy9yb2xlIjoiVXNlciIsImV4cCI6MTc3NjgzMTUzNCwiaXNzIjoiSW5zdG9yeSIsImF1ZCI6Ikluc3RvcnkifQ.nNH6biiZh5NFsaq2BMLqDjkcVjQWGdqPce-WU8ErjSk
+POST {{InstoryAPI_HostAddress}}/api/v1/posts/7/comments
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "content": "Test comment"
+}
+
+###
+GET {{InstoryAPI_HostAddress}}/api/v1/posts/7/comments?pageNumber=1&pageSize=5
