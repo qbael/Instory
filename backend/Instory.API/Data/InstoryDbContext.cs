@@ -144,6 +144,9 @@ public class InstoryDbContext(DbContextOptions<InstoryDbContext> options) : Iden
                 .HasForeignKey(pi => pi.PostId)
                 .OnDelete(DeleteBehavior.Cascade);
         });
+        modelBuilder.Entity<Hashtag>()
+        .Property(h => h.TotalPost)
+        .HasDefaultValue(0);
     }
 
     public override int SaveChanges()

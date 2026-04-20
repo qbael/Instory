@@ -1,6 +1,6 @@
 import { memo, useState, useRef, useEffect } from "react";
-import { Link } from "react-router";
-import { MoreHorizontal, Trash2 } from "lucide-react";
+import { Link, useNavigate } from "react-router";
+import { MoreHorizontal, Trash2, Edit, Flag } from "lucide-react";
 import { toast } from "sonner";
 import { Avatar } from "@/components/ui/Avatar";
 import { PostActions } from "./PostActions";
@@ -19,15 +19,16 @@ interface PostCardProps {
 }
 
 function renderCaption(content: string) {
-  return content.split(/(#[a-zA-Z0-9_]+)/g).map((part, i) => {
+  // \p{L} khớp với bất kỳ ký tự chữ cái nào trong bất kỳ ngôn ngữ nào
+  // \p{N} khớp với bất kỳ con số nào
+  // Cần thêm flag 'u' ở cuối Regex
+  const regex = /(#[\p{L}\p{N}_]+)/gu; 
+
+  return content.split(regex).map((part, i) => {
     if (part.startsWith("#")) {
       const tag = part.slice(1);
       return (
-        <Link
-          key={i}
-          to={`/search?tag=${tag}`}
-          className="font-semibold text-text-link"
-        >
+        <Link key={i} className="font-semibold" to={`/search?tag=${tag}`}>
           {part}
         </Link>
       );
@@ -45,6 +46,7 @@ export const PostCard = memo(function PostCard({
   const [showMenu, setShowMenu] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null); // Reference close menu when click outside
+  const navigate = useNavigate();
 
   const currentUser = useAppSelector((s) => s.auth.user);
 
@@ -75,6 +77,34 @@ export const PostCard = memo(function PostCard({
     } finally {
       setIsDeleting(false);
     }
+  };
+
+  // Handle report post
+  const handleReportPost = async () => {
+    const confirmed = await ConfirmDialog.show({
+      title: "Báo cáo bài viết",
+      message: "Bạn có chắc chắn muốn báo cáo bài viết này?",
+      confirmText: "Báo cáo",
+      cancelText: "Hủy",
+    });
+
+    if (!confirmed) return;
+
+    try {
+      // Add your report post API call here
+      // await postService.report(post.id);
+      toast.success("Bài viết đã được báo cáo");
+      setShowMenu(false);
+    } catch (error) {
+      toast.error("Lỗi khi báo cáo bài viết");
+      console.error("Report post error:", error);
+    }
+  };
+
+  // Handle edit post
+  const handleEditPost = () => {
+    navigate(`/posts/${post.id}/edit`, { state: { post } });
+    setShowMenu(false);
   };
 
   // Close menu when clicking outside
@@ -126,17 +156,40 @@ export const PostCard = memo(function PostCard({
           </button>
 
           {/* Dropdown Menu */}
-          {showMenu && isOwnPost && (
+          {showMenu && (
             <div className="absolute right-0 top-full mt-1 w-48 rounded-md border border-border bg-bg-card shadow-lg z-10">
-              <button
-                type="button"
-                disabled={isDeleting}
-                onClick={handleDeletePost}
-                className="w-full px-4 py-2.5 text-left text-sm text-error hover:bg-error/10 rounded-md transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                <Trash2 className="h-4 w-4" />
-                {isDeleting ? "Đang xóa..." : "Xóa bài viết"}
-              </button>
+              {isOwnPost ? (
+                <>
+                  <button
+                    type="button"
+                    disabled={isDeleting}
+                    onClick={handleDeletePost}
+                    className="w-full px-4 py-2.5 text-left text-sm text-error hover:bg-error/10 rounded-md transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                    {isDeleting ? "Đang xóa..." : "Xóa bài viết"}
+                  </button>
+
+                  <button
+                    type="button"
+                    className="w-full px-4 py-2.5 text-left text-sm hover:bg-border/40 rounded-md transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                    onClick={handleEditPost}
+                  >
+                    <Edit className="h-4 w-4" />
+                    Chỉnh sửa bài viết
+                  </button>
+                </>
+
+              ) : (
+                <button
+                  type="button"
+                  onClick={handleReportPost}
+                  className="w-full px-4 py-2.5 text-left text-sm text-error hover:bg-error/10 rounded-md transition-colors flex items-center gap-2"
+                >
+                  <Flag className="h-4 w-4" />
+                  Báo cáo bài viết
+                </button>
+              )}
             </div>
           )}
         </div>

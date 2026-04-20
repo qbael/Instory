@@ -11,14 +11,17 @@ public class PostService : IPostService
 
     private readonly ILikeRepository _likeRepository;
     private readonly IMediaService _mediaService;
+
+    private readonly IHashtagService _hashtagService;
     private readonly IUnitOfWork _unitOfWork;
-    public PostService(IPostRepository postRepository, IPostImageRepository postImageRepository, ILikeRepository likeRepository, IMediaService mediaService, IUnitOfWork unitOfWork)
+    public PostService(IPostRepository postRepository, IPostImageRepository postImageRepository, ILikeRepository likeRepository, IMediaService mediaService, IUnitOfWork unitOfWork, IHashtagService hashtagService)
     {
         _postRepository = postRepository;
         _postImageRepository = postImageRepository;
         _likeRepository = likeRepository;
         _mediaService = mediaService;
         _unitOfWork = unitOfWork;
+        _hashtagService = hashtagService;
     }
 
     public async Task<PaginatedResult<PostResponseDTO>> GetAllPostsAsync(int currentUserId, int page, int pageSize)
@@ -79,6 +82,9 @@ public class PostService : IPostService
             await _postRepository.AddAsync(post);
             await _unitOfWork.SaveChangesAsync(); // Lưu Post trước để có PostId cho việc lưu ảnh
             Console.WriteLine($"Post đã được lưu với ID: {post.Id}");
+
+            await _hashtagService.ProcessHashtagsAsync(post.Id, request.Content);
+
             var postImagesDtoList = new List<PostImageDTO>();
 
             // 3. Xử lý ảnh song song (Concurrent Upload)
@@ -174,6 +180,7 @@ public class PostService : IPostService
         }
 
         post.IsDeleted = true;
+        post.DeletedAt = DateTime.UtcNow;
         await _postRepository.SaveChangesAsync();
         return true;
     }

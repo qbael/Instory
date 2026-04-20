@@ -16,7 +16,7 @@ public class LikeRepository : Repository<Like>, ILikeRepository
     public async Task<HashSet<int>> GetLikePostIdsByUserIdAsync(int userId)
     {
         return await _dbSet
-            .Where(l => l.UserId == userId)
+            .Where(l => l.UserId == userId && !l.IsDeleted)
             .Select(l => l.PostId) // Include the Post entity to access its details
             .ToHashSetAsync();
     }
