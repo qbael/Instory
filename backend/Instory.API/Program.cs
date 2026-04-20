@@ -101,6 +101,7 @@ builder.Services.AddScoped<Instory.API.Repositories.IPostRepository, PostReposit
 builder.Services.AddScoped<Instory.API.Repositories.ICommentRepository, CommentRepository>();
 builder.Services.AddScoped<Instory.API.Repositories.ILikeRepository, LikeRepository>();
 builder.Services.AddScoped<Instory.API.Repositories.IPostImageRepository, PostImageRepository>();
+builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 
 builder.Services.AddScoped<ITokenService, TokenService>();
 builder.Services.AddScoped<IStoryService, StoryService>();

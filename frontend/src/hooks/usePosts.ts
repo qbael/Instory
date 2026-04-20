@@ -2,7 +2,6 @@ import { useState, useCallback, useEffect, useRef } from "react";
 import type { Post } from "@/types";
 import { postService } from "@/services/postService";
 import { DEFAULT_PAGE_SIZE } from "@/utils/constants";
-import { de } from "zod/locales";
 
 type FeedType = "home" | { userId: number };
 

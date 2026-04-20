@@ -1,23 +1,23 @@
-import { useState, useRef, useCallback, useEffect } from 'react';
-import { ImagePlus, X } from 'lucide-react';
-import { toast } from 'sonner';
-import { Modal } from '@/components/ui/Modal';
-import { Button } from '@/components/ui/Button';
-import { Avatar } from '@/components/ui/Avatar';
-import { useAppSelector, useAppDispatch } from '@/store';
-import { closeModal } from '@/store/slices/uiSlice';
-import { postService } from '@/services/postService';
-import { cn } from '@/utils/cn';
-import { ACCEPTED_IMAGE_TYPES, MAX_IMAGE_SIZE_MB } from '@/utils/constants';
+import { useState, useRef, useCallback, useEffect } from "react";
+import { ImagePlus, X } from "lucide-react";
+import { toast } from "sonner";
+import { Modal } from "@/components/ui/Modal";
+import { Button } from "@/components/ui/Button";
+import { Avatar } from "@/components/ui/Avatar";
+import { useAppSelector, useAppDispatch } from "@/store";
+import { closeModal } from "@/store/slices/uiSlice";
+import { postService } from "@/services/postService";
+import { cn } from "@/utils/cn";
+import { ACCEPTED_IMAGE_TYPES, MAX_IMAGE_SIZE_MB } from "@/utils/constants";
 
 const MAX_CAPTION = 2200;
 
 export function PostCreator() {
   const dispatch = useAppDispatch();
-  const isOpen = useAppSelector((s) => s.ui.activeModal === 'createPost');
+  const isOpen = useAppSelector((s) => s.ui.activeModal === "createPost");
   const user = useAppSelector((s) => s.auth.user);
 
-  const [caption, setCaption] = useState('');
+  const [caption, setCaption] = useState("");
   const [imageFiles, setImageFiles] = useState<File[]>([]);
   const [imagePreviews, setImagePreviews] = useState<string[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -27,7 +27,7 @@ export function PostCreator() {
 
   const handleClose = useCallback(() => {
     dispatch(closeModal());
-    setCaption('');
+    setCaption("");
     setImageFiles([]);
     setImagePreviews([]);
   }, [dispatch]);
@@ -36,7 +36,7 @@ export function PostCreator() {
     const accepted: File[] = [];
     files.forEach((file) => {
       if (!ACCEPTED_IMAGE_TYPES.includes(file.type)) {
-        toast.error('Chỉ chấp nhận ảnh JPEG, PNG, WebP và GIF');
+        toast.error("Chỉ chấp nhận ảnh JPEG, PNG, WebP và GIF");
         return;
       }
       if (file.size > MAX_IMAGE_SIZE_MB * 1024 * 1024) {
@@ -66,8 +66,8 @@ export function PostCreator() {
     (e: React.DragEvent) => {
       e.preventDefault();
       setIsDragging(false);
-        const list = Array.from(e.dataTransfer.files || []);
-        if (list.length) handleFileSelect(list);
+      const list = Array.from(e.dataTransfer.files || []);
+      if (list.length) handleFileSelect(list);
     },
     [handleFileSelect],
   );
@@ -84,7 +84,7 @@ export function PostCreator() {
     setImageFiles([]);
     setImagePreviews([]);
     setCurrentIndex(0);
-    if (fileRef.current) fileRef.current.value = '';
+    if (fileRef.current) fileRef.current.value = "";
   }, []);
 
   const removeImageAt = useCallback((index: number) => {
@@ -108,7 +108,9 @@ export function PostCreator() {
   }, [imagePreviews]);
 
   const prevImage = useCallback(() => {
-    setCurrentIndex((ci) => (ci - 1 + imagePreviews.length) % imagePreviews.length);
+    setCurrentIndex(
+      (ci) => (ci - 1 + imagePreviews.length) % imagePreviews.length,
+    );
   }, [imagePreviews.length]);
 
   const nextImage = useCallback(() => {
@@ -121,18 +123,20 @@ export function PostCreator() {
 
     try {
       const formData = new FormData();
-      if (caption.trim()) formData.append('content', caption.trim());
+      if (caption.trim()) formData.append("Content", caption.trim());
+
+      formData.append("AllowComment", "true");
+
       // append multiple images (backend should accept repeated 'images' fields)
-      imageFiles.forEach((f) => formData.append('Images', f));
+      imageFiles.forEach((f) => formData.append("Images", f));
 
       await postService.create(formData);
-
-      toast.success('Đã tạo bài viết!');
+      // console.log("FormData to submit:");
+      toast.success("Đã tạo bài viết!");
       handleClose();
-      window.dispatchEvent(new CustomEvent('post-created'));
-
+      window.dispatchEvent(new CustomEvent("post-created"));
     } catch {
-      toast.error('Tạo bài viết thất bại');
+      toast.error("Tạo bài viết thất bại");
     } finally {
       setIsSubmitting(false);
     }
@@ -148,11 +152,7 @@ export function PostCreator() {
       <div className="p-5">
         {/* User info */}
         <div className="mb-4 flex items-center gap-3">
-          <Avatar
-            src={user?.avatarUrl}
-            alt={user?.userName ?? ''}
-            size="sm"
-          />
+          <Avatar src={user?.avatarUrl} alt={user?.userName ?? ""} size="sm" />
           <span className="text-sm font-semibold">{user?.userName}</span>
         </div>
 
@@ -167,10 +167,10 @@ export function PostCreator() {
         />
         <p
           className={cn(
-            'mb-4 text-right text-xs',
+            "mb-4 text-right text-xs",
             caption.length > MAX_CAPTION * 0.9
-              ? 'text-error'
-              : 'text-text-secondary',
+              ? "text-error"
+              : "text-text-secondary",
           )}
         >
           {caption.length}/{MAX_CAPTION}
@@ -182,9 +182,9 @@ export function PostCreator() {
             <div className="relative flex items-center justify-center overflow-hidden rounded-lg px-4">
               <div className="flex items-center justify-center bg-black/5">
                 <img
-                src={imagePreviews[currentIndex]}
-                alt={`Xem trước ${currentIndex + 1}`}
-                className="max-h-80 w-full object-contain bg-black/5"
+                  src={imagePreviews[currentIndex]}
+                  alt={`Xem trước ${currentIndex + 1}`}
+                  className="max-h-80 w-full object-contain bg-black/5"
                 />
               </div>
               <button
@@ -225,15 +225,21 @@ export function PostCreator() {
                     type="button"
                     onClick={() => setCurrentIndex(idx)}
                     className={cn(
-                      'overflow-hidden rounded-md ring-offset-2',
-                      idx === currentIndex ? 'ring-2 ring-primary' : ''
+                      "overflow-hidden rounded-md ring-offset-2",
+                      idx === currentIndex ? "ring-2 ring-primary" : "",
                     )}
                   >
-                    <img src={src} className="h-12 w-12 object-cover" alt={`thumb-${idx}`} />
+                    <img
+                      src={src}
+                      className="h-12 w-12 object-cover"
+                      alt={`thumb-${idx}`}
+                    />
                   </button>
                 ))}
               </div>
-              <div className="text-xs text-text-secondary/70">{currentIndex + 1}/{imagePreviews.length}</div>
+              <div className="text-xs text-text-secondary/70">
+                {currentIndex + 1}/{imagePreviews.length}
+              </div>
             </div>
           </div>
         ) : (
@@ -246,16 +252,15 @@ export function PostCreator() {
             onDrop={onDrop}
             onClick={() => fileRef.current?.click()}
             className={cn(
-              'mb-4 flex cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed py-10 transition-colors',
+              "mb-4 flex cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed py-10 transition-colors",
               isDragging
-                ? 'border-primary bg-primary/5'
-                : 'border-border hover:border-primary/50',
+                ? "border-primary bg-primary/5"
+                : "border-border hover:border-primary/50",
             )}
           >
             <ImagePlus className="mb-2 h-10 w-10 text-text-secondary" />
             <p className="text-sm font-medium text-text-secondary">
-              Kéo ảnh vào đây hoặc{' '}
-              <span className="text-primary">duyệt</span>
+              Kéo ảnh vào đây hoặc <span className="text-primary">duyệt</span>
             </p>
             <p className="mt-1 text-xs text-text-secondary/60">
               JPEG, PNG, WebP, GIF tối đa {MAX_IMAGE_SIZE_MB}MB
@@ -266,7 +271,7 @@ export function PostCreator() {
         <input
           ref={fileRef}
           type="file"
-          accept={ACCEPTED_IMAGE_TYPES.join(',')}
+          accept={ACCEPTED_IMAGE_TYPES.join(",")}
           onChange={onFileChange}
           className="hidden"
           multiple
@@ -279,16 +284,17 @@ export function PostCreator() {
             size="sm"
             type="button"
           >
-            <ImagePlus className="mr-2 h-4 w-4" /> Thêm ảnh
+            <ImagePlus className="mr-1 h-4 w-4" /> Thêm ảnh
           </Button>
           {imageFiles.length > 0 ? (
-            <button
+            <Button
               type="button"
               onClick={removeAllImages}
-              className="inline-flex items-center gap-1 rounded-md border border-border px-2 py-1 text-sm text-text-primary"
+              className="inline-flex items-center gap-1 rounded-md border border-border px-2 py-1 text-text-primary bg-transparent hover:bg-border/40"
+              size="sm"
             >
               <X className="h-4 w-4" /> Xóa tất cả
-            </button>
+            </Button>
           ) : null}
         </div>
 

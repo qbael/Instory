@@ -163,8 +163,8 @@ export const PostCard = memo(function PostCard({
                 className="relative aspect-square overflow-hidden bg-border"
               >
                 <img
-                  src="https://picsum.photos/300/200"
-                  // src={src}
+                  // src="https://picsum.photos/300/200"
+                  src={src}
                   alt={`Hình ${i + 1}`}
                   loading="lazy"
                   className="h-full w-full object-cover"

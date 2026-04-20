@@ -44,10 +44,14 @@ public class PostController : ControllerBase
     [HttpPost]
     public async Task<IActionResult> Create([FromForm] CreatePostRequestDTO request)
     {
+        // THÊM DÒNG NÀY ĐỂ DEBUG:
+        Console.WriteLine($"======= SỐ LƯỢNG ẢNH NHẬN ĐƯỢC: {request.Images?.Count ?? 0} =======");
         var userId = User.GetUserId();
+        Console.WriteLine($"========== USER ID LẤY ĐƯỢC TỪ TOKEN LÀ: {userId} ==========");
         var result = await _postService.CreatePostAsync(userId, request);
 
         return Ok(result);
+        // return Ok(new { Message = "Tính năng tạo bài viết đang được phát triển. Vui lòng thử lại sau!" });
     }
 
     [HttpDelete("{id}")]

@@ -1,5 +1,6 @@
 using System.ComponentModel.DataAnnotations.Schema;
 
+
 namespace Instory.API.Models;
 
 [Table("post_images")]
@@ -9,6 +10,7 @@ public class PostImage
 
     public string ImageUrl { get; set; } = null!;
 
+    [ForeignKey(nameof(Post))]
     public int PostId { get; set; }
 
     public int SortOrder { get; set; }
