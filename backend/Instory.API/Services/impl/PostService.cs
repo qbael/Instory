@@ -200,7 +200,7 @@ public class PostService : IPostService
             SharesCount = p.ShareCount,
             CreatedAt = p.CreatedAt,
 
-            IsLiked = p.Likes.Any(l => l.UserId == currentUserId), // Cẩn thận với .Result để tránh deadlock
+            IsLiked = p.Likes.Any(l => l.UserId == currentUserId),
 
             User = new UserDTO
             {

@@ -28,4 +28,10 @@ public class HashtagTrendRepository : Repository<HashtagTrend>, IHashtagTrendRep
             await _dbSet.AddAsync(trend);
         }
     }
+
+    public IQueryable<HashtagTrend> GetRecentTrends(DateTime fromDate)
+    {
+        return _context.HashtagTrends
+            .Where(ht => ht.Date >= fromDate);
+    }
 }

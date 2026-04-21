@@ -65,4 +65,15 @@ public class PostController : ControllerBase
         }
         return NoContent();
     }
+
+    [HttpGet("search")]
+    public async Task<IActionResult> SearchByHashtag(
+        [FromQuery] string hashtag,
+        [FromQuery] int pageNumber = 1,
+        [FromQuery] int pageSize = 10)
+    {
+        var currentUserId = User.GetUserId();
+        var result = await _postService.GetPostsByHashtagAsync(currentUserId, hashtag, pageNumber, pageSize);
+        return Ok(result);
+    }
 }

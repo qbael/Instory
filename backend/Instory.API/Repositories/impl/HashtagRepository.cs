@@ -24,4 +24,14 @@ public class HashtagRepository : Repository<Hashtag>, IHashtagRepository
             hashtag.TotalPost++;
         }
     }
+
+    public async Task<IEnumerable<Hashtag>> GetByIdsAsync(List<int> ids)
+    {
+        return await _dbSet.Where(h => ids.Contains(h.Id)).ToListAsync();
+    }
+
+    public IQueryable<Hashtag> GetAllHashtags()
+    {
+        return _dbSet.AsNoTracking();
+    }
 }

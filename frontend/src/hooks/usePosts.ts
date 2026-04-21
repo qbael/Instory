@@ -54,7 +54,7 @@ export function usePosts(feedType: FeedType = "home") {
 
   useEffect(() => {
     fetchPage(1);
-  }, [fetchPage]);
+  }, [userIdParam]);
 
   const loadMore = useCallback(() => {
     if (!fetchingRef.current && hasMore) fetchPage(page + 1);

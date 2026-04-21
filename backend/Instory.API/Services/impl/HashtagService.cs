@@ -1,6 +1,7 @@
 using System.Text.RegularExpressions;
 using Instory.API.Models;
 using Instory.API.Repositories;
+using Microsoft.EntityFrameworkCore;
 
 public class HashtagService : IHashtagService
 {
@@ -69,5 +70,50 @@ public class HashtagService : IHashtagService
         }
 
         await _postHashtagRepository.AddRangeAsync(postHashtags);
+    }
+
+    public async Task<List<HashtagDTO>> GetTrendingHashtagsAsync(int top = 10)
+    {
+        var now = DateTime.UtcNow;
+        var last1Days = now.AddDays(-1);
+        var last3Days = now.AddDays(-3);
+        var last7Days = now.AddDays(-7);
+
+        // Get data recent 7 days
+        var trendQuery = _hashtagTrendRepository.GetRecentTrends(last7Days);
+
+        // Group + Calc
+        var grouped = trendQuery
+            .GroupBy(ht => ht.HashtagId)
+            .Select(g => new
+            {
+                HashtagId = g.Key,
+                Last24h = g.Where(x => x.Date >= last1Days).Sum(x => x.PostCount),
+                Last3d = g.Where(x => x.Date >= last3Days).Sum(x => x.PostCount),
+                Last7d = g.Sum(x => x.PostCount)
+            });
+
+        // Calc score
+        var scored = grouped.Select(x => new
+        {
+            x.HashtagId,
+            Score = x.Last24h * 0.7 + x.Last3d * 0.2 + x.Last7d * 0.1
+        });
+
+        // Join Hashtag + return DTO
+        var result = await scored
+            .OrderByDescending(x => x.Score)
+            .Take(top)
+            .Join(_hashtagRepository.GetAllHashtags(),
+                x => x.HashtagId,
+                h => h.Id,
+                (x, h) => new HashtagDTO
+                {
+                    Id = h.Id,
+                    Tag = h.Tag,
+                    TotalPost = h.TotalPost,
+                    Score = x.Score
+                }).ToListAsync();
+        return result;
     }
 }

@@ -8,4 +8,8 @@ public interface IHashtagRepository : IRepository<Hashtag>
     Task IncreasePostCountAsync(int hashtagId);
 
     // IQueryable<Post> GetPostsByHashtag(string tag);
+
+    Task<IEnumerable<Hashtag>> GetByIdsAsync(List<int> ids);
+
+    IQueryable<Hashtag> GetAllHashtags();
 }
