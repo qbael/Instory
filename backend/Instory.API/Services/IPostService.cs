@@ -11,4 +11,6 @@ public interface IPostService
 
     Task<bool> DeletePostAsync(int userId, int postId);
 
+    Task<PaginatedResult<PostResponseDTO>> GetPostsByHashtagAsync(int currentUserId, string tag, int page, int pageSize);
+
 }

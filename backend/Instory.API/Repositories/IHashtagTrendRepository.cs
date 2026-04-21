@@ -1,5 +1,6 @@
 using Instory.API.Models;
-using Instory.API.Repositories;
+
+namespace Instory.API.Repositories;
 
 public interface IHashtagTrendRepository : IRepository<HashtagTrend>
 {

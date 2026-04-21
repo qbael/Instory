@@ -1,11 +1,12 @@
 using Instory.API.Data;
 using Instory.API.Models;
-using Instory.API.Repositories.impl;
 using Microsoft.EntityFrameworkCore;
 
-public class HashtgTrendRepository : Repository<HashtagTrend>, IHashtagTrendRepository
+namespace Instory.API.Repositories.impl;
+
+public class HashtagTrendRepository : Repository<HashtagTrend>, IHashtagTrendRepository
 {
-    public HashtgTrendRepository(InstoryDbContext context) : base(context)
+    public HashtagTrendRepository(InstoryDbContext context) : base(context)
     {
     }
 

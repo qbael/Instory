@@ -41,6 +41,7 @@ export const PostCard = memo(function PostCard({
   post,
   onLikeToggle,
   onCommentAdded,
+  onDeleteSuccess,
 }: PostCardProps) {
   const [showComments, setShowComments] = useState(false);
   const [showMenu, setShowMenu] = useState(false);
@@ -71,6 +72,7 @@ export const PostCard = memo(function PostCard({
       setShowMenu(false);
       // Optionally, you can trigger a refresh of the feed here
       // by calling a callback or dispatching a Redux action
+      onDeleteSuccess(post.id);
     } catch (error) {
       toast.error("Lỗi khi xóa bài viết");
       console.error("Delete post error:", error);

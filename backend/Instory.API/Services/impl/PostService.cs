@@ -184,6 +184,45 @@ public class PostService : IPostService
         await _postRepository.SaveChangesAsync();
         return true;
     }
+
+    public async Task<PaginatedResult<PostResponseDTO>> GetPostsByHashtagAsync(int currentUserId, string tag, int page, int pageSize)
+    {
+        tag = tag.Trim().ToLower();
+
+        var query = _postRepository.GetPostsByHashtag(tag)
+        .Select(p => new PostResponseDTO
+        {
+            Id = p.Id,
+            UserId = p.UserId,
+            Content = p.Content,
+            LikesCount = p.LikeCount,
+            CommentsCount = p.CommentCount,
+            SharesCount = p.ShareCount,
+            CreatedAt = p.CreatedAt,
+
+            IsLiked = p.Likes.Any(l => l.UserId == currentUserId), // Cẩn thận với .Result để tránh deadlock
+
+            User = new UserDTO
+            {
+                // Id = p.User.Id,
+                UserName = p.User.UserName,
+                AvatarUrl = p.User.AvatarUrl,
+                FullName = p.User.FullName,
+                CreatedAt = p.User.CreatedAt
+            },
+            Images = p.PostImages
+            .OrderBy(pi => pi.SortOrder)
+            .Select(pi => new PostImageDTO
+            {
+                Id = pi.Id,
+                ImageUrl = pi.ImageUrl,
+                SortOrder = pi.SortOrder
+            })
+            .ToList()
+        });
+
+        return await PaginatedResult<PostResponseDTO>.CreateAsync(query, page, pageSize);
+    }
     private static PostResponseDTO MapToResponseDTO(Post post)
     {
         return new PostResponseDTO

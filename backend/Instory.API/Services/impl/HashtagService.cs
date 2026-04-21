@@ -1,5 +1,6 @@
 using System.Text.RegularExpressions;
 using Instory.API.Models;
+using Instory.API.Repositories;
 
 public class HashtagService : IHashtagService
 {

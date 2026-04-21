@@ -1,4 +1,5 @@
 using Instory.API.Data;
+using Instory.API.Helpers;
 using Instory.API.Models;
 using Microsoft.AspNetCore.Connections;
 using Microsoft.EntityFrameworkCore;
@@ -22,18 +23,5 @@ public class HashtagRepository : Repository<Hashtag>, IHashtagRepository
         {
             hashtag.TotalPost++;
         }
-    }
-
-    public async Task<IEnumerable<Post>> GetPostsByHashtag(string tag, int page, int pageSize)
-    {
-        var hashtag = await _dbSet.FirstOrDefaultAsync(h => h.Tag == tag);
-        if (hashtag == null) return Enumerable.Empty<Post>();
-
-        return await _context.PostHashtags
-            .Where(ph => ph.HashtagId == hashtag.Id)
-            .Select(ph => ph.Post)
-            .Skip((page - 1) * pageSize)
-            .Take(pageSize)
-            .ToListAsync();
     }
 }

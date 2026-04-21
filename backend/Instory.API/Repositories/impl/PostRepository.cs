@@ -1,6 +1,4 @@
 using Instory.API.Data;
-using Instory.API.DTOs;
-using Instory.API.Helpers;
 using Instory.API.Models;
 using Microsoft.EntityFrameworkCore;
 
@@ -35,5 +33,12 @@ public class PostRepository : Repository<Post>, IPostRepository
         .Where(p => p.UserId == userId && !p.IsDeleted)
         .OrderByDescending(p => p.CreatedAt)
         .ToListAsync();
+    }
+
+    public IQueryable<Post> GetPostsByHashtag(string tag)
+    {
+        return _dbSet
+            .Where(p => p.PostHashtags.Any(ph => ph.Hashtag.Tag == tag) && !p.IsDeleted) // Any equivalent to EXISTS in SQL
+            .OrderByDescending(p => p.CreatedAt);
     }
 }
