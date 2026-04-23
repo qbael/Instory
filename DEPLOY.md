@@ -289,15 +289,40 @@ jobs:
 
 ---
 
-## Bước 7: HTTPS với Certbot (cần domain)
+## Bước 7: Domain + HTTPS với Certbot
+
+### 7.1 Mua domain và trỏ DNS
+- Domain: `instory.codes` (mua trên name.com)
+- Vào **name.com → My Domains → instory.codes → Manage DNS Records**, thêm:
+
+| Type | Host | Answer | TTL |
+|---|---|---|---|
+| `A` | `@` | `3.25.112.35` | 300 |
+| `A` | `www` | `3.25.112.35` | 300 |
+
+Kiểm tra propagate: `nslookup instory.codes` → phải trả về `3.25.112.35`
+
+### 7.2 Cập nhật Nginx config
+Sửa `server_name` trong `/etc/nginx/sites-available/instory`:
+```nginx
+server_name instory.codes www.instory.codes;
+```
 
 ```bash
+sudo nginx -t
+sudo systemctl restart nginx
+```
+
+### 7.3 Cài Certbot và lấy cert
+```bash
 sudo apt install -y certbot python3-certbot-nginx
-sudo certbot --nginx -d yourdomain.com
+sudo certbot --nginx -d instory.codes -d www.instory.codes
 sudo systemctl enable certbot.timer
 ```
 
-Certbot sẽ tự động update Nginx config và renew cert mỗi 90 ngày.
+Certbot tự động update Nginx config với SSL, renew cert mỗi 90 ngày.
+
+**Kết quả:** `https://instory.codes` hoạt động với HTTPS ✅
 
 ---
 
@@ -323,6 +348,61 @@ AWS tự động config toàn bộ security group + networking. Sau khi wizard c
 
 **Bài học:** Đừng config security group EC2↔RDS tay — dùng wizard của AWS, nhanh hơn và chắc chắn hơn.
 
+### GitHub Actions không trigger
+
+**Triệu chứng:** Push lên main nhưng không thấy workflow chạy.
+
+**Nguyên nhân:** Đang đứng ở nhánh `mindang`, commit chưa thực sự lên `main`.
+
+**Cách fix:**
+```bash
+git push origin main  # phải chỉ rõ push lên main, không phải nhánh hiện tại
+```
+
+### Frontend build fail — TypeScript errors
+
+**Triệu chứng:** CI/CD fail ở bước `npm run build` với nhiều lỗi TS6133 (unused variables) và TS2339 (property không tồn tại).
+
+**Nguyên nhân:**
+- Dùng `post.imageUrl` nhưng type `Post` không có field này — đúng là `post.images[0].imageUrl`
+- Import thừa: `use`, `Bookmark`, `CreateCommentDto`, `de` từ zod
+- Destructure `fetchPage` từ hook nhưng không dùng
+
+**Cách fix:** Sửa từng file theo đúng lỗi TypeScript báo. Các file đã sửa:
+- `CommentSection.tsx` — bỏ `use`, prefix unused vars với `_`
+- `PostActions.tsx` — bỏ `Bookmark` import
+- `PostCard.tsx` — dùng `src` thật thay vì hardcode picsum
+- `usePosts.ts` — bỏ `de` import từ zod
+- `HomePage.tsx` — bỏ `useState`, bỏ `fetchPage`
+- `AdminPage.tsx`, `ProfilePage.tsx`, `SearchPage.tsx` — đổi `post.imageUrl` → `post.images?.[0]?.imageUrl`
+- `postService.ts` — bỏ `CreateCommentDto` import
+
+### Certbot "Could not find matching server block"
+
+**Triệu chứng:** `Could not automatically find a matching server block for instory.codes`
+
+**Nguyên nhân:** Nginx config còn dùng `server_name 3.25.112.35` thay vì domain thật.
+
+**Cách fix:** Sửa `/etc/nginx/sites-available/instory`:
+```nginx
+server_name instory.codes www.instory.codes;
+```
+Restart Nginx rồi chạy lại `certbot --nginx`. Nếu cert đã tồn tại, chọn **1 (Reinstall)**.
+
+### IAM user sai khi login ECR
+
+**Triệu chứng:** `AccessDeniedException: user/iam-s3-user is not authorized to perform: ecr:GetAuthorizationToken`
+
+**Nguyên nhân:** AWS CLI trên máy local đang dùng credentials của `iam-s3-user`, không phải `iuser-deploy`.
+
+**Cách fix:**
+```bash
+aws configure --profile deploy  # tạo profile mới với credentials của iuser-deploy
+aws ecr get-login-password --region ap-southeast-2 --profile deploy | \
+  docker login --username AWS --password-stdin \
+  689327565628.dkr.ecr.ap-southeast-2.amazonaws.com
+```
+
 ---
 
 ## Checklist
@@ -334,9 +414,12 @@ AWS tự động config toàn bộ security group + networking. Sau khi wizard c
 - [x] IAM User cho GitHub Actions
 - [x] Secrets Manager
 - [x] EC2 → RDS connection
-- [ ] deploy.sh trên EC2
-- [ ] docker-compose.prod.yml trên EC2
-- [ ] Nginx config
-- [ ] GitHub Actions workflow
-- [ ] GitHub Secrets
-- [ ] HTTPS (nếu có domain)
+- [x] deploy.sh trên EC2
+- [x] docker-compose.prod.yml trên EC2
+- [x] Nginx config (port 80 → 8080, SignalR WebSocket)
+- [x] GitHub Actions workflow (backend + frontend + deploy to EC2)
+- [x] GitHub Secrets (AWS credentials, EC2 host, SSH key)
+- [x] CI/CD hoạt động end-to-end (push main → tự động deploy)
+- [x] Domain `instory.codes` (name.com) + DNS trỏ về EC2
+- [x] HTTPS với Certbot — `https://instory.codes` ✅
+- [ ] Frontend deploy (Nginx trên EC2 serve static files)

@@ -34,8 +34,18 @@ jobs:
           cache-dependency-path: frontend/package-lock.json
       - run: npm ci
         working-directory: frontend
-      - run: npm run build
+      - name: Build
+        run: npm run build
         working-directory: frontend
+        env:
+          VITE_API_URL: https://instory.codes/api
+          VITE_SIGNALR_URL: https://instory.codes/hubs
+      - name: Upload dist artifact
+        uses: actions/upload-artifact@v4
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+        with:
+          name: frontend-dist
+          path: frontend/dist/
 
   deploy:
     name: Deploy to EC2
@@ -61,7 +71,23 @@ jobs:
           docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:latest ./backend
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:latest
 
-      - name: SSH & Deploy
+      - name: Download frontend dist
+        uses: actions/download-artifact@v4
+        with:
+          name: frontend-dist
+          path: frontend/dist
+
+      - name: Copy frontend to EC2
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ubuntu
+          key: ${{ secrets.EC2_SSH_KEY }}
+          source: frontend/dist/*
+          target: /var/www/instory/
+          strip_components: 2
+
+      - name: SSH & Deploy backend
         uses: appleboy/ssh-action@v1
         with:
           host: ${{ secrets.EC2_HOST }}
