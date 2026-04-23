@@ -30,7 +30,7 @@ function formatDate(iso: string) {
 }
 
 function getChatDisplayName(chat: Chat, currentUserId: number | undefined) {
-  if (chat.type === 'group') return chat.name ?? 'Group Chat';
+  if (chat.type.toLowerCase() === 'group') return chat.name ?? 'Group Chat';
   const other = chat.participants.find((p) => p.userId !== currentUserId);
   return other?.fullName ?? 'Unknown User';
 }

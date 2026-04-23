@@ -49,7 +49,7 @@ GET {{InstoryAPI_HostAddress}}/api/v1/chat
 Accept: application/json
 
 ### Get or Create Direct Chat
-POST {{InstoryAPI_HostAddress}}/api/v1/chat/direct/2
+POST {{InstoryAPI_HostAddress}}/api/v1/chat/direct/3
 Accept: application/json
 
 ### Create Group Chat
@@ -59,7 +59,7 @@ Content-Type: application/json
 
 {
   "name": "Super Cool Group",
-  "participantIds": [2]
+  "participantIds": [1,3]
 }
 
 ### Get Chat Messages
@@ -71,7 +71,7 @@ POST {{InstoryAPI_HostAddress}}/api/v1/chat/message
 Content-Type: application/json
 
 {
-  "chatId": 2,
+  "chatId": 4,
   "content": "Hello, this is a test message!"
 }
 
