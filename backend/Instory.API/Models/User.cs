@@ -1,3 +1,5 @@
+using System;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using Microsoft.AspNetCore.Identity;
@@ -29,6 +31,9 @@ namespace Instory.API.Models;
         [MaxLength(255)]
         [Column("avatar_url")]
         public string? AvatarUrl { get; set; }
+        
+        [Column("is_blocked")]
+        public  bool IsBlocked { get; set; } = false;
  
         public ICollection<Post> Posts { get; set; } = new List<Post>();
         public ICollection<Comment> Comments { get; set; } = new List<Comment>();
@@ -44,4 +49,5 @@ namespace Instory.API.Models;
         public ICollection<Notification> Notifications { get; set; } = new List<Notification>();
         public ICollection<ChatParticipant> ChatParticipants { get; set; } = new List<ChatParticipant>();
         public ICollection<Message> Messages { get; set; } = new List<Message>();
+        public ICollection<StoryHighlight> StoryHighlights { get; set; } = new List<StoryHighlight>();
     }

@@ -1,3 +1,6 @@
+using System.Threading.Tasks;
+using Microsoft.AspNetCore.Http;
+
 namespace Instory.API.Services;
 
 public interface IMediaService

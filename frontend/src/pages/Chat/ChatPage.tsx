@@ -15,7 +15,10 @@ import type { Chat } from '@/types/chat';
 // ─── Helpers ────────────────────────────────────────────────────────────────
 
 function formatTime(iso: string) {
-  return new Date(iso).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  return new Date(iso).toLocaleTimeString('vi-VN', {
+    hour: '2-digit',
+    minute: '2-digit',
+  });
 }
 
 function formatDate(iso: string) {
@@ -24,15 +27,16 @@ function formatDate(iso: string) {
   const diff = now.getTime() - d.getTime();
   const days = Math.floor(diff / 86400000);
   if (days === 0) return formatTime(iso);
-  if (days === 1) return 'Yesterday';
-  if (days < 7) return d.toLocaleDateString([], { weekday: 'short' });
-  return d.toLocaleDateString([], { month: 'short', day: 'numeric' });
+  if (days === 1) return 'Hôm qua';
+  if (days < 7)
+    return d.toLocaleDateString('vi-VN', { weekday: 'short' });
+  return d.toLocaleDateString('vi-VN', { month: 'short', day: 'numeric' });
 }
 
 function getChatDisplayName(chat: Chat, currentUserId: number | undefined) {
-  if (chat.type.toLowerCase() === 'group') return chat.name ?? 'Group Chat';
+  if (chat.type === 'group') return chat.name ?? 'Nhóm chat';
   const other = chat.participants.find((p) => p.userId !== currentUserId);
-  return other?.fullName ?? 'Unknown User';
+  return other?.fullName ?? 'Người dùng không xác định';
 }
 
 function getChatAvatar(chat: Chat, currentUserId: number | undefined) {
@@ -89,7 +93,7 @@ function ConversationItem({
         </div>
         {lastMsg && (
           <p className="truncate text-[13px]" style={{ color: '#8e8e8e' }}>
-            {lastMsg.content ?? (lastMsg.mediaUrl ? '📷 Photo' : '')}
+            {lastMsg.content ?? (lastMsg.mediaUrl ? '📷 Ảnh' : '')}
           </p>
         )}
       </div>
@@ -125,7 +129,7 @@ function MessageBubble({
         {mediaUrl && (
           <img
             src={mediaUrl}
-            alt="media"
+            alt="Nội dung đính kèm"
             className="rounded-2xl object-cover shadow-sm"
             style={{ maxWidth: '260px', maxHeight: '320px' }}
           />
@@ -224,7 +228,7 @@ function ChatWindow({ chatId, onBack }: { chatId: number; onBack: () => void }) 
           </p>
           {chat?.type === 'group' && (
             <p className="text-[12px]" style={{ color: '#8e8e8e' }}>
-              {chat.participants.length} members
+              {chat.participants.length} thành viên
             </p>
           )}
         </div>
@@ -266,7 +270,7 @@ function ChatWindow({ chatId, onBack }: { chatId: number; onBack: () => void }) 
           <div className="relative">
             <img
               src={preview.url}
-              alt="preview"
+              alt="Xem trước"
               className="h-16 w-16 rounded-lg object-cover"
             />
             <button
@@ -302,7 +306,7 @@ function ChatWindow({ chatId, onBack }: { chatId: number; onBack: () => void }) 
             value={text}
             onChange={(e) => setText(e.target.value)}
             onKeyDown={handleKeyDown}
-            placeholder="Message..."
+            placeholder="Nhập tin nhắn…"
             rows={1}
             className="flex-1 resize-none bg-transparent text-[14px] outline-none"
             style={{
@@ -346,10 +350,10 @@ function EmptyState() {
       </div>
       <div className="text-center">
         <p className="text-[18px] font-semibold" style={{ color: '#262626' }}>
-          Your messages
+          Tin nhắn của bạn
         </p>
         <p className="mt-1 text-[14px]" style={{ color: '#8e8e8e' }}>
-          Send private photos and messages to a friend or group.
+          Gửi ảnh và tin nhắn riêng tư cho bạn bè hoặc nhóm.
         </p>
       </div>
     </div>
@@ -404,7 +408,7 @@ export default function ChatPage() {
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-5">
           <h1 className="text-[18px] font-bold" style={{ color: '#262626' }}>
-            {currentUser?.userName ?? 'Messages'}
+            {currentUser?.userName ?? 'Tin nhắn'}
           </h1>
         </div>
 
@@ -426,7 +430,7 @@ export default function ChatPage() {
             <div className="flex flex-col items-center justify-center py-16 text-center">
               <MessageCircle size={40} strokeWidth={1} style={{ color: '#8e8e8e' }} />
               <p className="mt-3 text-[14px]" style={{ color: '#8e8e8e' }}>
-                No conversations yet
+                Chưa có cuộc trò chuyện
               </p>
             </div>
           ) : (

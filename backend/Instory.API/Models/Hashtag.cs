@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
@@ -15,4 +16,7 @@ public class Hashtag : BaseEntity
     public string? Tag { get; set; }
  
     public ICollection<PostHashtag> PostHashtags { get; set; } = new List<PostHashtag>();
+
+    public ICollection<HashtagTrend> HashtagTrends { get; set; } = new List<HashtagTrend>();
+
 }

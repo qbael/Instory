@@ -16,6 +16,7 @@ import {
   AdminPage,
   NotFoundPage,
   ChatPage,
+  StoryArchivePage,
 } from './routes';
 
 export default function AppRouter() {
@@ -36,11 +37,12 @@ export default function AppRouter() {
             <Route element={<AppLayout />}>
               <Route index element={<HomePage />} />
               <Route path="profile/edit" element={<EditProfilePage />} />
-              <Route path="profile/:userId" element={<ProfilePage />} />
+              <Route path="profile/:username" element={<ProfilePage />} />
               <Route path="search" element={<SearchPage />} />
               <Route path="notifications" element={<NotificationsPage />} />
               <Route path="chat" element={<ChatPage />} />
               <Route path="admin" element={<AdminPage />} />
+              <Route path="stories/archive" element={<StoryArchivePage />} />
             </Route>
           </Route>
 

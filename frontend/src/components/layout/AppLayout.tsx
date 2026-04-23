@@ -5,6 +5,7 @@ import { TopBar } from './TopBar';
 import { MobileNav } from './MobileNav';
 import { RightPanel } from './RightPanel';
 import { PostCreator } from '@/components/post/PostCreator';
+import { StoryCreator } from '@/components/story/StoryCreator';
 import { useSignalR } from '@/hooks/useSignalR';
 import { SignalRContext } from '@/hooks/useSignalRContext';
 
@@ -38,6 +39,7 @@ export function AppLayout() {
 
         <MobileNav />
         <PostCreator />
+        <StoryCreator />
       </div>
     </SignalRContext.Provider>
   );

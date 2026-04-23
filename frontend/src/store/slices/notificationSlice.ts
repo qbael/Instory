@@ -1,6 +1,6 @@
-import { createSlice, createAsyncThunk, type PayloadAction } from '@reduxjs/toolkit';
-import type { Notification } from '@/types';
-import { notificationService } from '@/services/notificationService';
+import {createAsyncThunk, createSlice, type PayloadAction} from '@reduxjs/toolkit';
+import type {Notification} from '@/types';
+import {notificationService} from '@/services/notificationService';
 
 interface NotificationState {
   items: Notification[];
@@ -25,7 +25,7 @@ export const fetchNotifications = createAsyncThunk(
       pageNumber: page,
       pageSize: 20,
     });
-    return { page, ...data.data };
+    return { ...data };
   },
 );
 
@@ -33,7 +33,7 @@ export const fetchUnreadCount = createAsyncThunk(
   'notification/fetchUnreadCount',
   async () => {
     const { data } = await notificationService.getUnreadCount();
-    return data.data;
+    return data;
   },
 );
 
@@ -75,11 +75,11 @@ const notificationSlice = createSlice({
       })
       .addCase(fetchNotifications.fulfilled, (state, action) => {
         state.isLoading = false;
-        const { page, items, hasNextPage } = action.payload;
+        const { page, data, hasNextPage } = action.payload;
         if (page === 1) {
-          state.items = items;
+          state.items = data;
         } else {
-          state.items.push(...items);
+          state.items.push(...data);
         }
         state.hasMore = hasNextPage;
         state.currentPage = page;

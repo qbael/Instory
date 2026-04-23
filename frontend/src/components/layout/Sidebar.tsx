@@ -41,7 +41,7 @@ export function Sidebar() {
       label: 'Tạo bài',
       action: () => dispatch(openModal({ modal: 'createPost' })),
     },
-    { icon: User, label: 'Hồ sơ', to: `/profile/${user?.id}` },
+    { icon: User, label: 'Hồ sơ', to: `/profile/${user?.userName}` },
   ];
 
   return (
@@ -75,7 +75,7 @@ export function Sidebar() {
               )}
             >
               <span className="relative shrink-0">
-                {item.to === `/profile/${user?.id}` ? (
+                {item.to === `/profile/${user?.userName}` ? (
                   <Avatar
                     src={user?.avatarUrl}
                     alt={user?.fullName ?? user?.userName ?? ''}

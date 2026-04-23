@@ -1,3 +1,5 @@
+using System;
+
 namespace Instory.API.Models;
 
 public interface ITrackable

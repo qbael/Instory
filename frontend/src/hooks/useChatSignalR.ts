@@ -1,7 +1,6 @@
 import { useEffect, useRef } from 'react';
 import {
   HubConnectionBuilder,
-  HubConnectionState,
   LogLevel,
   type HubConnection,
 } from '@microsoft/signalr';
@@ -17,12 +16,12 @@ export function useChatSignalR() {
 
   useEffect(() => {
     if (!isAuthenticated) {
-      if (connectionRef.current) {
-        connectionRef.current.stop();
-        connectionRef.current = null;
-      }
+      connectionRef.current?.stop().catch(() => {});
+      connectionRef.current = null;
       return;
     }
+
+    let isMounted = true;
 
     const connection = new HubConnectionBuilder()
       .withUrl(`${SIGNALR_URL}/chat`, { withCredentials: true })
@@ -34,19 +33,16 @@ export function useChatSignalR() {
       dispatch(receiveMessage(message));
     });
 
-    connection
-      .start()
-      .catch((err) => console.error('ChatHub SignalR connection failed:', err));
+    connection.start().catch((err) => {
+      if (isMounted) console.error('ChatHub SignalR connection failed:', err);
+    });
 
     connectionRef.current = connection;
 
     return () => {
-      if (
-        connection.state !== HubConnectionState.Disconnected &&
-        connection.state !== HubConnectionState.Disconnecting
-      ) {
-        connection.stop();
-      }
+      isMounted = false;
+      connection.stop().catch(() => {});
+      connectionRef.current = null;
     };
   }, [isAuthenticated, dispatch]);
 }

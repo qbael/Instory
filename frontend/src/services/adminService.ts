@@ -1,13 +1,11 @@
 import api from './api';
-import type { ApiResponse, PaginatedResponse, PaginationParams, PostReport } from '@/types';
+import type { PaginatedResponse, PaginationParams, PostReport } from '@/types';
 
 const BASE = 'v1/admin';
 
 export const adminService = {
   getReports(params?: PaginationParams) {
-    return api.get<ApiResponse<PaginatedResponse<PostReport>>>(`${BASE}/reports`, {
-      params,
-    });
+    return api.get<PaginatedResponse<PostReport>>(`${BASE}/reports`, { params });
   },
 
   resolveReport(reportId: number, action: 'dismiss' | 'remove_post') {

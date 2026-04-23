@@ -1,9 +1,13 @@
+using System;
+using System.Linq;
+using System.Threading.Tasks;
 using Instory.API.DTOs;
 using Instory.API.DTOs.Auth;
 using Instory.API.Helpers;
 using Instory.API.Models;
 using Instory.API.Repositories;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.Extensions.Configuration;
 
 namespace Instory.API.Services.impl;
 
@@ -61,9 +65,12 @@ public class AuthService : IAuthService
     {
         var user = await _userManager.FindByNameAsync(model.UsernameOrEmail) ?? 
                    await _userManager.FindByEmailAsync(model.UsernameOrEmail);
-
+        
         if (user == null || !await _userManager.CheckPasswordAsync(user, model.Password))
             return new ServiceResponse<LoginDto> { Success = false, Message = "Invalid credentials", StatusCode = 401 };
+        
+        if (!user.IsBlocked)
+            return new ServiceResponse<LoginDto> { Success = false, Message = "User account is deactivated", StatusCode = 403 };
 
         var token = await _tokenService.GenerateTokenAsync(user);
         var refreshToken = _tokenService.GenerateRefreshToken();
@@ -94,6 +101,11 @@ public class AuthService : IAuthService
         {
             return new ServiceResponse<LoginDto> { Success = false, Message = "Invalid or expired refresh token", StatusCode = 401 };
         }
+        
+        if (user.IsBlocked)
+        {
+            return new ServiceResponse<LoginDto> { Success = false, Message = "User account is deactivated", StatusCode = 403 };
+        }
 
         var newAccessToken = await _tokenService.GenerateTokenAsync(user);
         var newRefreshToken = _tokenService.GenerateRefreshToken();
@@ -123,6 +135,8 @@ public class AuthService : IAuthService
     {
         var user = await _userManager.FindByNameAsync(userName);
         if (user == null) return new ServiceResponse<User>() { Success = false, Message = "User not found", StatusCode = 404 };
+        
+        if (user.IsBlocked) return new ServiceResponse<User>() { Success = false, Message = "User account is deactivated", StatusCode = 403 };
         
         return new ServiceResponse<User>() { Success = true, Data = user, StatusCode = 200, Message = "User retrieved successfully" };
     }

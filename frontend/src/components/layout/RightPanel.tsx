@@ -10,7 +10,7 @@ export function RightPanel() {
       {/* Current user */}
       {user && (
         <Link
-          to={`/profile/${user.id}`}
+          to={`/profile/${user.userName}`}
           className="flex items-center gap-3 no-underline"
         >
           <Avatar
@@ -43,7 +43,7 @@ export function RightPanel() {
           </button>
         </div>
         <p className="text-xs text-text-secondary">
-          Hãy theo dõi mọi người để xem ảnh và video của họ tại đây.
+          Hãy kết bạn với mọi người để xem ảnh và video của họ tại đây.
         </p>
       </div>
 

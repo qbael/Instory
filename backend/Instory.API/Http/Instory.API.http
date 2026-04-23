@@ -11,13 +11,33 @@ Content-Type: application/json
   "fullName": "Test User 1"
 }
 ###
+POST {{InstoryAPI_HostAddress}}/api/v1/auth/register
+Content-Type: application/json
+
+{
+  "username": "mindang",
+  "email": "mindang@gmail.com",
+  "password": "mindang",
+  "fullName": "Trần Minh Đăng"
+}
+###
+POST {{InstoryAPI_HostAddress}}/api/v1/auth/register
+Content-Type: application/json
+
+{
+  "username": "quocbao",
+  "email": "quocbao@gmail.com",
+  "password": "quocbao",
+  "fullName": "Hồ Quốc Bảo"
+}
+###
 
 POST {{InstoryAPI_HostAddress}}/api/v1/auth/login
 Content-Type: application/json
 
 {
-  "usernameOrEmail": "testusername",
-  "password": "testpassword"
+  "usernameOrEmail": "mindang",
+  "password": "mindang"
 }
 
 > {%
@@ -33,6 +53,8 @@ GET {{InstoryAPI_HostAddress}}/api/v1/auth/me
 POST {{InstoryAPI_HostAddress}}/api/v1/auth/refresh
 ###
 POST {{InstoryAPI_HostAddress}}/api/v1/auth/logout
+
+
 ###
 POST {{InstoryAPI_HostAddress}}/api/v1/auth/register
 Content-Type: application/json
@@ -44,12 +66,14 @@ Content-Type: application/json
   "fullName": "Tran Minh Dang"
 }
 
+//CHAT SERVICES
+
 ### Get User Chats
 GET {{InstoryAPI_HostAddress}}/api/v1/chat
 Accept: application/json
 
 ### Get or Create Direct Chat
-POST {{InstoryAPI_HostAddress}}/api/v1/chat/direct/3
+POST {{InstoryAPI_HostAddress}}/api/v1/chat/direct/2
 Accept: application/json
 
 ### Create Group Chat
@@ -59,7 +83,7 @@ Content-Type: application/json
 
 {
   "name": "Super Cool Group",
-  "participantIds": [1,3]
+  "participantIds": [2]
 }
 
 ### Get Chat Messages
@@ -71,7 +95,7 @@ POST {{InstoryAPI_HostAddress}}/api/v1/chat/message
 Content-Type: application/json
 
 {
-  "chatId": 4,
+  "chatId": 1,
   "content": "Hello, this is a test message!"
 }
 
@@ -91,5 +115,5 @@ This is a test message with media
 Content-Disposition: form-data; name="file"; filename="test-image.png"
 Content-Type: image/png
 
-< ./test-image.webp
+< ./test-image.png
 --WebAppBoundary--

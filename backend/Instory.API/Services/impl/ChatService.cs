@@ -1,3 +1,7 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 using Instory.API.Hubs;
 using Instory.API.Models;
 using Instory.API.Repositories;
@@ -11,12 +15,14 @@ public class ChatService : IChatService
     private readonly IChatRepository _chatRepository;
     private readonly IMediaService _mediaService;
     private readonly IHubContext<ChatHub> _hubContext;
+    private readonly INotificationService _notificationService;
 
-    public ChatService(IChatRepository chatRepository, IMediaService mediaService, IHubContext<ChatHub> hubContext)
+    public ChatService(IChatRepository chatRepository, IMediaService mediaService, IHubContext<ChatHub> hubContext, INotificationService notificationService)
     {
         _chatRepository = chatRepository;
         _mediaService = mediaService;
         _hubContext = hubContext;
+        _notificationService = notificationService;
     }
 
     public async Task<Chat> CreateGroupChatAsync(string name, List<int> participantIds)
@@ -97,9 +103,24 @@ public class ChatService : IChatService
         foreach (var pId in participantIds)
         {
             await _hubContext.Clients.Group(pId.ToString()).SendAsync("ReceiveMessage", messageObj);
+
+            if (pId != senderId)
+            {
+                await TrySendNotification(() => _notificationService.CreateAndSendAsync(
+                    pId, senderId,
+                    Models.Enums.NotificationType.NewMessage.ToString(),
+                    chatId,
+                    "sent you a message"));
+            }
         }
 
         return message;
+    }
+
+    private static async Task TrySendNotification(Func<Task> send)
+    {
+        try { await send(); }
+        catch { /* notification failure must not break the main operation */ }
     }
 
     public async Task<IEnumerable<Chat>> GetUserChatsAsync(int userId)

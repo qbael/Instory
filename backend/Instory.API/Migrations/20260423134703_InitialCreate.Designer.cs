@@ -12,8 +12,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Instory.API.Migrations
 {
     [DbContext(typeof(InstoryDbContext))]
-    [Migration("20260405152937_AddIdentitySupport")]
-    partial class AddIdentitySupport
+    [Migration("20260423134703_InitialCreate")]
+    partial class InitialCreate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -24,6 +24,54 @@ namespace Instory.API.Migrations
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
+
+            modelBuilder.Entity("Instory.API.Models.Chat", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<string>("Name")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("name");
+
+                    b.Property<int>("Type")
+                        .HasColumnType("integer")
+                        .HasColumnName("type");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("chats");
+                });
+
+            modelBuilder.Entity("Instory.API.Models.ChatParticipant", b =>
+                {
+                    b.Property<int>("ChatId")
+                        .HasColumnType("integer")
+                        .HasColumnName("chat_id");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("integer")
+                        .HasColumnName("user_id");
+
+                    b.HasKey("ChatId", "UserId");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("chat_participants");
+                });
 
             modelBuilder.Entity("Instory.API.Models.Comment", b =>
                 {
@@ -119,9 +167,8 @@ namespace Instory.API.Migrations
                         .HasColumnType("integer")
                         .HasColumnName("requester_id");
 
-                    b.Property<string>("Status")
-                        .HasMaxLength(20)
-                        .HasColumnType("character varying(20)")
+                    b.Property<int>("Status")
+                        .HasColumnType("integer")
                         .HasColumnName("status");
 
                     b.Property<DateTime?>("UpdatedAt")
@@ -164,6 +211,36 @@ namespace Instory.API.Migrations
                     b.ToTable("hashtags");
                 });
 
+            modelBuilder.Entity("Instory.API.Models.HashtagTrend", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("Date")
+                        .HasColumnType("date")
+                        .HasColumnName("date");
+
+                    b.Property<int>("HashtagId")
+                        .HasColumnType("integer")
+                        .HasColumnName("hashtag_id");
+
+                    b.Property<int>("PostCount")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasDefaultValue(0)
+                        .HasColumnName("post_count");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("HashtagId", "Date")
+                        .IsUnique();
+
+                    b.ToTable("hashtagtrend", (string)null);
+                });
+
             modelBuilder.Entity("Instory.API.Models.Like", b =>
                 {
                     b.Property<int>("Id")
@@ -199,6 +276,49 @@ namespace Instory.API.Migrations
                     b.ToTable("likes");
                 });
 
+            modelBuilder.Entity("Instory.API.Models.Message", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("ChatId")
+                        .HasColumnType("integer")
+                        .HasColumnName("chat_id");
+
+                    b.Property<string>("Content")
+                        .HasColumnType("text")
+                        .HasColumnName("content");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<string>("MediaUrl")
+                        .HasMaxLength(512)
+                        .HasColumnType("character varying(512)")
+                        .HasColumnName("media_url");
+
+                    b.Property<int>("SenderId")
+                        .HasColumnType("integer")
+                        .HasColumnName("sender_id");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ChatId");
+
+                    b.HasIndex("SenderId");
+
+                    b.ToTable("messages");
+                });
+
             modelBuilder.Entity("Instory.API.Models.Notification", b =>
                 {
                     b.Property<int>("Id")
@@ -207,6 +327,10 @@ namespace Instory.API.Migrations
                         .HasColumnName("id");
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<int?>("ActorId")
+                        .HasColumnType("integer")
+                        .HasColumnName("actor_id");
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone")
@@ -239,6 +363,8 @@ namespace Instory.API.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("ActorId");
+
                     b.HasIndex("UserId");
 
                     b.ToTable("notifications");
@@ -253,6 +379,14 @@ namespace Instory.API.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
+                    b.Property<bool>("AllowComment")
+                        .HasColumnType("boolean")
+                        .HasColumnName("allow_comment");
+
+                    b.Property<int>("CommentCount")
+                        .HasColumnType("integer")
+                        .HasColumnName("comment_count");
+
                     b.Property<string>("Content")
                         .HasColumnType("text")
                         .HasColumnName("content");
@@ -261,10 +395,21 @@ namespace Instory.API.Migrations
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("created_at");
 
-                    b.Property<string>("ImageUrl")
-                        .HasMaxLength(255)
-                        .HasColumnType("character varying(255)")
-                        .HasColumnName("image_url");
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("deleted_at");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_deleted");
+
+                    b.Property<int>("LikeCount")
+                        .HasColumnType("integer")
+                        .HasColumnName("like_count");
+
+                    b.Property<int>("ShareCount")
+                        .HasColumnType("integer")
+                        .HasColumnName("share_count");
 
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("timestamp with time zone")
@@ -306,6 +451,37 @@ namespace Instory.API.Migrations
                         .IsUnique();
 
                     b.ToTable("post_hashtags");
+                });
+
+            modelBuilder.Entity("Instory.API.Models.PostImage", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("ImageUrl")
+                        .IsRequired()
+                        .HasMaxLength(255)
+                        .HasColumnType("character varying(255)")
+                        .HasColumnName("imageurl");
+
+                    b.Property<int>("PostId")
+                        .HasColumnType("integer")
+                        .HasColumnName("post_id");
+
+                    b.Property<int>("SortOrder")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasDefaultValue(0)
+                        .HasColumnName("sort_order");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("PostId");
+
+                    b.ToTable("post_images", (string)null);
                 });
 
             modelBuilder.Entity("Instory.API.Models.PostReport", b =>
@@ -439,6 +615,14 @@ namespace Instory.API.Migrations
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("expires_at");
 
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_deleted");
+
+                    b.Property<int>("MediaType")
+                        .HasColumnType("integer")
+                        .HasColumnName("media_type");
+
                     b.Property<string>("MediaUrl")
                         .HasMaxLength(255)
                         .HasColumnType("character varying(255)")
@@ -457,6 +641,62 @@ namespace Instory.API.Migrations
                     b.HasIndex("UserId");
 
                     b.ToTable("stories");
+                });
+
+            modelBuilder.Entity("Instory.API.Models.StoryHighlight", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("CoverUrl")
+                        .HasMaxLength(255)
+                        .HasColumnType("character varying(255)")
+                        .HasColumnName("cover_url");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("title");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("integer")
+                        .HasColumnName("user_id");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("story_highlights");
+                });
+
+            modelBuilder.Entity("Instory.API.Models.StoryHighlightStory", b =>
+                {
+                    b.Property<int>("HighlightId")
+                        .HasColumnType("integer")
+                        .HasColumnName("highlight_id");
+
+                    b.Property<int>("StoryId")
+                        .HasColumnType("integer")
+                        .HasColumnName("story_id");
+
+                    b.HasKey("HighlightId", "StoryId");
+
+                    b.HasIndex("StoryId");
+
+                    b.ToTable("story_highlight_stories");
                 });
 
             modelBuilder.Entity("Instory.API.Models.StoryView", b =>
@@ -528,6 +768,10 @@ namespace Instory.API.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("character varying(100)")
                         .HasColumnName("full_name");
+
+                    b.Property<bool>("IsBlocked")
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_blocked");
 
                     b.Property<bool>("LockoutEnabled")
                         .HasColumnType("boolean");
@@ -689,6 +933,25 @@ namespace Instory.API.Migrations
                     b.ToTable("AspNetUserTokens", (string)null);
                 });
 
+            modelBuilder.Entity("Instory.API.Models.ChatParticipant", b =>
+                {
+                    b.HasOne("Instory.API.Models.Chat", "Chat")
+                        .WithMany("Participants")
+                        .HasForeignKey("ChatId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Instory.API.Models.User", "User")
+                        .WithMany("ChatParticipants")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Chat");
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("Instory.API.Models.Comment", b =>
                 {
                     b.HasOne("Instory.API.Models.Post", "Post")
@@ -746,6 +1009,17 @@ namespace Instory.API.Migrations
                     b.Navigation("Requester");
                 });
 
+            modelBuilder.Entity("Instory.API.Models.HashtagTrend", b =>
+                {
+                    b.HasOne("Instory.API.Models.Hashtag", "Hashtag")
+                        .WithMany("HashtagTrends")
+                        .HasForeignKey("HashtagId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Hashtag");
+                });
+
             modelBuilder.Entity("Instory.API.Models.Like", b =>
                 {
                     b.HasOne("Instory.API.Models.Post", "Post")
@@ -765,13 +1039,39 @@ namespace Instory.API.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("Instory.API.Models.Message", b =>
+                {
+                    b.HasOne("Instory.API.Models.Chat", "Chat")
+                        .WithMany("Messages")
+                        .HasForeignKey("ChatId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Instory.API.Models.User", "Sender")
+                        .WithMany("Messages")
+                        .HasForeignKey("SenderId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Chat");
+
+                    b.Navigation("Sender");
+                });
+
             modelBuilder.Entity("Instory.API.Models.Notification", b =>
                 {
+                    b.HasOne("Instory.API.Models.User", "Actor")
+                        .WithMany()
+                        .HasForeignKey("ActorId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
                     b.HasOne("Instory.API.Models.User", "User")
                         .WithMany("Notifications")
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.Navigation("Actor");
 
                     b.Navigation("User");
                 });
@@ -802,6 +1102,17 @@ namespace Instory.API.Migrations
                         .IsRequired();
 
                     b.Navigation("Hashtag");
+
+                    b.Navigation("Post");
+                });
+
+            modelBuilder.Entity("Instory.API.Models.PostImage", b =>
+                {
+                    b.HasOne("Instory.API.Models.Post", "Post")
+                        .WithMany("PostImages")
+                        .HasForeignKey("PostId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.Navigation("Post");
                 });
@@ -853,6 +1164,36 @@ namespace Instory.API.Migrations
                         .IsRequired();
 
                     b.Navigation("User");
+                });
+
+            modelBuilder.Entity("Instory.API.Models.StoryHighlight", b =>
+                {
+                    b.HasOne("Instory.API.Models.User", "User")
+                        .WithMany("StoryHighlights")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("Instory.API.Models.StoryHighlightStory", b =>
+                {
+                    b.HasOne("Instory.API.Models.StoryHighlight", "Highlight")
+                        .WithMany("HighlightStories")
+                        .HasForeignKey("HighlightId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Instory.API.Models.Story", "Story")
+                        .WithMany()
+                        .HasForeignKey("StoryId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Highlight");
+
+                    b.Navigation("Story");
                 });
 
             modelBuilder.Entity("Instory.API.Models.StoryView", b =>
@@ -925,8 +1266,17 @@ namespace Instory.API.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("Instory.API.Models.Chat", b =>
+                {
+                    b.Navigation("Messages");
+
+                    b.Navigation("Participants");
+                });
+
             modelBuilder.Entity("Instory.API.Models.Hashtag", b =>
                 {
+                    b.Navigation("HashtagTrends");
+
                     b.Navigation("PostHashtags");
                 });
 
@@ -938,6 +1288,8 @@ namespace Instory.API.Migrations
 
                     b.Navigation("PostHashtags");
 
+                    b.Navigation("PostImages");
+
                     b.Navigation("PostReports");
 
                     b.Navigation("SharePosts");
@@ -948,8 +1300,15 @@ namespace Instory.API.Migrations
                     b.Navigation("StoryViews");
                 });
 
+            modelBuilder.Entity("Instory.API.Models.StoryHighlight", b =>
+                {
+                    b.Navigation("HighlightStories");
+                });
+
             modelBuilder.Entity("Instory.API.Models.User", b =>
                 {
+                    b.Navigation("ChatParticipants");
+
                     b.Navigation("Comments");
 
                     b.Navigation("Followers");
@@ -957,6 +1316,8 @@ namespace Instory.API.Migrations
                     b.Navigation("Following");
 
                     b.Navigation("Likes");
+
+                    b.Navigation("Messages");
 
                     b.Navigation("Notifications");
 
@@ -971,6 +1332,8 @@ namespace Instory.API.Migrations
                     b.Navigation("SharedPosts");
 
                     b.Navigation("Stories");
+
+                    b.Navigation("StoryHighlights");
 
                     b.Navigation("StoryViews");
                 });

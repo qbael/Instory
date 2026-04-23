@@ -1,3 +1,4 @@
+using System;
 using Instory.API.Data;
 using Instory.API.Models;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -5,6 +6,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
+using System.Threading.Tasks;
 using Instory.API.Exceptions;
 using Instory.API.Helpers;
 using Instory.API.Services;
@@ -12,6 +14,10 @@ using Instory.API.Services.impl;
 using Amazon.S3;
 using Instory.API.Hubs;
 using Instory.API.Repositories.impl;
+using Microsoft.AspNetCore.Builder;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -33,7 +39,12 @@ builder.Services.AddCors(options =>
 });
 
 builder.Services.AddValidation();
-builder.Services.AddControllers();
+builder.Services.AddControllers()
+    .AddJsonOptions(options =>
+    {
+        options.JsonSerializerOptions.Converters.Add(
+            new System.Text.Json.Serialization.JsonStringEnumConverter());
+    });
 builder.Services.AddSignalR();
 
 builder.Services.AddDbContext<InstoryDbContext>(options =>
@@ -77,7 +88,7 @@ builder.Services.AddAuthentication(options =>
             var accessTokenQuery = context.Request.Query["access_token"];
             var path = context.HttpContext.Request.Path;
             
-            if (!string.IsNullOrEmpty(accessTokenQuery) && path.StartsWithSegments("/hubs/chat"))
+            if (!string.IsNullOrEmpty(accessTokenQuery) && path.StartsWithSegments("/hubs"))
             {
                 context.Token = accessTokenQuery;
             }
@@ -97,6 +108,13 @@ builder.Services.AddScoped(typeof(Instory.API.Repositories.IRepository<>), typeo
 builder.Services.AddScoped<Instory.API.Repositories.IUserRepository, UserRepository>();
 builder.Services.AddScoped<Instory.API.Repositories.IStoryRepository, StoryRepository>();
 builder.Services.AddScoped<Instory.API.Repositories.IChatRepository, ChatRepository>();
+builder.Services.AddScoped<Instory.API.Repositories.IFriendshipRepository, FriendshipRepository>();
+builder.Services.AddScoped<Instory.API.Repositories.INotificationRepository, NotificationRepository>();
+builder.Services.AddScoped<Instory.API.Repositories.IHighlightRepository, HighlightRepository>();
+builder.Services.AddScoped<Instory.API.Repositories.IPostRepository, PostRepository>();
+builder.Services.AddScoped<Instory.API.Repositories.ICommentRepository, CommentRepository>();
+builder.Services.AddScoped<Instory.API.Repositories.ILikeRepository, LikeRepository>();
+builder.Services.AddScoped<Instory.API.Repositories.IPostImageRepository, PostImageRepository>();
 
 builder.Services.AddScoped<ITokenService, TokenService>();
 builder.Services.AddScoped<IStoryService, StoryService>();
@@ -112,9 +130,15 @@ builder.Services.AddSingleton<IAmazonS3>(sp =>
     };
     return new AmazonS3Client(credentials, config);
 });
+builder.Services.AddScoped<INotificationService, NotificationService>();
 builder.Services.AddScoped<IMediaService, MediaService>();
 builder.Services.AddScoped<IChatService, ChatService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
+builder.Services.AddScoped<IProfileService, ProfileService>();
+builder.Services.AddScoped<IPostService, PostService>();
+builder.Services.AddScoped<ICommentService, CommentService>();
+builder.Services.AddScoped<ILikeService, LikeService>();
+// builder.Services.AddScoped<IPostImageService, PostImageService>();
 
 var app = builder.Build();
 
@@ -138,8 +162,9 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
+app.MapHub<NotificationHub>("/hubs/notifications");
 app.MapHub<ChatHub>("/hubs/chat");
 app.MigrateDb();
-await app.SeedRolesAsync();  
+await app.SeedRolesAsync();
 
 app.Run();

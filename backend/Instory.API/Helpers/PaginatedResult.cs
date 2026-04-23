@@ -1,13 +1,17 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore;
 
 namespace Instory.API.Helpers;
 
 public record PaginatedResult<T>
 {
-    public IEnumerable<T> Data { get; init; }
-    public int Page { get; init; }
-    public int PageSize { get; init; }
-    public int TotalCount { get; init; }
+    public IEnumerable<T> Data { get; }
+    public int Page { get; }
+    public int PageSize { get; }
+    public int TotalCount { get; }
     
     public int TotalPages => PageSize > 0 ? (int)Math.Ceiling(TotalCount / (double)PageSize) : 0;
     public bool HasPreviousPage => Page > 1;
@@ -22,7 +26,7 @@ public record PaginatedResult<T>
     }
     
     public PaginatedResult<TResult> Map<TResult>(Func<T, TResult> mapper) =>
-        new (Data.Select(mapper), Page, PageSize, TotalCount);
+        new(Data.Select(mapper).ToList(), Page, PageSize, TotalCount);
 
     public static async Task<PaginatedResult<T>> CreateAsync(
         IQueryable<T> data, int page, int pageSize)

@@ -13,10 +13,10 @@ export interface User {
 
 export interface UserProfile extends User {
   postsCount: number;
-  followersCount: number;
-  followingCount: number;
-  isFollowing: boolean;
+  friendsCount: number;
   friendshipStatus: FriendshipStatus | null;
+  friendshipRequestId: number | null;
+  isRequester: boolean | null;
 }
 
 // ─── Post ────────────────────────────────────────────────────────────────────
@@ -25,7 +25,6 @@ export interface Post {
   id: number;
   userId: number;
   content: string | null;
-  imageUrl: string | null;
   createdAt: string;
   updatedAt: string | null;
   user: User;
@@ -34,6 +33,12 @@ export interface Post {
   sharesCount: number;
   isLiked: boolean;
   hashtags: string[];
+  images: PostImage[];
+}
+export interface PostImage {
+  id: number;
+  imageUrl: string;
+  sortOrder: number;
 }
 
 export interface CreatePostDto {
@@ -45,8 +50,8 @@ export interface CreatePostDto {
 
 export interface Comment {
   id: number;
-  postId: number;
-  userId: number;
+  // postId: number;
+  // userId: number;
   content: string | null;
   createdAt: string;
   updatedAt: string | null;
@@ -74,6 +79,7 @@ export interface Story {
   userId: number;
   mediaUrl: string | null;
   caption: string | null;
+  mediaType: "Image" | "Video";
   expiresAt: string;
   createdAt: string;
   user: User;
@@ -98,18 +104,9 @@ export interface StoryHighlight {
   createdAt: string;
 }
 
-// ─── Follow ──────────────────────────────────────────────────────────────────
-
-export interface Follow {
-  id: number;
-  followerId: number;
-  followingId: number;
-  createdAt: string;
-}
-
 // ─── Friendship ──────────────────────────────────────────────────────────────
 
-export type FriendshipStatus = 'pending' | 'accepted' | 'declined';
+export type FriendshipStatus = "pending" | "accepted" | "declined";
 
 export interface Friendship {
   id: number;
@@ -124,17 +121,20 @@ export interface Friendship {
 // ─── Notification ────────────────────────────────────────────────────────────
 
 export type NotificationType =
-  | 'like'
-  | 'comment'
-  | 'follow'
-  | 'friend_request'
-  | 'friend_accept'
-  | 'post_share'
-  | 'mention';
+  | "FriendRequestReceived"
+  | "FriendRequestAccepted"
+  | "NewMessage"
+  | "PostLiked"
+  | "PostCommented"
+  | "PostSaved";
 
 export interface Notification {
   id: number;
   userId: number;
+  actorId: number | null;
+  actorName: string | null;
+  actorUsername: string | null;
+  actorAvatar: string | null;
   type: NotificationType;
   referenceId: number | null;
   message: string | null;
@@ -152,7 +152,7 @@ export interface Hashtag {
 
 // ─── Post Report ─────────────────────────────────────────────────────────────
 
-export type ReportStatus = 'pending' | 'reviewed' | 'resolved';
+export type ReportStatus = "pending" | "reviewed" | "resolved";
 
 export interface PostReport {
   id: number;
@@ -200,14 +200,9 @@ export interface AuthResponse {
 
 // ─── API Response Wrappers ───────────────────────────────────────────────────
 
-export interface ApiResponse<T> {
-  data: T;
-  success: boolean;
-  message: string | null;
-  errors: string[];
-}
-
 export interface PaginatedResponse<T> {
+  data: T[];
+  page: number;
   items: T[];
   pageNumber: number;
   pageSize: number;
@@ -222,9 +217,15 @@ export interface PaginationParams {
   pageSize?: number;
 }
 
+export interface ApiResponse<T> {
+  data: T;
+  message: string;
+  statusCode: number;
+  success: boolean;
+}
 // ─── Search ──────────────────────────────────────────────────────────────────
 
-export type SearchType = 'people' | 'posts' | 'tags';
+export type SearchType = "people" | "posts" | "tags";
 
 export interface SearchParams extends PaginationParams {
   query: string;

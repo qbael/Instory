@@ -1,5 +1,3 @@
-using Instory.API.Models;
-
 namespace Instory.API.DTOs.Auth;
 
 public class LoginResponseDto

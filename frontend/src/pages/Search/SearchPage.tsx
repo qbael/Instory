@@ -149,12 +149,12 @@ const PostGrid = memo(function PostGrid({ posts }: { posts: Post[] }) {
       {posts.map((post) => (
         <Link
           key={post.id}
-          to={`/profile/${post.userId}`}
+          to={`/profile/${post.user.userName}`}
           className="group relative aspect-square overflow-hidden rounded bg-border"
         >
-          {post.imageUrl ? (
+          {post.images?.[0]?.imageUrl ? (
             <img
-              src={post.imageUrl}
+              src={post.images[0].imageUrl}
               alt=""
               loading="lazy"
               className="h-full w-full object-cover"

@@ -12,7 +12,7 @@ POST {{InstoryAPI_HostAddress}}/api/v1/story
 Content-Type: application/json
 
 {
-  "UserId": 1,
+  "UserId": 3,
   "MediaUrl": "abc",
   "Caption": "abc"
 }
@@ -20,6 +20,25 @@ Content-Type: application/json
 ###
 DELETE {{InstoryAPI_HostAddress}}/api/v1/story/1
 
+###
+POST {{InstoryAPI_HostAddress}}/api/v1/auth/login
+Content-Type: application/json
+
+{
+  "usernameOrEmail": "mindang",
+  "password": "mindang"
+}
+
+###
+GET {{InstoryAPI_HostAddress}}/api/v1/profile/quocbao
+
+###
+PATCH {{InstoryAPI_HostAddress}}/api/v1/profile/me
+Content-Type: application/json
+
+{
+  "username": "mindang1"
+}
 
 
 

@@ -1,6 +1,5 @@
 import api from './api';
 import type {
-  ApiResponse,
   Notification,
   PaginatedResponse,
   PaginationParams,
@@ -10,13 +9,11 @@ const BASE = 'v1/notifications';
 
 export const notificationService = {
   getAll(params?: PaginationParams) {
-    return api.get<ApiResponse<PaginatedResponse<Notification>>>(BASE, {
-      params,
-    });
+    return api.get<PaginatedResponse<Notification>>(BASE, { params });
   },
 
   getUnreadCount() {
-    return api.get<ApiResponse<number>>(`${BASE}/unread-count`);
+    return api.get<number>(`${BASE}/unread-count`);
   },
 
   markAsRead(id: number) {

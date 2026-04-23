@@ -103,12 +103,14 @@ public class AuthController : ControllerBase
     private void AppendTokenCookies(string jwt, string refreshToken, int refreshTokenValidityInDays)
     {
         int.TryParse(_configuration["JwtSettings:ExpirationMinutes"] ?? "4320", out int expirationMinutes);
+        var isDevelopment = _configuration["ASPNETCORE_ENVIRONMENT"] == "Development"
+                            || Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") == "Development";
 
         var cookieOptions = new CookieOptions
         {
             HttpOnly = true,
-            Secure = true,
-            SameSite = SameSiteMode.Strict,
+            Secure = !isDevelopment,
+            SameSite = isDevelopment ? SameSiteMode.Lax : SameSiteMode.Strict,
             Expires = DateTime.UtcNow.AddMinutes(expirationMinutes)
         };
 
@@ -117,8 +119,8 @@ public class AuthController : ControllerBase
         var refreshCookieOptions = new CookieOptions
         {
             HttpOnly = true,
-            Secure = true,
-            SameSite = SameSiteMode.Strict,
+            Secure = !isDevelopment,
+            SameSite = isDevelopment ? SameSiteMode.Lax : SameSiteMode.Strict,
             Expires = DateTime.UtcNow.AddDays(refreshTokenValidityInDays)
         };
 

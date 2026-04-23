@@ -1,3 +1,4 @@
+using System.Threading.Tasks;
 using Instory.API.Data;
 using Instory.API.Models;
 using Microsoft.EntityFrameworkCore;
@@ -13,5 +14,24 @@ public class UserRepository : Repository<User>, IUserRepository
     public async Task<User?> GetUserByRefreshTokenAsync(string refreshToken)
     {
         return await _dbSet.FirstOrDefaultAsync(u => u.RefreshToken == refreshToken);
+    }
+
+    public async Task<User?> GetByUsernameAsync(string username)
+    {
+        var normalized = username.ToUpperInvariant();
+        return await _dbSet
+            .Include(u => u.Posts)
+            .Include(u => u.SentFriendRequests)
+            .Include(u => u.ReceivedFriendRequests)
+            .SingleOrDefaultAsync(u => u.NormalizedUserName == normalized);
+    }
+
+    public async Task<User?> GetByIdWithDetailsAsync(int id)
+    {
+        return await _dbSet
+            .Include(u => u.Posts)
+            .Include(u => u.SentFriendRequests)
+            .Include(u => u.ReceivedFriendRequests)
+            .SingleOrDefaultAsync(u => u.Id == id);
     }
 }

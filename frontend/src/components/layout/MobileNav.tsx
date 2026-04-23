@@ -16,7 +16,7 @@ export function MobileNav() {
     { icon: SquarePlus, action: () => dispatch(openModal({ modal: 'createPost' })) },
     { icon: MessageCircle, to: '/chat' },
     { icon: Heart, to: '/notifications', badge: unreadCount > 0 },
-    { icon: User, to: `/profile/${user?.id}` },
+    { icon: User, to: `/profile/${user?.userName}` },
   ];
 
   return (

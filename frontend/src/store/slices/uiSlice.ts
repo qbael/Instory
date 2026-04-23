@@ -5,9 +5,9 @@ type ModalType =
   | 'editProfile'
   | 'storyViewer'
   | 'postDetail'
-  | 'followers'
-  | 'following'
+  | 'friends'
   | 'confirmDelete'
+  | 'createStory'
   | null;
 
 interface UiState {

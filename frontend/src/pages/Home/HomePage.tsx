@@ -1,16 +1,24 @@
-import { useEffect, useCallback } from 'react';
-import { StoryBar } from '@/components/story/StoryBar';
-import { PostCard } from '@/components/post/PostCard';
-import { PostCardSkeleton } from '@/components/post/PostCardSkeleton';
-import { NewPostsBanner } from '@/components/layout/NewPostsBanner';
-import { usePosts } from '@/hooks/usePosts';
-import { useInfiniteScroll } from '@/hooks/useInfiniteScroll';
-import { useSignalRContext } from '@/hooks/useSignalRContext';
-import { Spinner } from '@/components/ui/Spinner';
+import { useEffect, useCallback } from "react";
+import { StoryBar } from "@/components/story/StoryBar";
+import { PostCard } from "@/components/post/PostCard";
+import { PostCardSkeleton } from "@/components/post/PostCardSkeleton";
+import { NewPostsBanner } from "@/components/layout/NewPostsBanner";
+import { usePosts } from "@/hooks/usePosts";
+import { useInfiniteScroll } from "@/hooks/useInfiniteScroll";
+import { useSignalRContext } from "@/hooks/useSignalRContext";
+import { Spinner } from "@/components/ui/Spinner";
 
 export default function HomePage() {
-  const { posts, isLoading, hasMore, loadMore, fetchPage, toggleLike, refresh } =
-    usePosts('home');
+  const {
+    posts,
+    isLoading,
+    hasMore,
+    loadMore,
+    toggleLike,
+    refresh,
+    handleIncreaseCommentCount,
+    handleDeletePostFromUI,
+  } = usePosts("home");
   const { sentinelRef } = useInfiniteScroll({
     hasMore,
     isLoading,
@@ -19,13 +27,13 @@ export default function HomePage() {
   const { hasNewPosts, dismissNewPosts } = useSignalRContext();
 
   useEffect(() => {
-    fetchPage(1);
-  }, [fetchPage]);
+    console.log("Posts in state updated:", posts);
+  }, [posts]);
 
   const handleNewPosts = useCallback(() => {
     refresh();
     dismissNewPosts();
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    window.scrollTo({ top: 0, behavior: "smooth" });
   }, [refresh, dismissNewPosts]);
 
   const showSkeletons = isLoading && posts.length === 0;
@@ -46,7 +54,13 @@ export default function HomePage() {
       )}
 
       {posts.map((post) => (
-        <PostCard key={post.id} post={post} onLikeToggle={toggleLike} />
+        <PostCard
+          key={post.id}
+          post={post}
+          onLikeToggle={toggleLike}
+          onCommentAdded={handleIncreaseCommentCount}
+          onDeleteSuccess={handleDeletePostFromUI}
+        />
       ))}
 
       {/* Infinite scroll sentinel */}
@@ -61,7 +75,7 @@ export default function HomePage() {
             Chào mừng đến với Instory
           </p>
           <p className="mt-1 text-sm text-text-secondary">
-            Hãy theo dõi mọi người để xem bài viết của họ tại đây.
+            Hãy kết bạn với mọi người để xem bài viết của họ tại đây.
           </p>
         </div>
       )}

@@ -2,7 +2,6 @@ import api from './api';
 import type {
   ApiResponse,
   Comment,
-  CreateCommentDto,
   PaginatedResponse,
   PaginationParams,
   Post,
@@ -12,21 +11,22 @@ const BASE = 'v1/posts';
 
 export const postService = {
   getFeed(params?: PaginationParams) {
-    return api.get<ApiResponse<PaginatedResponse<Post>>>(BASE, { params });
+  return api.get(`${BASE}/feed`, { params });
   },
 
   getById(id: number) {
-    return api.get<ApiResponse<Post>>(`${BASE}/${id}`);
+    return api.get<Post>(`${BASE}/${id}`);
   },
 
   create(formData: FormData) {
-    return api.post<ApiResponse<Post>>(BASE, formData, {
-      headers: { 'Content-Type': 'multipart/form-data' },
-    });
+    // return api.post<Post>(BASE, formData, {
+    //   headers: { 'Content-Type': 'multipart/form-data' },
+    // });
+    return api.post(BASE, formData); 
   },
 
   update(id: number, formData: FormData) {
-    return api.put<ApiResponse<Post>>(`${BASE}/${id}`, formData, {
+    return api.put<Post>(`${BASE}/${id}`, formData, {
       headers: { 'Content-Type': 'multipart/form-data' },
     });
   },
@@ -48,21 +48,20 @@ export const postService = {
   },
 
   getComments(postId: number, params?: PaginationParams) {
-    return api.get<ApiResponse<PaginatedResponse<Comment>>>(
-      `${BASE}/${postId}/comments`,
-      { params },
-    );
+    return api.get<PaginatedResponse<Comment>>(`${BASE}/${postId}/comments`, { params });
   },
 
-  addComment(dto: CreateCommentDto) {
+  addComment(postId: number, content: string) {
     return api.post<ApiResponse<Comment>>(
-      `${BASE}/${dto.postId}/comments`,
-      { content: dto.content },
+      `${BASE}/${postId}/comments`,
+      { content }
     );
-  },
-
-  deleteComment(postId: number, commentId: number) {
-    return api.delete(`${BASE}/${postId}/comments/${commentId}`);
+  },  
+  // addComment(postId: number, payload: { content: string }) {        
+  //       return api.post(`${BASE}/${postId}/comments`, payload);
+  // },
+  deleteComment(commentId: number) {
+    return api.delete(`${BASE}/comments/${commentId}`);
   },
 
   report(postId: number, reason: string) {
@@ -70,9 +69,6 @@ export const postService = {
   },
 
   getUserPosts(userId: number, params?: PaginationParams) {
-    return api.get<ApiResponse<PaginatedResponse<Post>>>(
-      `/users/${userId}/posts`,
-      { params },
-    );
+    return api.get<PaginatedResponse<Post>>(`v1/users/${userId}/posts`, { params });
   },
 };

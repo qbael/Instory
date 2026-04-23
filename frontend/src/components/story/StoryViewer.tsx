@@ -7,7 +7,7 @@ import { storyService } from '@/services/storyService';
 import { cn } from '@/utils/cn';
 import type { StoryGroup } from '@/types';
 
-const STORY_DURATION = 5000;
+const IMAGE_STORY_DURATION = 5000;
 const TICK_INTERVAL = 50;
 
 interface StoryViewerProps {
@@ -25,9 +25,11 @@ export function StoryViewer({
   const [storyIdx, setStoryIdx] = useState(0);
   const [progress, setProgress] = useState(0);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const videoRef = useRef<HTMLVideoElement>(null);
 
   const group = groups[groupIdx];
   const story = group?.stories[storyIdx];
+  const isVideo = story?.mediaType === 'Video';
 
   const stopTimer = useCallback(() => {
     if (timerRef.current) clearInterval(timerRef.current);
@@ -35,6 +37,9 @@ export function StoryViewer({
 
   const goNext = useCallback(() => {
     stopTimer();
+    if (videoRef.current) {
+      videoRef.current.pause();
+    }
     if (storyIdx < group.stories.length - 1) {
       setStoryIdx((i) => i + 1);
       setProgress(0);
@@ -49,6 +54,9 @@ export function StoryViewer({
 
   const goPrev = useCallback(() => {
     stopTimer();
+    if (videoRef.current) {
+      videoRef.current.pause();
+    }
     if (storyIdx > 0) {
       setStoryIdx((i) => i - 1);
       setProgress(0);
@@ -66,19 +74,24 @@ export function StoryViewer({
     }
   }, [story]);
 
+  // Timer for image stories; video stories use onTimeUpdate instead
   useEffect(() => {
     setProgress(0);
+    if (isVideo) {
+      stopTimer();
+      return;
+    }
     timerRef.current = setInterval(() => {
       setProgress((prev) => {
         if (prev >= 100) {
           goNext();
           return 100;
         }
-        return prev + (TICK_INTERVAL / STORY_DURATION) * 100;
+        return prev + (TICK_INTERVAL / IMAGE_STORY_DURATION) * 100;
       });
     }, TICK_INTERVAL);
     return stopTimer;
-  }, [groupIdx, storyIdx, goNext, stopTimer]);
+  }, [groupIdx, storyIdx, isVideo, goNext, stopTimer]);
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -93,6 +106,16 @@ export function StoryViewer({
       document.body.style.overflow = '';
     };
   }, [goNext, goPrev, onClose]);
+
+  const handleVideoTimeUpdate = useCallback(() => {
+    const video = videoRef.current;
+    if (!video || !video.duration) return;
+    setProgress((video.currentTime / video.duration) * 100);
+  }, []);
+
+  const handleVideoEnded = useCallback(() => {
+    goNext();
+  }, [goNext]);
 
   if (!group || !story) return null;
 
@@ -117,8 +140,7 @@ export function StoryViewer({
           <ChevronLeft className="h-5 w-5" />
         </button>
       )}
-      {(groupIdx < groups.length - 1 ||
-        storyIdx < group.stories.length - 1) && (
+      {(groupIdx < groups.length - 1 || storyIdx < group.stories.length - 1) && (
         <button
           type="button"
           onClick={goNext}
@@ -138,16 +160,9 @@ export function StoryViewer({
               className="h-[3px] flex-1 overflow-hidden rounded-full bg-white/30"
             >
               <div
-                className={cn(
-                  'h-full rounded-full bg-white transition-[width] duration-75',
-                )}
+                className={cn('h-full rounded-full bg-white transition-[width] duration-75')}
                 style={{
-                  width:
-                    i < storyIdx
-                      ? '100%'
-                      : i === storyIdx
-                        ? `${progress}%`
-                        : '0%',
+                  width: i < storyIdx ? '100%' : i === storyIdx ? `${progress}%` : '0%',
                 }}
               />
             </div>
@@ -162,26 +177,34 @@ export function StoryViewer({
             size="sm"
             className="ring-2 ring-white/50"
           />
-          <span className="text-sm font-semibold text-white">
-            {group.user.userName}
-          </span>
-          <span className="text-xs text-white/60">
-            {timeAgo(story.createdAt)}
-          </span>
+          <span className="text-sm font-semibold text-white">{group.user.userName}</span>
+          <span className="text-xs text-white/60">{timeAgo(story.createdAt)}</span>
         </div>
 
         {/* Story media */}
         {story.mediaUrl ? (
-          <img
-            src={story.mediaUrl}
-            alt={story.caption ?? ''}
-            className="h-full w-full object-contain"
-          />
+          isVideo ? (
+            <video
+              key={story.id}
+              ref={videoRef}
+              src={story.mediaUrl}
+              autoPlay
+              muted
+              playsInline
+              className="h-full w-full object-contain"
+              onTimeUpdate={handleVideoTimeUpdate}
+              onEnded={handleVideoEnded}
+            />
+          ) : (
+            <img
+              src={story.mediaUrl}
+              alt={story.caption ?? ''}
+              className="h-full w-full object-contain"
+            />
+          )
         ) : (
           <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-primary to-accent p-8">
-            <p className="text-center text-lg font-medium text-white">
-              {story.caption}
-            </p>
+            <p className="text-center text-lg font-medium text-white">{story.caption}</p>
           </div>
         )}
 
