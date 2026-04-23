@@ -1,3 +1,6 @@
+using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 using Instory.API.DTOs.Friendship;
 using Instory.API.Exceptions;
 using Instory.API.Models;

@@ -1,3 +1,4 @@
+using System;
 using Instory.API.Data;
 using Instory.API.Models;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -5,6 +6,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
+using System.Threading.Tasks;
 using Instory.API.Exceptions;
 using Instory.API.Helpers;
 using Instory.API.Services;
@@ -12,6 +14,10 @@ using Instory.API.Services.impl;
 using Amazon.S3;
 using Instory.API.Hubs;
 using Instory.API.Repositories.impl;
+using Microsoft.AspNetCore.Builder;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 
 var builder = WebApplication.CreateBuilder(args);
 

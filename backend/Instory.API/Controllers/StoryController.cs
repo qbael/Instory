@@ -1,4 +1,5 @@
 using System.Security.Claims;
+using System.Threading.Tasks;
 using Instory.API.DTOs.Story;
 using Instory.API.DTOs.StoryDtos;
 using Instory.API.Helpers;
@@ -10,6 +11,7 @@ namespace Instory.API.Controllers;
 
 [ApiController]
 [Route("/api/v1/story")]
+[Authorize]
 public class StoryController : ControllerBase
 {
     private readonly IStoryService _storyService;
@@ -20,7 +22,6 @@ public class StoryController : ControllerBase
     }
 
     [HttpGet]
-    [Authorize]
     public async Task<IActionResult> GetFeed()
     {
         var currentUserId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
@@ -29,7 +30,6 @@ public class StoryController : ControllerBase
     }
 
     [HttpGet("{id}")]
-    [Authorize]
     public async Task<IActionResult> GetById(int id)
     {
         var result = await _storyService.GetByIdAsync(id);
@@ -37,7 +37,6 @@ public class StoryController : ControllerBase
     }
 
     [HttpPost]
-    [Authorize]
     [Consumes("multipart/form-data")]
     public async Task<IActionResult> Create([FromForm] CreateStoryDto dto)
     {
@@ -47,7 +46,6 @@ public class StoryController : ControllerBase
     }
 
     [HttpGet("archive")]
-    [Authorize]
     public async Task<IActionResult> GetArchive([FromQuery] int page = 1, [FromQuery] int pageSize = 20)
     {
         var currentUserId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
@@ -56,7 +54,6 @@ public class StoryController : ControllerBase
     }
 
     [HttpDelete("{id}")]
-    [Authorize]
     public async Task<IActionResult> Delete(int id)
     {
         var currentUserId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
