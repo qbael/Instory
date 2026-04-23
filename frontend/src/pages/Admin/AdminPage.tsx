@@ -105,9 +105,9 @@ export default function AdminPage() {
                     {report.post.content}
                   </p>
                 )}
-                {report.post.imageUrl && (
+                {report.post.images?.[0]?.imageUrl && (
                   <img
-                    src={report.post.imageUrl}
+                    src={report.post.images[0].imageUrl}
                     alt=""
                     className="mt-2 h-20 w-20 rounded object-cover"
                   />

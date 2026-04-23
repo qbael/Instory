@@ -2,7 +2,6 @@ import api from './api';
 import type {
   ApiResponse,
   Comment,
-  CreateCommentDto,
   PaginatedResponse,
   PaginationParams,
   Post,

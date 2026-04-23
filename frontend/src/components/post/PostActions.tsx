@@ -1,5 +1,5 @@
 import { memo } from 'react';
-import { Heart, MessageCircle, Send, Bookmark } from 'lucide-react';
+import { Heart, MessageCircle, Send } from 'lucide-react';
 import { cn } from '@/utils/cn';
 
 interface PostActionsProps {

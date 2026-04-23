@@ -1,4 +1,4 @@
-import { useEffect, useCallback, useState } from "react";
+import { useEffect, useCallback } from "react";
 import { StoryBar } from "@/components/story/StoryBar";
 import { PostCard } from "@/components/post/PostCard";
 import { PostCardSkeleton } from "@/components/post/PostCardSkeleton";
@@ -14,7 +14,6 @@ export default function HomePage() {
     isLoading,
     hasMore,
     loadMore,
-    fetchPage,
     toggleLike,
     refresh,
     handleIncreaseCommentCount,

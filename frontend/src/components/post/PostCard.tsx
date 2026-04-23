@@ -156,15 +156,14 @@ export const PostCard = memo(function PostCard({
           }`}
         >
           {post.images.slice(0, 4).map((img, i) => {
-            const src = (img as any).imageUrl || (img as any).url || img;
+            const src = (img as any).imageUrl || (img as any).url || "";
             return (
               <div
                 key={i}
                 className="relative aspect-square overflow-hidden bg-border"
               >
                 <img
-                  src="https://picsum.photos/300/200"
-                  // src={src}
+                  src={src}
                   alt={`Hình ${i + 1}`}
                   loading="lazy"
                   className="h-full w-full object-cover"

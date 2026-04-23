@@ -1,4 +1,4 @@
-import { useState, useCallback, use, useEffect } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { Send } from "lucide-react";
 import { Avatar } from "@/components/ui/Avatar";
 import { Spinner } from "@/components/ui/Spinner";
@@ -16,14 +16,14 @@ interface CommentSectionProps {
 
 export function CommentSection({
   postId,
-  initialCount,
+  initialCount: _initialCount,
   showComments,
   increaseCommentCount,
 }: CommentSectionProps) {
   const user = useAppSelector((s) => s.auth.user);
   const [comments, setComments] = useState<Comment[]>([]);
   const [isLoaded, setIsLoaded] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
+  const [_isLoading, setIsLoading] = useState(false);
   const [newComment, setNewComment] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
