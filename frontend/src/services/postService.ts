@@ -1,5 +1,6 @@
 import api from './api';
 import type {
+  ApiResponse,
   Comment,
   CreateCommentDto,
   PaginatedResponse,
@@ -11,7 +12,7 @@ const BASE = 'v1/posts';
 
 export const postService = {
   getFeed(params?: PaginationParams) {
-    return api.get<PaginatedResponse<Post>>(BASE, { params });
+  return api.get(`${BASE}/feed`, { params });
   },
 
   getById(id: number) {
@@ -51,10 +52,15 @@ export const postService = {
     return api.get<PaginatedResponse<Comment>>(`${BASE}/${postId}/comments`, { params });
   },
 
-  addComment(dto: CreateCommentDto) {
-    return api.post<Comment>(`${BASE}/${dto.postId}/comments`, { content: dto.content });
-  },
-
+  addComment(postId: number, content: string) {
+    return api.post<ApiResponse<Comment>>(
+      `${BASE}/${postId}/comments`,
+      { content }
+    );
+  },  
+  // addComment(postId: number, payload: { content: string }) {        
+  //       return api.post(`${BASE}/${postId}/comments`, payload);
+  // },
   deleteComment(commentId: number) {
     return api.delete(`${BASE}/comments/${commentId}`);
   },

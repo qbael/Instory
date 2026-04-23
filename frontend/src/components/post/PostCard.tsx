@@ -1,20 +1,26 @@
-import { memo, useState } from 'react';
-import { Link } from 'react-router';
-import { MoreHorizontal } from 'lucide-react';
-import { Avatar } from '@/components/ui/Avatar';
-import { PostActions } from './PostActions';
-import { CommentSection } from './CommentSection';
-import { timeAgo } from '@/utils/formatDate';
-import type { Post } from '@/types';
+import { memo, useState, useRef, useEffect } from "react";
+import { Link } from "react-router";
+import { MoreHorizontal, Trash2 } from "lucide-react";
+import { toast } from "sonner";
+import { Avatar } from "@/components/ui/Avatar";
+import { PostActions } from "./PostActions";
+import { CommentSection } from "./CommentSection";
+import { timeAgo } from "@/utils/formatDate";
+import { postService } from "@/services/postService";
+import { useAppSelector } from "@/store";
+import type { Post } from "@/types";
+import ConfirmDialog from "@/utils/confirmDialog";
 
 interface PostCardProps {
   post: Post;
   onLikeToggle: (postId: number) => void;
+  onCommentAdded?: (postId: number) => void;
+  onDeleteSuccess: (postId: number) => void;
 }
 
 function renderCaption(content: string) {
   return content.split(/(#[a-zA-Z0-9_]+)/g).map((part, i) => {
-    if (part.startsWith('#')) {
+    if (part.startsWith("#")) {
       const tag = part.slice(1);
       return (
         <Link
@@ -30,8 +36,61 @@ function renderCaption(content: string) {
   });
 }
 
-export const PostCard = memo(function PostCard({ post, onLikeToggle }: PostCardProps) {
+export const PostCard = memo(function PostCard({
+  post,
+  onLikeToggle,
+  onCommentAdded,
+}: PostCardProps) {
   const [showComments, setShowComments] = useState(false);
+  const [showMenu, setShowMenu] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const menuRef = useRef<HTMLDivElement>(null); // Reference close menu when click outside
+
+  const currentUser = useAppSelector((s) => s.auth.user);
+
+  // Check if current user owns the post
+  const isOwnPost = currentUser && post.user.id === currentUser.id;
+
+  // Handle delete post
+  const handleDeletePost = async () => {
+    const confirmed = await ConfirmDialog.show({
+      title: "Xóa bài viết",
+      message: "Bạn có chắc chắn muốn xóa bài viết này?",
+      confirmText: "Xóa",
+      cancelText: "Hủy",
+    });
+
+    if (!confirmed) return;
+
+    setIsDeleting(true);
+    try {
+      await postService.delete(post.id);
+      toast.success("Bài viết đã được xóa");
+      setShowMenu(false);
+      // Optionally, you can trigger a refresh of the feed here
+      // by calling a callback or dispatching a Redux action
+    } catch (error) {
+      toast.error("Lỗi khi xóa bài viết");
+      console.error("Delete post error:", error);
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
+  // Close menu when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+        setShowMenu(false);
+      }
+    };
+
+    if (showMenu) {
+      document.addEventListener("mousedown", handleClickOutside);
+      return () =>
+        document.removeEventListener("mousedown", handleClickOutside);
+    }
+  }, [showMenu]);
 
   return (
     <article className="overflow-hidden rounded-lg border border-border bg-bg-card">
@@ -55,24 +114,69 @@ export const PostCard = memo(function PostCard({ post, onLikeToggle }: PostCardP
             {timeAgo(post.createdAt)}
           </p>
         </div>
-        <button
-          type="button"
-          className="cursor-pointer rounded-full p-1 text-text-secondary transition-colors hover:bg-border/30 hover:text-text-primary"
-          aria-label="Thêm tùy chọn"
-        >
-          <MoreHorizontal className="h-5 w-5" />
-        </button>
+        <div className="relative" ref={menuRef}>
+          <button
+            type="button"
+            className="cursor-pointer rounded-full p-1 text-text-secondary transition-colors hover:bg-border/30 hover:text-text-primary"
+            aria-label="Thêm tùy chọn"
+            title="Thêm tùy chọn"
+            onClick={() => setShowMenu(!showMenu)}
+          >
+            <MoreHorizontal className="h-5 w-5" />
+          </button>
+
+          {/* Dropdown Menu */}
+          {showMenu && isOwnPost && (
+            <div className="absolute right-0 top-full mt-1 w-48 rounded-md border border-border bg-bg-card shadow-lg z-10">
+              <button
+                type="button"
+                disabled={isDeleting}
+                onClick={handleDeletePost}
+                className="w-full px-4 py-2.5 text-left text-sm text-error hover:bg-error/10 rounded-md transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <Trash2 className="h-4 w-4" />
+                {isDeleting ? "Đang xóa..." : "Xóa bài viết"}
+              </button>
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Image */}
-      {post.imageUrl && (
-        <div className="aspect-square overflow-hidden bg-border">
-          <img
-            src={post.imageUrl}
-            alt={post.content ?? 'Hình ảnh bài viết'}
-            loading="lazy"
-            className="h-full w-full object-cover"
-          />
+      {post.images && post.images.length > 0 && (
+        <div
+          className={`grid gap-1 ${
+            post.images.length === 1
+              ? "grid-cols-1"
+              : post.images.length === 2
+                ? "grid-cols-2"
+                : post.images.length === 3
+                  ? "grid-cols-3"
+                  : "grid-cols-2"
+          }`}
+        >
+          {post.images.slice(0, 4).map((img, i) => {
+            const src = (img as any).imageUrl || (img as any).url || img;
+            return (
+              <div
+                key={i}
+                className="relative aspect-square overflow-hidden bg-border"
+              >
+                <img
+                  src="https://picsum.photos/300/200"
+                  // src={src}
+                  alt={`Hình ${i + 1}`}
+                  loading="lazy"
+                  className="h-full w-full object-cover"
+                />
+                {i === 3 && post.images.length > 4 && (
+                  <div className="absolute inset-0 flex items-center justify-center bg-black/40 text-white text-lg">
+                    +{post.images.length - 4}
+                  </div>
+                )}
+              </div>
+            );
+          })}
         </div>
       )}
 
@@ -81,6 +185,7 @@ export const PostCard = memo(function PostCard({ post, onLikeToggle }: PostCardP
         isLiked={post.isLiked}
         likesCount={post.likesCount}
         commentsCount={post.commentsCount}
+        sharesCount={post.sharesCount}
         onLike={() => onLikeToggle(post.id)}
         onCommentClick={() => setShowComments(true)}
         onShare={() => {}}
@@ -103,7 +208,12 @@ export const PostCard = memo(function PostCard({ post, onLikeToggle }: PostCardP
 
       {/* Comments */}
       {showComments && (
-        <CommentSection postId={post.id} initialCount={post.commentsCount} />
+        <CommentSection
+          postId={post.id}
+          initialCount={post.commentsCount}
+          showComments={showComments}
+          increaseCommentCount={onCommentAdded}
+        />
       )}
     </article>
   );

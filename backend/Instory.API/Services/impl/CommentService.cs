@@ -1,6 +1,6 @@
+using Instory.API.Helpers;
 using Instory.API.Models;
 using Instory.API.Repositories;
-
 public class CommentService : ICommentService
 {
     private readonly ICommentRepository _commentRepository;
@@ -11,11 +11,11 @@ public class CommentService : ICommentService
         _commentRepository = commentRepository;
         _postRepository = postRepository;
     }
-
-    public async Task<CommentResponseDTO> AddCommentAsync(int userId, CreateCommentRequestDTO request)
+    public async Task<CommentResponseDTO> AddCommentAsync(int userId, int postId, CreateCommentRequestDTO request)
     {
 
-        var post = await _postRepository.GetByIdAsync(request.PostId);
+        var post = await _postRepository.GetByIdAsync(postId);
+        Console.WriteLine("POST: " + post);
         if (post == null || !post.AllowComment)
         {
             return null;
@@ -24,21 +24,25 @@ public class CommentService : ICommentService
         var comment = new Comment
         {
             UserId = userId,
-            PostId = request.PostId,
-            Content = request.Content
+            PostId = postId,
+            Content = request.Content,
+            CreatedAt = DateTime.UtcNow
         };
 
+
         await _commentRepository.AddAsync(comment);
+
         post.CommentCount++;
-        await _postRepository.SaveChangesAsync(); // save change in Comment and Post
+        // await _postRepository.SaveChangesAsync(); // save change in Comment and Post
+        await _commentRepository.SaveChangesAsync();
 
         return new CommentResponseDTO
         {
             Id = comment.Id,
-            PostId = comment.PostId,
-            UserId = comment.UserId,
+            // PostId = comment.PostId,
+            // UserId = comment.UserId,
             Content = comment.Content,
-            CreatedAt = comment.CreatedAt
+            CreatedAt = comment.CreatedAt,
         };
 
     }
@@ -67,5 +71,28 @@ public class CommentService : ICommentService
 
         await _commentRepository.SaveChangesAsync();
         return true;
+    }
+
+    public async Task<PaginatedResult<CommentResponseDTO>> GetCommentsAsync(int postId, int page, int pageSize)
+    {
+        var paginatedEntities = await _commentRepository.GetCommentsByPostIdAsync(postId, page, pageSize);
+
+        // Dùng hàm Map() để chuyển từ PaginatedResult<Comment> sang PaginatedResult<CommentResponseDTO>
+        var paginatedDtos = paginatedEntities.Map(entity => new CommentResponseDTO
+        {
+            Id = entity.Id,
+            Content = entity.Content,
+            User = new UserDTO
+            {
+                Id = entity.User.Id,
+                UserName = entity.User.UserName,
+                AvatarUrl = entity.User.AvatarUrl,
+                FullName = entity.User.FullName,
+                CreatedAt = entity.User.CreatedAt
+            },
+            CreatedAt = entity.CreatedAt
+        });
+
+        return paginatedDtos;
     }
 }

@@ -1,4 +1,5 @@
 using Instory.API.Data;
+using Instory.API.Helpers;
 using Instory.API.Models;
 using Instory.API.Repositories;
 using Instory.API.Repositories.impl;
@@ -8,12 +9,15 @@ public class CommentRepository : Repository<Comment>, ICommentRepository
 {
     public CommentRepository(InstoryDbContext context) : base(context) { }
 
-    public async Task<IEnumerable<Comment>> GetCommentsByPostIdAsync(int postId)
+    public async Task<PaginatedResult<Comment>> GetCommentsByPostIdAsync(int postId, int page, int pageSize)
     {
-        return await _dbSet
-            .Where(c => c.PostId == postId)
+        // Tạo câu Query (chưa execute xuống DB)
+        var query = _context.Comments
             .Include(c => c.User)
-            .OrderByDescending(c => c.CreatedAt)
-            .ToListAsync();
+            .Where(c => c.PostId == postId)
+            .OrderByDescending(c => c.CreatedAt);
+
+        // Phân trang 
+        return await PaginatedResult<Comment>.CreateAsync(query, page, pageSize);
     }
 }

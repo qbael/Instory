@@ -7,12 +7,12 @@ public class PostResponseDTO
     public int Id { get; set; }
     public int UserId { get; set; }
     public string? Content { get; set; }
-    public string? ImageUrl { get; set; }
-    public int LikeCount { get; set; }
-    public int CommentCount { get; set; }
-    public int ShareCount { get; set; }
+    public int LikesCount { get; set; }
+    public int CommentsCount { get; set; }
+    public int SharesCount { get; set; }
     public DateTime CreatedAt { get; set; } // Giả định có từ BaseEntity
     public bool IsLiked { get; set; } = false;
-
-    public List<PostImage> Images { get; set; } = new List<PostImage>();
+    public UserDTO User { get; set; } = null!;
+    public List<PostImageDTO> Images
+    { get; set; } = new List<PostImageDTO>();
 }

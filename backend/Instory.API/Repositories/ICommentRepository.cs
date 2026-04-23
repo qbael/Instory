@@ -1,8 +1,9 @@
+using Instory.API.Helpers;
 using Instory.API.Models;
 
 namespace Instory.API.Repositories;
 
 public interface ICommentRepository : IRepository<Comment>
 {
-    Task<IEnumerable<Comment>> GetCommentsByPostIdAsync(int postId);
+    Task<PaginatedResult<Comment>> GetCommentsByPostIdAsync(int postId, int page, int pageSize);
 }
