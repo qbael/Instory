@@ -15,7 +15,7 @@ import { Input } from '@/components/ui/Input';
 import { cn } from '@/utils/cn';
 
 export default function RegisterPage() {
-  const { register: registerUser, isLoading, error, clearError } = useAuth();
+  const { sendSignupOtp, isLoading, error, clearError } = useAuth();
   const navigate = useNavigate();
 
   const [showPassword, setShowPassword] = useState(false);
@@ -48,14 +48,17 @@ export default function RegisterPage() {
 
   const onSubmit = async (data: RegisterFormData) => {
     try {
-      await registerUser({
+      await sendSignupOtp({
         username: data.username,
         email: data.email,
         password: data.password,
         fullName: data.fullName || undefined,
       });
-      toast.success('Đăng ký thành công! Hãy đăng nhập để tiếp tục.');
-      navigate('/login', { replace: true });
+      toast.success('Đã gửi OTP. Vui lòng kiểm tra email để xác minh.');
+      navigate('/register/verify-otp', {
+        replace: true,
+        state: { email: data.email },
+      });
     } catch {
       /* error stored in Redux */
     }

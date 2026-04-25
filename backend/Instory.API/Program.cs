@@ -29,12 +29,12 @@ builder.Services.AddCors(options =>
     {
         policy
             .WithOrigins(
-                "http://localhost:5173",  // Vite dev server
-                "http://localhost:5174"   // fallback
+                "http://localhost:5173",
+                "http://localhost:5174"
             )
             .AllowAnyHeader()
             .AllowAnyMethod()
-            .AllowCredentials(); // required for SignalR + cookies
+            .AllowCredentials();
     });
 });
 
@@ -115,6 +115,7 @@ builder.Services.AddScoped<Instory.API.Repositories.IPostRepository, PostReposit
 builder.Services.AddScoped<Instory.API.Repositories.ICommentRepository, CommentRepository>();
 builder.Services.AddScoped<Instory.API.Repositories.ILikeRepository, LikeRepository>();
 builder.Services.AddScoped<Instory.API.Repositories.IPostImageRepository, PostImageRepository>();
+builder.Services.AddScoped<Instory.API.Repositories.IEmailOtpRepository, EmailOtpRepository>();
 
 builder.Services.AddScoped<ITokenService, TokenService>();
 builder.Services.AddScoped<IStoryService, StoryService>();
@@ -134,6 +135,7 @@ builder.Services.AddScoped<INotificationService, NotificationService>();
 builder.Services.AddScoped<IMediaService, MediaService>();
 builder.Services.AddScoped<IChatService, ChatService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
+builder.Services.AddScoped<IEmailSender, SmtpEmailSender>();
 builder.Services.AddScoped<IProfileService, ProfileService>();
 builder.Services.AddScoped<IPostService, PostService>();
 builder.Services.AddScoped<ICommentService, CommentService>();

@@ -191,6 +191,22 @@ export interface RegisterDto {
   fullName?: string;
 }
 
+export interface SendSignupOtpDto {
+  username: string;
+  email: string;
+  password: string;
+  fullName?: string;
+}
+
+export interface VerifySignupOtpDto {
+  email: string;
+  otpCode: string;
+}
+
+export interface GoogleLoginRequestDto {
+  idToken: string;
+}
+
 export interface AuthResponse {
   message: string;
   userId: number;

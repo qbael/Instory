@@ -8,6 +8,7 @@ import GuestRoute from './GuestRoute';
 import {
   LoginPage,
   RegisterPage,
+  VerifyOtpPage,
   HomePage,
   ProfilePage,
   EditProfilePage,
@@ -29,6 +30,7 @@ export default function AppRouter() {
             <Route element={<AuthLayout />}>
               <Route path="/login" element={<LoginPage />} />
               <Route path="/register" element={<RegisterPage />} />
+              <Route path="/register/verify-otp" element={<VerifyOtpPage />} />
             </Route>
           </Route>
 

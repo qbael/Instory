@@ -2,12 +2,21 @@ import { useCallback } from 'react';
 import { useAppDispatch, useAppSelector } from '@/store';
 import {
   login as loginThunk,
+  googleLogin as googleLoginThunk,
   register as registerThunk,
+  sendSignupOtp as sendSignupOtpThunk,
+  verifySignupOtp as verifySignupOtpThunk,
   fetchCurrentUser,
   logout as logoutThunk,
   clearAuthError,
 } from '@/store/slices/authSlice';
-import type { LoginDto, RegisterDto } from '@/types';
+import type {
+  LoginDto,
+  RegisterDto,
+  GoogleLoginRequestDto,
+  SendSignupOtpDto,
+  VerifySignupOtpDto,
+} from '@/types';
 
 export function useAuth() {
   const dispatch = useAppDispatch();
@@ -19,8 +28,24 @@ export function useAuth() {
     [dispatch],
   );
 
+  const googleLogin = useCallback(
+    (dto: GoogleLoginRequestDto) => dispatch(googleLoginThunk(dto)).unwrap(),
+    [dispatch],
+  );
+
   const register = useCallback(
     (dto: RegisterDto) => dispatch(registerThunk(dto)).unwrap(),
+    [dispatch],
+  );
+
+  const sendSignupOtp = useCallback(
+    (dto: SendSignupOtpDto) => dispatch(sendSignupOtpThunk(dto)).unwrap(),
+    [dispatch],
+  );
+
+  const verifySignupOtp = useCallback(
+    (dto: VerifySignupOtpDto) =>
+      dispatch(verifySignupOtpThunk(dto)).unwrap(),
     [dispatch],
   );
 
@@ -45,7 +70,10 @@ export function useAuth() {
     isInitialized,
     error,
     login,
+    googleLogin,
     register,
+    sendSignupOtp,
+    verifySignupOtp,
     loadUser,
     logout,
     clearError,

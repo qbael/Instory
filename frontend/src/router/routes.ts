@@ -2,6 +2,7 @@ import { lazy } from 'react';
 
 export const LoginPage = lazy(() => import('@/pages/Auth/LoginPage'));
 export const RegisterPage = lazy(() => import('@/pages/Auth/RegisterPage'));
+export const VerifyOtpPage = lazy(() => import('@/pages/Auth/VerifyOtpPage'));
 export const HomePage = lazy(() => import('@/pages/Home/HomePage'));
 export const ProfilePage = lazy(() => import('@/pages/Profile/ProfilePage'));
 export const EditProfilePage = lazy(() => import('@/pages/Profile/EditProfilePage'));

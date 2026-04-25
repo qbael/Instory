@@ -24,6 +24,7 @@ namespace Instory.API.Data;
         public DbSet<Message> Messages => Set<Message>();
         public DbSet<StoryHighlight> StoryHighlights => Set<StoryHighlight>();
         public DbSet<StoryHighlightStory> StoryHighlightStories => Set<StoryHighlightStory>();
+        public DbSet<EmailOtp> EmailOtps => Set<EmailOtp>();
  
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
