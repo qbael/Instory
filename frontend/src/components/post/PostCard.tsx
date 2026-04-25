@@ -52,8 +52,7 @@ export const PostCard = memo(function PostCard({
   const currentUser = useAppSelector((s) => s.auth.user);
 
   // Check if current user owns the post
-  const isOwnPost = currentUser && post.user.id === currentUser.id;
-
+  const isOwnPost = currentUser && post.userId === currentUser.id;
   // Handle delete post
   const handleDeletePost = async () => {
     const confirmed = await ConfirmDialog.show({
@@ -152,7 +151,9 @@ export const PostCard = memo(function PostCard({
             className="cursor-pointer rounded-full p-1 text-text-secondary transition-colors hover:bg-border/30 hover:text-text-primary"
             aria-label="Thêm tùy chọn"
             title="Thêm tùy chọn"
-            onClick={() => setShowMenu(!showMenu)}
+            onClick={() => {
+              setShowMenu(!showMenu);
+            }}
           >
             <MoreHorizontal className="h-5 w-5" />
           </button>
@@ -237,6 +238,7 @@ export const PostCard = memo(function PostCard({
 
       {/* Actions */}
       <PostActions
+        postId={post.id}
         isLiked={post.isLiked}
         likesCount={post.likesCount}
         commentsCount={post.commentsCount}

@@ -21,4 +21,12 @@ public class HashtagController : ControllerBase
         var result = await _hashtagService.GetTrendingHashtagsAsync(top);
         return Ok(result);
     }
+
+    //api/v1/hashtags/search?query=test&limit=10
+    [HttpGet("search")]
+    public async Task<IActionResult> SearchHashtags([FromQuery] string query, [FromQuery] int limit = 10)
+    {
+        var result = await _hashtagService.SearchHashtagsAsync(query, limit);
+        return Ok(result);
+    }
 }

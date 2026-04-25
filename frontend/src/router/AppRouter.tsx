@@ -16,6 +16,7 @@ import {
   AdminPage,
   NotFoundPage,
   ChatPage,
+  HashtagTreding,
 } from './routes';
 
 export default function AppRouter() {
@@ -41,6 +42,7 @@ export default function AppRouter() {
               <Route path="notifications" element={<NotificationsPage />} />
               <Route path="chat" element={<ChatPage />} />
               <Route path="admin" element={<AdminPage />} />
+              <Route path='hashtagtrending' element={<HashtagTreding />}/>
             </Route>
           </Route>
 

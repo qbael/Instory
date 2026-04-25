@@ -42,3 +42,6 @@ GET {{InstoryAPI_HostAddress}}/api/v1/posts/7/comments?pageNumber=1&pageSize=5
 
 ### Get Trending Hashtags
 GET {{InstoryAPI_HostAddress}}/api/v1/hashtags/trending?top=10
+
+### GET
+GET {{InstoryAPI_HostAddress}}/api/v1/hashtags/search?query=db&limit=10

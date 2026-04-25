@@ -8,6 +8,7 @@ import {
   LogOut,
   Camera,
   MessageCircle,
+  TrendingUp
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { cn } from '@/utils/cn';
@@ -41,6 +42,7 @@ export function Sidebar() {
       label: 'Tạo bài',
       action: () => dispatch(openModal({ modal: 'createPost' })),
     },
+    {icon : TrendingUp, label: 'Xu hướng', to: '/hashtagtrending' },
     { icon: User, label: 'Hồ sơ', to: `/profile/${user?.userName}` },
   ];
 
@@ -52,7 +54,7 @@ export function Sidebar() {
       )}
     >
       {/* Logo */}
-      <div className="flex h-[73px] items-center px-3 lg:px-6">
+      <div className="flex h-[73px] justify-center items-center px-3 lg:px-6 lg:justify-start">
         <Link to="/" className="flex items-center gap-2 text-text-primary no-underline">
           <Camera className="h-6 w-6 shrink-0 text-accent lg:hidden" />
           <span className="hidden text-xl font-bold tracking-tight lg:block">

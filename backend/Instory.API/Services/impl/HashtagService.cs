@@ -116,4 +116,28 @@ public class HashtagService : IHashtagService
                 }).ToListAsync();
         return result;
     }
+
+    public async Task<List<HashtagDTO>> SearchHashtagsAsync(string query, int limit = 10)
+    {
+        if (string.IsNullOrWhiteSpace(query))
+        {
+            return new List<HashtagDTO>();
+        }
+
+        var searchTerm = query.ToLower().Trim();
+
+        var result = await _hashtagRepository.GetAllHashtags()
+            .Where(h => h.Tag.Contains(searchTerm))
+            .OrderByDescending(h => h.TotalPost)
+            .Take(limit)
+            .Select(h => new HashtagDTO
+            {
+                Id = h.Id,
+                Tag = h.Tag,
+                TotalPost = h.TotalPost,
+            })
+            .ToListAsync();
+
+        return result;
+    }
 }

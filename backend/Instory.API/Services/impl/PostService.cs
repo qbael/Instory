@@ -46,7 +46,7 @@ public class PostService : IPostService
 
             User = new UserDTO
             {
-                Id = p.User.Id,
+                // Id = p.User.Id,
                 UserName = p.User.UserName,
                 AvatarUrl = p.User.AvatarUrl,
                 FullName = p.User.FullName,
@@ -189,6 +189,8 @@ public class PostService : IPostService
     {
         tag = tag.Trim().ToLower();
 
+        var likedPostIds = await _likeRepository.GetLikePostIdsByUserIdAsync(currentUserId);
+
         var query = _postRepository.GetPostsByHashtag(tag)
         .Select(p => new PostResponseDTO
         {
@@ -200,11 +202,11 @@ public class PostService : IPostService
             SharesCount = p.ShareCount,
             CreatedAt = p.CreatedAt,
 
-            IsLiked = p.Likes.Any(l => l.UserId == currentUserId),
+            IsLiked = likedPostIds.Contains(p.Id),
 
             User = new UserDTO
             {
-                // Id = p.User.Id,
+                Id = p.User.Id,
                 UserName = p.User.UserName,
                 AvatarUrl = p.User.AvatarUrl,
                 FullName = p.User.FullName,
@@ -227,8 +229,8 @@ public class PostService : IPostService
     {
         return new PostResponseDTO
         {
-            //     // Id = post.Id,
-            //     // UserId = post.UserId,
+            Id = post.Id,
+            UserId = post.UserId,
             Content = post.Content,
             // ImageUrl = post.ImageUrl,
             LikesCount = post.LikeCount,
