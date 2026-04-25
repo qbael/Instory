@@ -31,14 +31,35 @@ public class PostController : ControllerBase
     }
 
     [HttpGet("{id}")]
-    public async Task<IActionResult> GetById(int id)
+    public async Task<IActionResult> GetDetailByPostId(int id)
     {
-        var result = await _postService.GetPostByIdAsync(id);
-        if (result == null)
+        try
         {
-            return NotFound();
+            var userId = User.GetUserId();
+
+            var result = await _postService.GetPostDetailByPostId(id, userId);
+
+            // return Ok(new
+            // {
+            //     message = "Lấy chi tiết bài viết thành công",
+            //     data = result
+            // });
+            return Ok(result);
         }
-        return Ok(result);
+        catch (UnauthorizedAccessException ex)
+        {
+            return StatusCode(StatusCodes.Status403Forbidden, new
+            {
+                message = ex.Message
+            });
+        }
+        catch (Exception)
+        {
+            return StatusCode(StatusCodes.Status500InternalServerError, new
+            {
+                message = "Đã xảy ra lỗi hệ thống"
+            });
+        }
     }
 
     [HttpPost]
@@ -74,6 +95,18 @@ public class PostController : ControllerBase
     {
         var currentUserId = User.GetUserId();
         var result = await _postService.GetPostsByHashtagAsync(currentUserId, hashtag, pageNumber, pageSize);
+        return Ok(result);
+    }
+
+    [HttpPut("{id}")]
+    public async Task<IActionResult> Update(int id, [FromForm] UpdatePostRequestDTO request)
+    {
+        var userId = User.GetUserId();
+        var result = await _postService.UpdatePostAsync(id, userId, request);
+        if (result == null)
+        {
+            return NotFound();
+        }
         return Ok(result);
     }
 }

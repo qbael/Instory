@@ -225,6 +225,163 @@ public class PostService : IPostService
 
         return await PaginatedResult<PostResponseDTO>.CreateAsync(query, page, pageSize);
     }
+
+    public async Task<PostResponseDTO> GetPostDetailByPostId(int postId, int currentUserId)
+    {
+        var post = await _postRepository.GetPostDetailByPostIdAsync(postId, currentUserId);
+        if (post == null)
+        {
+            throw new UnauthorizedAccessException("Bạn không có quyền chỉnh sửa bài viết này");
+        }
+        return new PostResponseDTO
+        {
+            Id = post.Id,
+            // UserId = post.UserId,
+            Content = post.Content,
+            // LikesCount = post.LikeCount,
+            // CommentsCount = post.CommentCount,
+            // SharesCount = post.ShareCount,            
+            CreatedAt = post.CreatedAt,
+
+            User = new UserDTO
+            {
+                // Id = post.User.Id,
+                UserName = post.User.UserName,
+                AvatarUrl = post.User.AvatarUrl,
+                FullName = post.User.FullName,
+                // CreatedAt = post.User.CreatedAt
+            },
+            Images = post.PostImages
+            .OrderBy(pi => pi.SortOrder)
+            .Select(pi => new PostImageDTO
+            {
+                Id = pi.Id,
+                ImageUrl = pi.ImageUrl,
+                SortOrder = pi.SortOrder
+            })
+            .ToList()
+        };
+    }
+
+    public async Task<PostResponseDTO> UpdatePostAsync(int postId, int currentUserId, UpdatePostRequestDTO request)
+    {
+        await _unitOfWork.BeginTransactionAsync();
+
+        try
+        {
+            var post = await _postRepository.GetPostAndImagesByPostId(postId);
+
+            if (post == null)
+            {
+                throw new Exception("Bài viết không tồn tại.");
+            }
+
+            if (post.UserId != currentUserId)
+            {
+                throw new UnauthorizedAccessException("Bạn không có quyền chỉnh sửa bài viết này.");
+            }
+            // Update content
+            if (request.Content != null)
+            {
+                post.Content = request.Content;
+
+                // await _hashtagService.ProcessHashtagsAsync(post.Id, request.Content);
+            }
+
+            // remove previous images
+            if (request.RemovedImageIds != null && request.RemovedImageIds.Any())
+            {
+                var imagesToRemove = post.PostImages
+                .Where(img => request.RemovedImageIds.Contains(img.Id))
+                .ToList();
+
+                if (imagesToRemove.Any())
+                {
+                    _postImageRepository.RemoveRange(imagesToRemove);
+
+                    // var deleteTasks = imagesToRemove.Select(img => _mediaService.DeleteFileAsync(img.ImageUrl));
+                    // await Task.WhenAll(deleteTasks);
+
+                    // Xóa khỏi tracking list hiện tại để tính SortOrder chính xác
+                    foreach (var img in imagesToRemove)
+                    {
+                        post.PostImages.Remove(img);
+                    }
+                }
+
+            }
+            // Add new img
+            if (request.NewImages?.Any() == true)
+            {
+                // Update thêm định dạng webp, gif cho khớp với frontend bạn làm
+                var allowedTypes = new[] { "image/jpeg", "image/png", "image/jpg", "image/webp", "image/gif" };
+                var validImages = request.NewImages.Where(f => f.Length > 0).ToList();
+
+                if (validImages.Any(f => !allowedTypes.Contains(f.ContentType)))
+                {
+                    throw new ArgumentException("File không hợp lệ (chỉ chấp nhận jpg, png, webp, gif).");
+                }
+
+                // Tìm SortOrder lớn nhất hiện tại
+                int currentMaxSortOrder = post.PostImages.Any() ? post.PostImages.Max(img => img.SortOrder) : 0;
+
+                // Tạo danh sách các tác vụ upload lên S3
+                var uploadTasks = validImages.Select(async (file, index) =>
+                {
+                    var imageUrl = await _mediaService.UploadFileAsync(file, "posts");
+
+                    return new PostImage
+                    {
+                        PostId = post.Id,
+                        ImageUrl = imageUrl,
+                        SortOrder = currentMaxSortOrder + index + 1 // Đẩy SortOrder nối tiếp ảnh cũ
+                    };
+                });
+
+                // Chạy upload song song
+                PostImage[] newPostImages = await Task.WhenAll(uploadTasks);
+
+                if (newPostImages.Any())
+                {
+                    await _postImageRepository.AddRangeAsync(newPostImages);
+
+                    foreach (var img in newPostImages)
+                    {
+                        post.PostImages.Add(img);
+                    }
+                }
+            }
+            _postRepository.Update(post);
+            await _unitOfWork.SaveChangesAsync();
+            await _unitOfWork.CommitTransactionAsync();
+
+            return new PostResponseDTO
+            {
+                // Id = post.Id,
+                Content = post.Content,
+                CreatedAt = post.CreatedAt,
+                CommentsCount = post.CommentCount,
+                SharesCount = post.ShareCount,
+                LikesCount = post.LikeCount,
+                Images = post.PostImages
+                .OrderBy(img => img.SortOrder)
+                .Select(img => new PostImageDTO
+                {
+                    Id = img.Id,
+                    ImageUrl = img.ImageUrl,
+                    SortOrder = img.SortOrder
+                }).ToList()
+            };
+        }
+        catch (Exception ex)
+        {
+            await _unitOfWork.RollbackTransactionAsync();
+            Console.WriteLine($"[Error] Lỗi khi cập nhật bài viết: {ex.Message}");
+            throw;
+        }
+
+
+    }
     private static PostResponseDTO MapToResponseDTO(Post post)
     {
         return new PostResponseDTO
@@ -232,7 +389,6 @@ public class PostService : IPostService
             Id = post.Id,
             UserId = post.UserId,
             Content = post.Content,
-            // ImageUrl = post.ImageUrl,
             LikesCount = post.LikeCount,
             CommentsCount = post.CommentCount,
             SharesCount = post.ShareCount,

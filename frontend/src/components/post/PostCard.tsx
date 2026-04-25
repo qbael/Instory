@@ -104,7 +104,7 @@ export const PostCard = memo(function PostCard({
 
   // Handle edit post
   const handleEditPost = () => {
-    navigate(`/posts/${post.id}/edit`, { state: { post } });
+    navigate(`/post/${post.id}/edit`);
     setShowMenu(false);
   };
 
@@ -137,7 +137,7 @@ export const PostCard = memo(function PostCard({
         <div className="min-w-0 flex-1">
           <Link
             to={`/profile/${post.user.userName}`}
-            className="block truncate text-sm font-semibold text-text-primary no-underline hover:underline"
+            className="block truncate text-sm font-semibold text-text-primary no-underline hover:underline w-fit"
           >
             {post.user.userName}
           </Link>
@@ -160,14 +160,14 @@ export const PostCard = memo(function PostCard({
 
           {/* Dropdown Menu */}
           {showMenu && (
-            <div className="absolute right-0 top-full mt-1 w-48 rounded-md border border-border bg-bg-card shadow-lg z-10">
+            <div className="absolute right-7 top-1 mt-1 w-48 rounded-md border border-border bg-bg-card shadow-lg z-10">
               {isOwnPost ? (
                 <>
                   <button
                     type="button"
                     disabled={isDeleting}
                     onClick={handleDeletePost}
-                    className="w-full px-4 py-2.5 text-left text-sm text-error hover:bg-error/10 rounded-md transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="w-full px-4 py-2.5 text-left text-sm text-error hover:bg-error/10 rounded-md transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
                   >
                     <Trash2 className="h-4 w-4" />
                     {isDeleting ? "Đang xóa..." : "Xóa bài viết"}
@@ -175,7 +175,7 @@ export const PostCard = memo(function PostCard({
 
                   <button
                     type="button"
-                    className="w-full px-4 py-2.5 text-left text-sm hover:bg-border/40 rounded-md transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="w-full px-4 py-2.5 text-left text-sm hover:bg-border/40 rounded-md transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
                     onClick={handleEditPost}
                   >
                     <Edit className="h-4 w-4" />

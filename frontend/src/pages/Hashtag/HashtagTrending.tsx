@@ -156,10 +156,10 @@ export default function HashtagTrending() {
         {/* Posts Display */}
         {selectedHashtag && (
           <div className="space-y-4">
-            <div className="rounded-lg border border-border bg-bg-card p-4">
-              <h2 className="mb-4 font-semibold text-text-primary">
+            <div className="p-4">
+              <h1 className="mb-4 font-semibold text-text-primary">
                 Bài viết với #{selectedHashtag}
-              </h2>
+              </h1>
 
               {postsLoading && posts.length === 0 && (
                 <div className="flex justify-center py-8">

@@ -11,3 +11,4 @@ export const AdminPage = lazy(() => import('@/pages/Admin/AdminPage'));
 export const NotFoundPage = lazy(() => import('@/pages/NotFoundPage'));
 export const ChatPage = lazy(() => import('@/pages/Chat/ChatPage'));
 export const HashtagTreding = lazy(() => import('@/pages/Hashtag/HashtagTrending'));
+export const EditPost = lazy(() => import('@/pages/Post/EditPost'));

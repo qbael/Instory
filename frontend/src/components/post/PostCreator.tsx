@@ -304,6 +304,7 @@ export function PostCreator() {
           size="lg"
           isLoading={isSubmitting}
           disabled={!caption.trim() && imageFiles.length === 0}
+          // className="bg-[var(--color-accent)] hover hover:bg-[var(--color-accent-hover)]"
         >
           Đăng
         </Button>

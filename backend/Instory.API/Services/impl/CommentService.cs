@@ -81,7 +81,7 @@ public class CommentService : ICommentService
         var paginatedDtos = paginatedEntities.Map(entity => new CommentResponseDTO
         {
             Id = entity.Id,
-            Content = entity.Content,
+            Content = entity.Content ?? string.Empty,
             User = new UserDTO
             {
                 Id = entity.User.Id,

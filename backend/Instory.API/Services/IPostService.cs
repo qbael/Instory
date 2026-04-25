@@ -13,4 +13,8 @@ public interface IPostService
 
     Task<PaginatedResult<PostResponseDTO>> GetPostsByHashtagAsync(int currentUserId, string tag, int page, int pageSize);
 
+    Task<PostResponseDTO> GetPostDetailByPostId(int postId, int currnetUserId);
+
+    Task<PostResponseDTO> UpdatePostAsync(int postId, int currentUserId, UpdatePostRequestDTO request);
+
 }
