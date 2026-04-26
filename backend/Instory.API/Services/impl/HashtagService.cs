@@ -25,11 +25,45 @@ public class HashtagService : IHashtagService
         var matches = Regex.Matches(caption, @"#([\p{L}\p{N}_]+)");
 
         return matches
-            .Select(m => m.Groups[1].Value.ToLower()) // Lấy Group 1 để bỏ qua dấu # mà không cần Substring
+            // Lấy Group 1 để bỏ qua dấu # mà không cần Substring
+            //Full macth: m.Value = #database 
+            //Group 1 (....): m.Group[1].Value = database
+            .Select(m => m.Groups[1].Value.ToLower())
             .Distinct()
             .ToList();
     }
+    private async Task UpsertTrendAsyncService(int hashtagId, DateTime date)
+    {
+        var trend = await _hashtagTrendRepository.GetHashtagTrendAsync(hashtagId, date);
 
+        if (trend != null)
+        {
+            trend.PostCount++;
+        }
+        else
+        {
+            trend = new HashtagTrend
+            {
+                HashtagId = hashtagId,
+                Date = date,
+                PostCount = 1
+            };
+            await _hashtagTrendRepository.AddAsync(trend);
+        }
+
+    }
+    private async Task DecreaseTrendAsyncService(int hashtagId, DateTime date)
+    {
+        var trend = await _hashtagTrendRepository.GetHashtagTrendAsync(hashtagId, date);
+        if (trend != null && trend.PostCount > 0)
+        {
+            trend.PostCount--;
+            if (trend.PostCount == 0)
+            {
+                _hashtagTrendRepository.Remove(trend);
+            }
+        }
+    }
     public async Task ProcessHashtagsAsync(int postId, string caption)
     {
         var tags = ExtractHashtags(caption);
@@ -66,7 +100,7 @@ public class HashtagService : IHashtagService
             });
 
             // 5. update trending
-            await _hashtagTrendRepository.UpsertTrendAsync(hashtag.Id, DateTime.UtcNow);
+            await UpsertTrendAsyncService(hashtag.Id, DateTime.UtcNow);
         }
 
         await _postHashtagRepository.AddRangeAsync(postHashtags);
@@ -139,5 +173,70 @@ public class HashtagService : IHashtagService
             .ToListAsync();
 
         return result;
+    }
+
+    public async Task UpdateHashtagAsync(int postId, string oldCaption, string newCaption, DateTime postCreateAt)
+    {
+        var oldTags = ExtractHashtags(oldCaption ?? "").Distinct(StringComparer.OrdinalIgnoreCase).ToList();
+        var newTags = ExtractHashtags(newCaption ?? "").Distinct(StringComparer.OrdinalIgnoreCase).ToList();
+
+        var tagsToAdd = newTags.Except(oldTags, StringComparer.OrdinalIgnoreCase).ToList();
+        var tagsToRemove = oldTags.Except(newTags, StringComparer.OrdinalIgnoreCase).ToList();
+
+        // var today = DateTime.UtcNow;
+        var trendDate = postCreateAt.Date;
+        foreach (var tag in tagsToRemove)
+        {
+            var hashtag = await _hashtagRepository.GetByTagAsync(tag);
+            if (hashtag != null)
+            {
+                await _hashtagRepository.DecreasePostCountAsync(hashtag.Id);
+
+                // Gỡ mapping trong bảng posthashtag
+                var postHashtag = await _postHashtagRepository.GetByPostAndHashtagAsync(postId, hashtag.Id);
+                if (postHashtag != null)
+                {
+                    _postHashtagRepository.Remove(postHashtag);
+                }
+
+                // Trừ PostCount bên trong hashtagtrending
+                await DecreaseTrendAsyncService(hashtag.Id, trendDate);
+            }
+        }
+
+        // Xử lý thêm hashtag mới 
+        var newPostHashtag = new List<PostHashtag>();
+
+        foreach (var tag in tagsToAdd)
+        {
+            var hashtag = await _hashtagRepository.GetByTagAsync(tag);
+
+            if (hashtag == null)
+            {
+                hashtag = new Hashtag
+                {
+                    Tag = tag,
+                    TotalPost = 0,
+                    CreatedAt = DateTime.UtcNow
+                };
+
+                await _hashtagRepository.AddAsync(hashtag);
+                await _hashtagRepository.SaveChangesAsync();
+            }
+            await _hashtagRepository.IncreasePostCountAsync(hashtag.Id);
+
+            newPostHashtag.Add(new PostHashtag
+            {
+                PostId = postId,
+                HashtagId = hashtag.Id
+            });
+
+            await UpsertTrendAsyncService(hashtag.Id, trendDate);
+        }
+
+        if (newPostHashtag.Any())
+        {
+            _postHashtagRepository.AddRangeAsync(newPostHashtag);
+        }
     }
 }

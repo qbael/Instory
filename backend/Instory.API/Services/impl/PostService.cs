@@ -280,12 +280,15 @@ public class PostService : IPostService
             {
                 throw new UnauthorizedAccessException("Bạn không có quyền chỉnh sửa bài viết này.");
             }
+
+            post.UpdatedAt = DateTime.UtcNow;
+
             // Update content
-            if (request.Content != null)
+            var oldContent = post.Content ?? "";
+            if (request.Content != null && request.Content != oldContent)
             {
                 post.Content = request.Content;
-
-                // await _hashtagService.ProcessHashtagsAsync(post.Id, request.Content);
+                await _hashtagService.UpdateHashtagAsync(post.Id, oldContent, request.Content, post.CreatedAt);
             }
 
             // remove previous images
@@ -299,8 +302,8 @@ public class PostService : IPostService
                 {
                     _postImageRepository.RemoveRange(imagesToRemove);
 
-                    // var deleteTasks = imagesToRemove.Select(img => _mediaService.DeleteFileAsync(img.ImageUrl));
-                    // await Task.WhenAll(deleteTasks);
+                    var deleteTasks = imagesToRemove.Select(img => _mediaService.DeleteFileAsync(img.ImageUrl));
+                    await Task.WhenAll(deleteTasks);
 
                     // Xóa khỏi tracking list hiện tại để tính SortOrder chính xác
                     foreach (var img in imagesToRemove)

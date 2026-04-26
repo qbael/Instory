@@ -34,4 +34,14 @@ public class HashtagRepository : Repository<Hashtag>, IHashtagRepository
     {
         return _dbSet.AsNoTracking();
     }
+
+    public async Task DecreasePostCountAsync(int hashtagId)
+    {
+        var hashtag = await _dbSet.FindAsync(hashtagId);
+
+        if (hashtag != null)
+        {
+            hashtag.TotalPost--;
+        }
+    }
 }

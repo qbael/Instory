@@ -12,4 +12,6 @@ public interface IHashtagRepository : IRepository<Hashtag>
     Task<IEnumerable<Hashtag>> GetByIdsAsync(List<int> ids);
 
     IQueryable<Hashtag> GetAllHashtags();
+
+    Task DecreasePostCountAsync(int hashtagId);
 }
