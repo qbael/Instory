@@ -18,6 +18,8 @@ import {
   NotFoundPage,
   ChatPage,
   StoryArchivePage,
+  HashtagTreding,
+  EditPost,
 } from './routes';
 
 export default function AppRouter() {
@@ -45,6 +47,8 @@ export default function AppRouter() {
               <Route path="chat" element={<ChatPage />} />
               <Route path="admin" element={<AdminPage />} />
               <Route path="stories/archive" element={<StoryArchivePage />} />
+              <Route path='hashtagtrending' element={<HashtagTreding />}/>
+              <Route path="post/:postId/edit" element={<EditPost />} />
             </Route>
           </Route>
 

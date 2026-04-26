@@ -1,6 +1,4 @@
 using Instory.API.Data;
-using Instory.API.DTOs;
-using Instory.API.Helpers;
 using Instory.API.Models;
 using Microsoft.EntityFrameworkCore;
 
@@ -20,6 +18,17 @@ public class PostRepository : Repository<Post>, IPostRepository
             .Include(p => p.User)
             .OrderByDescending(p => p.CreatedAt);
     }
+    public async Task<Post?> GetPostDetailByPostIdAsync(int postId, int currentUserId)
+    {
+        return await _dbSet
+            .Include(p => p.PostImages)
+            .Include(p => p.User)
+            .FirstOrDefaultAsync(p =>
+            !p.IsDeleted &&
+             p.Id == postId &&
+             p.UserId == currentUserId
+             );
+    }
 
     public async Task<Post?> GetPostDetailAsync(int id)
     {
@@ -35,5 +44,19 @@ public class PostRepository : Repository<Post>, IPostRepository
         .Where(p => p.UserId == userId && !p.IsDeleted)
         .OrderByDescending(p => p.CreatedAt)
         .ToListAsync();
+    }
+
+    public IQueryable<Post> GetPostsByHashtag(string tag)
+    {
+        return _dbSet
+            .Where(p => p.PostHashtags.Any(ph => ph.Hashtag.Tag == tag) && !p.IsDeleted) // Any equivalent to EXISTS in SQL
+            .OrderByDescending(p => p.CreatedAt);
+    }
+
+    public async Task<Post?> GetPostAndImagesByPostId(int postId)
+    {
+        return await _dbSet
+        .Include(p => p.PostImages)
+        .FirstOrDefaultAsync(p => p.Id == postId);
     }
 }

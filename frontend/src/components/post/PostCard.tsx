@@ -1,15 +1,17 @@
 import { memo, useState, useRef, useEffect } from "react";
-import { Link } from "react-router";
-import { MoreHorizontal, Trash2 } from "lucide-react";
+import { Link, useNavigate } from "react-router";
+import { MoreHorizontal, Trash2, Edit, Flag } from "lucide-react";
 import { toast } from "sonner";
 import { Avatar } from "@/components/ui/Avatar";
 import { PostActions } from "./PostActions";
 import { CommentSection } from "./CommentSection";
+import { ReportPostModal } from "./ReportPostModal";
 import { timeAgo } from "@/utils/formatDate";
 import { postService } from "@/services/postService";
 import { useAppSelector } from "@/store";
 import type { Post } from "@/types";
 import ConfirmDialog from "@/utils/confirmDialog";
+import SharePostModal from "./SharePostModal";
 
 interface PostCardProps {
   post: Post;
@@ -19,15 +21,16 @@ interface PostCardProps {
 }
 
 function renderCaption(content: string) {
-  return content.split(/(#[a-zA-Z0-9_]+)/g).map((part, i) => {
+  // \p{L} khớp với bất kỳ ký tự chữ cái nào trong bất kỳ ngôn ngữ nào
+  // \p{N} khớp với bất kỳ con số nào
+  // Cần thêm flag 'u' ở cuối Regex
+  const regex = /(#[\p{L}\p{N}_]+)/gu; 
+
+  return content.split(regex).map((part, i) => {
     if (part.startsWith("#")) {
       const tag = part.slice(1);
       return (
-        <Link
-          key={i}
-          to={`/search?tag=${tag}`}
-          className="font-semibold text-text-link"
-        >
+        <Link key={i} className="font-semibold" to={`/search?tag=${tag}`}>
           {part}
         </Link>
       );
@@ -40,17 +43,20 @@ export const PostCard = memo(function PostCard({
   post,
   onLikeToggle,
   onCommentAdded,
+  onDeleteSuccess,
 }: PostCardProps) {
   const [showComments, setShowComments] = useState(false);
   const [showMenu, setShowMenu] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [showReportModal, setShowReportModal] = useState(false);
+  const [showShareModal, setShowShareModal] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null); // Reference close menu when click outside
+  const navigate = useNavigate();
 
   const currentUser = useAppSelector((s) => s.auth.user);
 
   // Check if current user owns the post
-  const isOwnPost = currentUser && post.user.id === currentUser.id;
-
+  const isOwnPost = currentUser && post.userId === currentUser.id;
   // Handle delete post
   const handleDeletePost = async () => {
     const confirmed = await ConfirmDialog.show({
@@ -69,12 +75,25 @@ export const PostCard = memo(function PostCard({
       setShowMenu(false);
       // Optionally, you can trigger a refresh of the feed here
       // by calling a callback or dispatching a Redux action
+      onDeleteSuccess(post.id);
     } catch (error) {
       toast.error("Lỗi khi xóa bài viết");
       console.error("Delete post error:", error);
     } finally {
       setIsDeleting(false);
     }
+  };
+
+  // Handle report post
+  const handleReportPost = () => {
+    setShowReportModal(true);
+    setShowMenu(false);
+  };
+
+  // Handle edit post
+  const handleEditPost = () => {
+    navigate(`/post/${post.id}/edit`);
+    setShowMenu(false);
   };
 
   // Close menu when clicking outside
@@ -106,7 +125,7 @@ export const PostCard = memo(function PostCard({
         <div className="min-w-0 flex-1">
           <Link
             to={`/profile/${post.user.userName}`}
-            className="block truncate text-sm font-semibold text-text-primary no-underline hover:underline"
+            className="block truncate text-sm font-semibold text-text-primary no-underline hover:underline w-fit"
           >
             {post.user.userName}
           </Link>
@@ -120,23 +139,48 @@ export const PostCard = memo(function PostCard({
             className="cursor-pointer rounded-full p-1 text-text-secondary transition-colors hover:bg-border/30 hover:text-text-primary"
             aria-label="Thêm tùy chọn"
             title="Thêm tùy chọn"
-            onClick={() => setShowMenu(!showMenu)}
+            onClick={() => {
+              setShowMenu(!showMenu);
+            }}
           >
             <MoreHorizontal className="h-5 w-5" />
           </button>
 
           {/* Dropdown Menu */}
-          {showMenu && isOwnPost && (
-            <div className="absolute right-0 top-full mt-1 w-48 rounded-md border border-border bg-bg-card shadow-lg z-10">
-              <button
-                type="button"
-                disabled={isDeleting}
-                onClick={handleDeletePost}
-                className="w-full px-4 py-2.5 text-left text-sm text-error hover:bg-error/10 rounded-md transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                <Trash2 className="h-4 w-4" />
-                {isDeleting ? "Đang xóa..." : "Xóa bài viết"}
-              </button>
+          {showMenu && (
+            <div className="absolute right-7 top-1 mt-1 w-48 rounded-md border border-border bg-bg-card shadow-lg z-10">
+              {isOwnPost ? (
+                <>
+                  <button
+                    type="button"
+                    disabled={isDeleting}
+                    onClick={handleDeletePost}
+                    className="w-full px-4 py-2.5 text-left text-sm text-error hover:bg-error/10 rounded-md transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                    {isDeleting ? "Đang xóa..." : "Xóa bài viết"}
+                  </button>
+
+                  <button
+                    type="button"
+                    className="w-full px-4 py-2.5 text-left text-sm hover:bg-border/40 rounded-md transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+                    onClick={handleEditPost}
+                  >
+                    <Edit className="h-4 w-4" />
+                    Chỉnh sửa bài viết
+                  </button>
+                </>
+
+              ) : (
+                <button
+                  type="button"
+                  onClick={handleReportPost}
+                  className="w-full px-4 py-2.5 text-left text-sm text-error hover:bg-error/10 rounded-md transition-colors flex items-center gap-2"
+                >
+                  <Flag className="h-4 w-4" />
+                  Báo cáo bài viết
+                </button>
+              )}
             </div>
           )}
         </div>
@@ -181,13 +225,14 @@ export const PostCard = memo(function PostCard({
 
       {/* Actions */}
       <PostActions
+        postId={post.id}
         isLiked={post.isLiked}
         likesCount={post.likesCount}
         commentsCount={post.commentsCount}
         sharesCount={post.sharesCount}
         onLike={() => onLikeToggle(post.id)}
         onCommentClick={() => setShowComments(true)}
-        onShare={() => {}}
+        onShare={() => {setShowShareModal(true)}}
       />
 
       {/* Caption */}
@@ -214,6 +259,19 @@ export const PostCard = memo(function PostCard({
           increaseCommentCount={onCommentAdded}
         />
       )}
+
+      {/* Report Modal */}
+      <ReportPostModal
+        postId={post.id}
+        isOpen={showReportModal}
+        onClose={() => setShowReportModal(false)}
+      />
+
+      <SharePostModal
+        post={post}
+        onClose={() => setShowShareModal(false)}
+        isOpen={showShareModal}
+      />
     </article>
   );
 });

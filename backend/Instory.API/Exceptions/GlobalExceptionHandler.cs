@@ -18,21 +18,21 @@ public class GlobalExceptionHandler(ILogger<GlobalExceptionHandler> logger) : IE
         CancellationToken cancellationToken)
     {
         var (status, title) = MapException(exception);
-        
+
         LogException(exception, status);
 
         var problemDetails = new ProblemDetails
         {
-            Status   = status,
-            Title    = title,
-            Detail   = IsClientError(status) ? exception.Message : "An unexpected error occurred.",
+            Status = status,
+            Title = title,
+            Detail = IsClientError(status) ? exception.Message : "An unexpected error occurred.",
             Instance = httpContext.Request.Path,
-            Type     = $"https://httpstatuses.io/{status}"
+            Type = $"https://httpstatuses.io/{status}"
         };
 
         problemDetails.Extensions["traceId"] = Activity.Current?.Id ?? httpContext.TraceIdentifier;
 
-        httpContext.Response.StatusCode  = status;
+        httpContext.Response.StatusCode = status;
         httpContext.Response.ContentType = "application/problem+json";
 
         await httpContext.Response.WriteAsJsonAsync(problemDetails, cancellationToken);
@@ -42,10 +42,11 @@ public class GlobalExceptionHandler(ILogger<GlobalExceptionHandler> logger) : IE
 
     private static (int status, string title) MapException(Exception exception) => exception switch
     {
-        NotFoundException           => (StatusCodes.Status404NotFound,            "Not Found"),
-        UnauthorizedAccessException => (StatusCodes.Status401Unauthorized,         "Unauthorized"),
-        ValidationException         => (StatusCodes.Status400BadRequest,           "Bad Request"),
-        _                           => (StatusCodes.Status500InternalServerError,  "Server Error")
+        NotFoundException => (StatusCodes.Status404NotFound, "Not Found"),
+        UnauthorizedAccessException => (StatusCodes.Status401Unauthorized, "Unauthorized"),
+        ValidationException => (StatusCodes.Status400BadRequest, "Bad Request"),
+        BadRequestException => (StatusCodes.Status400BadRequest, "Bad Request"),
+        _ => (StatusCodes.Status500InternalServerError, "Server Error")
     };
 
     private void LogException(Exception exception, int status)

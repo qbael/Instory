@@ -87,7 +87,7 @@ builder.Services.AddAuthentication(options =>
         {
             var accessTokenQuery = context.Request.Query["access_token"];
             var path = context.HttpContext.Request.Path;
-            
+
             if (!string.IsNullOrEmpty(accessTokenQuery) && path.StartsWithSegments("/hubs"))
             {
                 context.Token = accessTokenQuery;
@@ -102,7 +102,7 @@ builder.Services.AddAuthentication(options =>
 });
 
 builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
-builder.Services.AddProblemDetails();      
+builder.Services.AddProblemDetails();
 
 builder.Services.AddScoped(typeof(Instory.API.Repositories.IRepository<>), typeof(Repository<>));
 builder.Services.AddScoped<Instory.API.Repositories.IUserRepository, UserRepository>();
@@ -116,6 +116,15 @@ builder.Services.AddScoped<Instory.API.Repositories.ICommentRepository, CommentR
 builder.Services.AddScoped<Instory.API.Repositories.ILikeRepository, LikeRepository>();
 builder.Services.AddScoped<Instory.API.Repositories.IPostImageRepository, PostImageRepository>();
 builder.Services.AddScoped<Instory.API.Repositories.IEmailOtpRepository, EmailOtpRepository>();
+builder.Services.AddScoped<Instory.API.Repositories.IHashtagRepository, HashtagRepository>();
+builder.Services.AddScoped<Instory.API.Repositories.IPostHashtagRepository, PostHashtagRepository>();
+builder.Services.AddScoped<Instory.API.Repositories.IHashtagTrendRepository, HashtagTrendRepository>();
+builder.Services.AddScoped<Instory.API.Repositories.IPostReportRepository, PostReportRepository>();
+builder.Services.AddScoped<Instory.API.Repositories.IReportReasonRepository, ReportReasonRepository>();
+builder.Services.AddScoped<Instory.API.Repositories.ISharePostRepository, SharePostRepository>();
+
+
+builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 
 builder.Services.AddScoped<ITokenService, TokenService>();
 builder.Services.AddScoped<IStoryService, StoryService>();
@@ -140,7 +149,10 @@ builder.Services.AddScoped<IProfileService, ProfileService>();
 builder.Services.AddScoped<IPostService, PostService>();
 builder.Services.AddScoped<ICommentService, CommentService>();
 builder.Services.AddScoped<ILikeService, LikeService>();
-// builder.Services.AddScoped<IPostImageService, PostImageService>();
+builder.Services.AddScoped<IHashtagService, HashtagService>();
+builder.Services.AddScoped<IPostReportService, PostReportService>();
+builder.Services.AddScoped<ISharePostService, SharePostService>();
+
 
 var app = builder.Build();
 

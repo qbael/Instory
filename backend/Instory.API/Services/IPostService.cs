@@ -11,4 +11,10 @@ public interface IPostService
 
     Task<bool> DeletePostAsync(int userId, int postId);
 
+    Task<PaginatedResult<PostResponseDTO>> GetPostsByHashtagAsync(int currentUserId, string tag, int page, int pageSize);
+
+    Task<PostResponseDTO> GetPostDetailByPostId(int postId, int currnetUserId);
+
+    Task<PostResponseDTO> UpdatePostAsync(int postId, int currentUserId, UpdatePostRequestDTO request);
+
 }

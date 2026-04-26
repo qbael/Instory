@@ -1,5 +1,5 @@
 import { Link, useLocation } from 'react-router';
-import { Home, Search, SquarePlus, Heart, User, MessageCircle } from 'lucide-react';
+import { Home, Search, SquarePlus, Heart, User, MessageCircle, TrendingUp } from 'lucide-react';
 import { cn } from '@/utils/cn';
 import { useAppSelector, useAppDispatch } from '@/store';
 import { openModal } from '@/store/slices/uiSlice';
@@ -15,7 +15,8 @@ export function MobileNav() {
     { icon: Search, to: '/search' },
     { icon: SquarePlus, action: () => dispatch(openModal({ modal: 'createPost' })) },
     { icon: MessageCircle, to: '/chat' },
-    { icon: Heart, to: '/notifications', badge: unreadCount > 0 },
+    {icon : TrendingUp, label: 'Xu hướng', to: '/hashtagtrending' },
+    // { icon: Heart, to: '/notifications', badge: unreadCount > 0 },
     { icon: User, to: `/profile/${user?.userName}` },
   ];
 
@@ -52,9 +53,9 @@ export function MobileNav() {
             <item.icon
               className={cn('h-6 w-6', isActive && 'stroke-[2.5]')}
             />
-            {item.badge && (
+            {/* {item.badge && (
               <span className="absolute right-0.5 top-0.5 h-2 w-2 rounded-full bg-error" />
-            )}
+            )} */}
           </Link>
         );
       })}
