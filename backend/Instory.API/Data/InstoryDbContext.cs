@@ -26,6 +26,7 @@ public class InstoryDbContext(DbContextOptions<InstoryDbContext> options) : Iden
     public DbSet<StoryHighlight> StoryHighlights => Set<StoryHighlight>();
     public DbSet<StoryHighlightStory> StoryHighlightStories => Set<StoryHighlightStory>();
     public DbSet<EmailOtp> EmailOtps => Set<EmailOtp>();
+    public DbSet<HashtagTrend> HashtagTrends { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
