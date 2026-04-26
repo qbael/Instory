@@ -6,10 +6,11 @@ import type {
   PaginatedResponse,
   PaginationParams,
   Post,
+  ReportReason,
 } from "@/types";
 
 const BASE = "v1/posts";
-
+const BASE_REPORT = "v1/reports";
 export const postService = {
   getFeed(params?: PaginationParams) {
     return api.get(`${BASE}/feed`, { params });
@@ -65,8 +66,12 @@ export const postService = {
     return api.delete(`${BASE}/comments/${commentId}`);
   },
 
-  report(postId: number, reason: string) {
-    return api.post(`${BASE}/${postId}/report`, { reason });
+  getReportReasons() {
+    return api.get<ReportReason[]>(`${BASE_REPORT}/reasons`);
+  },
+
+  report(postId: number, reasonId: number, reasonDetail?: string) {
+    return api.post(`${BASE_REPORT}/${postId}`, { reasonId, reasonDetail });
   },
 
   getUserPosts(userId: number, params?: PaginationParams) {

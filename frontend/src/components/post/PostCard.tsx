@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import { Avatar } from "@/components/ui/Avatar";
 import { PostActions } from "./PostActions";
 import { CommentSection } from "./CommentSection";
+import { ReportPostModal } from "./ReportPostModal";
 import { timeAgo } from "@/utils/formatDate";
 import { postService } from "@/services/postService";
 import { useAppSelector } from "@/store";
@@ -46,6 +47,7 @@ export const PostCard = memo(function PostCard({
   const [showComments, setShowComments] = useState(false);
   const [showMenu, setShowMenu] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [showReportModal, setShowReportModal] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null); // Reference close menu when click outside
   const navigate = useNavigate();
 
@@ -81,25 +83,9 @@ export const PostCard = memo(function PostCard({
   };
 
   // Handle report post
-  const handleReportPost = async () => {
-    const confirmed = await ConfirmDialog.show({
-      title: "Báo cáo bài viết",
-      message: "Bạn có chắc chắn muốn báo cáo bài viết này?",
-      confirmText: "Báo cáo",
-      cancelText: "Hủy",
-    });
-
-    if (!confirmed) return;
-
-    try {
-      // Add your report post API call here
-      // await postService.report(post.id);
-      toast.success("Bài viết đã được báo cáo");
-      setShowMenu(false);
-    } catch (error) {
-      toast.error("Lỗi khi báo cáo bài viết");
-      console.error("Report post error:", error);
-    }
+  const handleReportPost = () => {
+    setShowReportModal(true);
+    setShowMenu(false);
   };
 
   // Handle edit post
@@ -272,6 +258,13 @@ export const PostCard = memo(function PostCard({
           increaseCommentCount={onCommentAdded}
         />
       )}
+
+      {/* Report Modal */}
+      <ReportPostModal
+        postId={post.id}
+        isOpen={showReportModal}
+        onClose={() => setShowReportModal(false)}
+      />
     </article>
   );
 });

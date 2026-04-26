@@ -3,6 +3,7 @@ using System;
 using Instory.API.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Instory.API.Migrations
 {
     [DbContext(typeof(InstoryDbContext))]
-    partial class InstoryDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260426073206_AddTableReportReason")]
+    partial class AddTableReportReason
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -515,7 +518,6 @@ namespace Instory.API.Migrations
                         .HasColumnName("reporter_id");
 
                     b.Property<string>("Status")
-                        .IsRequired()
                         .HasMaxLength(20)
                         .HasColumnType("character varying(20)")
                         .HasColumnName("status");

@@ -1,3 +1,4 @@
+using Amazon.Runtime;
 using Instory.API.Models;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
@@ -147,6 +148,17 @@ public class InstoryDbContext(DbContextOptions<InstoryDbContext> options) : Iden
         modelBuilder.Entity<Hashtag>()
         .Property(h => h.TotalPost)
         .HasDefaultValue(0);
+
+        modelBuilder.Entity<PostReport>()
+        .HasOne(pr => pr.ReportReason)
+        .WithMany(rr => rr.PostReports)
+        .HasForeignKey(pr => pr.ReasonId)
+        .OnDelete(DeleteBehavior.Restrict); // không xóa nếu đang được sử dụng
+
+        modelBuilder.Entity<PostReport>()
+        .Property(x => x.Status)
+        .HasConversion<string>()
+        .HasMaxLength(20);
     }
 
     public override int SaveChanges()
