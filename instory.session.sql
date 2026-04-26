@@ -9,6 +9,7 @@ select * from post_images
 update posts set is_deleted = false where id = 19 
 select * from report_reasons
 select * from post_reports
+select * from share_posts
 INSERT INTO report_reasons
 (
     code,

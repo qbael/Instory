@@ -11,6 +11,7 @@ import { postService } from "@/services/postService";
 import { useAppSelector } from "@/store";
 import type { Post } from "@/types";
 import ConfirmDialog from "@/utils/confirmDialog";
+import SharePostModal from "./SharePostModal";
 
 interface PostCardProps {
   post: Post;
@@ -48,6 +49,7 @@ export const PostCard = memo(function PostCard({
   const [showMenu, setShowMenu] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [showReportModal, setShowReportModal] = useState(false);
+  const [showShareModal, setShowShareModal] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null); // Reference close menu when click outside
   const navigate = useNavigate();
 
@@ -231,7 +233,7 @@ export const PostCard = memo(function PostCard({
         sharesCount={post.sharesCount}
         onLike={() => onLikeToggle(post.id)}
         onCommentClick={() => setShowComments(true)}
-        onShare={() => {}}
+        onShare={() => {setShowShareModal(true)}}
       />
 
       {/* Caption */}
@@ -264,6 +266,12 @@ export const PostCard = memo(function PostCard({
         postId={post.id}
         isOpen={showReportModal}
         onClose={() => setShowReportModal(false)}
+      />
+
+      <SharePostModal
+        post={post}
+        onClose={() => setShowShareModal(false)}
+        isOpen={showShareModal}
       />
     </article>
   );

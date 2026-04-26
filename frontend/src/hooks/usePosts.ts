@@ -31,7 +31,7 @@ export function usePosts(feedType: FeedType = "home") {
       setIsLoading(true);
 
       try {
-        const paginationParams = { pageNumber: pageNum, pageSize: DEFAULT_PAGE_SIZE };
+        const paginationParams = { pageNumber: pageNum, pageSize: 10 };
         let response;
 
         if (isUserFeed) {

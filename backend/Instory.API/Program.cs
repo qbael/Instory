@@ -106,6 +106,7 @@ builder.Services.AddScoped<Instory.API.Repositories.IPostHashtagRepository, Post
 builder.Services.AddScoped<Instory.API.Repositories.IHashtagTrendRepository, HashtagTrendRepository>();
 builder.Services.AddScoped<Instory.API.Repositories.IPostReportRepository, PostReportRepository>();
 builder.Services.AddScoped<Instory.API.Repositories.IReportReasonRepository, ReportReasonRepository>();
+builder.Services.AddScoped<Instory.API.Repositories.ISharePostRepository, SharePostRepository>();
 
 
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
@@ -132,6 +133,7 @@ builder.Services.AddScoped<ICommentService, CommentService>();
 builder.Services.AddScoped<ILikeService, LikeService>();
 builder.Services.AddScoped<IHashtagService, HashtagService>();
 builder.Services.AddScoped<IPostReportService, PostReportService>();
+builder.Services.AddScoped<ISharePostService, SharePostService>();
 
 
 var app = builder.Build();

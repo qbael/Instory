@@ -11,6 +11,7 @@ import type {
 
 const BASE = "v1/posts";
 const BASE_REPORT = "v1/reports";
+const BASE_SHARE = "v1/share-post"
 export const postService = {
   getFeed(params?: PaginationParams) {
     return api.get(`${BASE}/feed`, { params });
@@ -45,7 +46,7 @@ export const postService = {
   },
 
   share(id: number, caption?: string) {
-    return api.post(`${BASE}/${id}/share`, { caption });
+    return api.post(`${BASE_SHARE}/${id}`, { caption });
   },
 
   getComments(postId: number, params?: PaginationParams) {
