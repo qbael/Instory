@@ -108,6 +108,71 @@ namespace Instory.API.Migrations
                     b.ToTable("comments");
                 });
 
+            modelBuilder.Entity("Instory.API.Models.EmailOtp", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("Attempts")
+                        .HasColumnType("integer")
+                        .HasColumnName("attempts");
+
+                    b.Property<DateTime?>("ConsumedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("consumed_at");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<string>("Email")
+                        .IsRequired()
+                        .HasMaxLength(320)
+                        .HasColumnType("character varying(320)")
+                        .HasColumnName("email");
+
+                    b.Property<DateTime>("ExpiresAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("expires_at");
+
+                    b.Property<string>("FullName")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("full_name");
+
+                    b.Property<string>("OtpHash")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)")
+                        .HasColumnName("otp_hash");
+
+                    b.Property<string>("PasswordHash")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("password_hash");
+
+                    b.Property<string>("Purpose")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)")
+                        .HasColumnName("purpose");
+
+                    b.Property<string>("Username")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("username");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("email_otps");
+                });
+
             modelBuilder.Entity("Instory.API.Models.Follow", b =>
                 {
                     b.Property<int>("Id")
@@ -199,6 +264,12 @@ namespace Instory.API.Migrations
                         .HasColumnType("character varying(100)")
                         .HasColumnName("tag");
 
+                    b.Property<long>("TotalPost")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasDefaultValue(0L)
+                        .HasColumnName("total_post");
+
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("updated_at");
@@ -250,6 +321,10 @@ namespace Instory.API.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("created_at");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_deleted");
 
                     b.Property<int>("PostId")
                         .HasColumnType("integer")
@@ -498,15 +573,20 @@ namespace Instory.API.Migrations
                         .HasColumnType("integer")
                         .HasColumnName("post_id");
 
-                    b.Property<string>("Reason")
+                    b.Property<string>("ReasonDetail")
                         .HasColumnType("text")
-                        .HasColumnName("reason");
+                        .HasColumnName("reason_detail");
+
+                    b.Property<int>("ReasonId")
+                        .HasColumnType("integer")
+                        .HasColumnName("reason_id");
 
                     b.Property<int>("ReporterId")
                         .HasColumnType("integer")
                         .HasColumnName("reporter_id");
 
                     b.Property<string>("Status")
+                        .IsRequired()
                         .HasMaxLength(20)
                         .HasColumnType("character varying(20)")
                         .HasColumnName("status");
@@ -519,9 +599,57 @@ namespace Instory.API.Migrations
 
                     b.HasIndex("PostId");
 
+                    b.HasIndex("ReasonId");
+
                     b.HasIndex("ReporterId");
 
                     b.ToTable("post_reports");
+                });
+
+            modelBuilder.Entity("Instory.API.Models.ReportReason", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Code")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("code");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<string>("Description")
+                        .HasColumnType("text")
+                        .HasColumnName("description");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_active");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(255)
+                        .HasColumnType("character varying(255)")
+                        .HasColumnName("name");
+
+                    b.Property<int>("Severity")
+                        .HasColumnType("integer")
+                        .HasColumnName("severity");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("report_reasons");
                 });
 
             modelBuilder.Entity("Instory.API.Models.Role", b =>
@@ -761,6 +889,10 @@ namespace Instory.API.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("character varying(100)")
                         .HasColumnName("full_name");
+
+                    b.Property<bool>("IsBlocked")
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_blocked");
 
                     b.Property<bool>("LockoutEnabled")
                         .HasColumnType("boolean");
@@ -1114,6 +1246,12 @@ namespace Instory.API.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("Instory.API.Models.ReportReason", "ReportReason")
+                        .WithMany("PostReports")
+                        .HasForeignKey("ReasonId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
                     b.HasOne("Instory.API.Models.User", "Reporter")
                         .WithMany("PostReports")
                         .HasForeignKey("ReporterId")
@@ -1121,6 +1259,8 @@ namespace Instory.API.Migrations
                         .IsRequired();
 
                     b.Navigation("Post");
+
+                    b.Navigation("ReportReason");
 
                     b.Navigation("Reporter");
                 });
@@ -1282,6 +1422,11 @@ namespace Instory.API.Migrations
                     b.Navigation("PostReports");
 
                     b.Navigation("SharePosts");
+                });
+
+            modelBuilder.Entity("Instory.API.Models.ReportReason", b =>
+                {
+                    b.Navigation("PostReports");
                 });
 
             modelBuilder.Entity("Instory.API.Models.Story", b =>

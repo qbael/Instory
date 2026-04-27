@@ -16,14 +16,14 @@ interface CommentSectionProps {
 
 export function CommentSection({
   postId,
-  initialCount: _initialCount,
+  initialCount,
   showComments,
   increaseCommentCount,
 }: CommentSectionProps) {
   const user = useAppSelector((s) => s.auth.user);
   const [comments, setComments] = useState<Comment[]>([]);
   const [isLoaded, setIsLoaded] = useState(false);
-  const [_isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const [newComment, setNewComment] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -57,7 +57,7 @@ export function CommentSection({
       // const newAddedComment = response.data.data;
 
       const { data } = await postService.addComment(postId, content);
-      console.log("Add comment response:", data);
+      // console.log('Add comment response:', data);
       // SỬA Ở ĐÂY: Lấy data ở tầng thứ 2
       const newAddedComment = data.data;
 

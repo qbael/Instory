@@ -1,17 +1,19 @@
-import api from './api';
+import api from "./api";
 import type {
   ApiResponse,
   Comment,
   PaginatedResponse,
   PaginationParams,
   Post,
-} from '@/types';
+  ReportReason,
+} from "@/types";
 
-const BASE = 'v1/posts';
-
+const BASE = "v1/posts";
+const BASE_REPORT = "v1/reports";
+const BASE_SHARE = "v1/share-post"
 export const postService = {
   getFeed(params?: PaginationParams) {
-  return api.get(`${BASE}/feed`, { params });
+    return api.get(`${BASE}/feed`, { params });
   },
 
   getById(id: number) {
@@ -19,15 +21,14 @@ export const postService = {
   },
 
   create(formData: FormData) {
-    // return api.post<Post>(BASE, formData, {
-    //   headers: { 'Content-Type': 'multipart/form-data' },
-    // });
-    return api.post(BASE, formData); 
+    return api.post<Post>(BASE, formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    });
   },
 
   update(id: number, formData: FormData) {
     return api.put<Post>(`${BASE}/${id}`, formData, {
-      headers: { 'Content-Type': 'multipart/form-data' },
+      headers: { "Content-Type": "multipart/form-data" },
     });
   },
 
@@ -44,31 +45,38 @@ export const postService = {
   },
 
   share(id: number, caption?: string) {
-    return api.post(`${BASE}/${id}/share`, { caption });
+    return api.post(`${BASE_SHARE}/${id}`, { caption });
   },
 
   getComments(postId: number, params?: PaginationParams) {
-    return api.get<PaginatedResponse<Comment>>(`${BASE}/${postId}/comments`, { params });
+    return api.get<PaginatedResponse<Comment>>(`${BASE}/${postId}/comments`, {
+      params,
+    });
   },
 
   addComment(postId: number, content: string) {
-    return api.post<ApiResponse<Comment>>(
-      `${BASE}/${postId}/comments`,
-      { content }
-    );
-  },  
-  // addComment(postId: number, payload: { content: string }) {        
+    return api.post<ApiResponse<Comment>>(`${BASE}/${postId}/comments`, {
+      content,
+    });
+  },
+  // addComment(postId: number, payload: { content: string }) {
   //       return api.post(`${BASE}/${postId}/comments`, payload);
   // },
   deleteComment(commentId: number) {
     return api.delete(`${BASE}/comments/${commentId}`);
   },
 
-  report(postId: number, reason: string) {
-    return api.post(`${BASE}/${postId}/report`, { reason });
+  getReportReasons() {
+    return api.get<ReportReason[]>(`${BASE_REPORT}/reasons`);
+  },
+
+  report(postId: number, reasonId: number, reasonDetail?: string) {
+    return api.post(`${BASE_REPORT}/${postId}`, { reasonId, reasonDetail });
   },
 
   getUserPosts(userId: number, params?: PaginationParams) {
-    return api.get<PaginatedResponse<Post>>(`v1/users/${userId}/posts`, { params });
+    return api.get<PaginatedResponse<Post>>(`v1/users/${userId}/posts`, {
+      params,
+    });
   },
 };

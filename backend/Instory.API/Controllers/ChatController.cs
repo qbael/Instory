@@ -154,7 +154,7 @@ public class ChatController : ControllerBase
                 Content = message.Content,
                 MediaUrl = message.MediaUrl,
                 CreatedAt = message.CreatedAt
-            };
+             };
 
             return Ok(messageObj);
         }

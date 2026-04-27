@@ -38,7 +38,7 @@ public class AuthController : ControllerBase
         var result = await _authService.LoginAsync(model);
         if (!result.Success) return StatusCode(result.StatusCode, new { result.Message });
 
-        AppendTokenCookies(result.Data!.Token, result.Data.RefreshToken, result.Data.ReshTokenValidityInDays);
+        AppendTokenCookies(result.Data!.Token, result.Data.RefreshToken, result.Data.RefreshTokenValidityInDays);
 
         return Ok(new LoginResponseDto()
         {
@@ -47,6 +47,46 @@ public class AuthController : ControllerBase
             Username = result.Data.User.UserName!,
             Email = result.Data.User.Email!
         });
+    }
+
+    [HttpPost("signin-google")]
+    public async Task<IActionResult> GoogleLogin([FromBody] GoogleLoginRequestDto model)
+    {
+        if (!ModelState.IsValid)
+            return BadRequest(ModelState);
+
+        var result = await _authService.GoogleLoginAsync(model);
+        if (!result.Success) return StatusCode(result.StatusCode, new { result.Message });
+
+        AppendTokenCookies(result.Data!.Token, result.Data.RefreshToken, result.Data.RefreshTokenValidityInDays);
+
+        return Ok(new LoginResponseDto()
+        {
+            Message = result.Message,
+            UserId = result.Data.User.Id,
+            Username = result.Data.User.UserName!,
+            Email = result.Data.User.Email!
+        });
+    }
+
+    [HttpPost("signup/send-otp")]
+    public async Task<IActionResult> SendSignupOtp([FromBody] SendOtpRequestDto model)
+    {
+        if (!ModelState.IsValid)
+            return BadRequest(ModelState);
+
+        var result = await _authService.SendSignupOtpAsync(model);
+        return StatusCode(result.StatusCode, new { result.Message });
+    }
+
+    [HttpPost("signup/verify-otp")]
+    public async Task<IActionResult> VerifySignupOtp([FromBody] VerifyOtpRequestDto model)
+    {
+        if (!ModelState.IsValid)
+            return BadRequest(ModelState);
+
+        var result = await _authService.VerifySignupOtpAsync(model);
+        return StatusCode(result.StatusCode, new { result.Message });
     }
 
     [HttpPost("refresh")]
@@ -59,7 +99,7 @@ public class AuthController : ControllerBase
         var result = await _authService.RefreshTokenAsync(refreshToken);
         if (!result.Success) return StatusCode(result.StatusCode, new { result.Message });
         
-        AppendTokenCookies(result.Data!.Token, result.Data.RefreshToken, result.Data.ReshTokenValidityInDays);
+        AppendTokenCookies(result.Data!.Token, result.Data.RefreshToken, result.Data.RefreshTokenValidityInDays);
 
         return Ok(new LoginResponseDto()
         {

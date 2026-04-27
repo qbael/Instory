@@ -3,16 +3,18 @@ import { Heart, MessageCircle, Send } from 'lucide-react';
 import { cn } from '@/utils/cn';
 
 interface PostActionsProps {
+  postId: number;
   isLiked: boolean;
   likesCount: number;
   commentsCount: number;
   sharesCount: number;
-  onLike: () => void;
+  onLike: (postId: number) => void;
   onCommentClick: () => void;
   onShare: () => void;
 }
 
 export const PostActions = memo(function PostActions({
+  postId,
   isLiked,
   likesCount,
   commentsCount,
@@ -28,7 +30,7 @@ export const PostActions = memo(function PostActions({
           <div className="flex items-center justify-between gap-2" >
             <button
             type="button"
-            onClick={onLike}
+            onClick={() => onLike(postId)}
             className="cursor-pointer transition-transform active:scale-110"
             aria-label={isLiked ? 'Bỏ thích' : 'Thích'}
             title={isLiked ? 'Bỏ thích' : 'Thích'}

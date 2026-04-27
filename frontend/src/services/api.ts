@@ -10,7 +10,15 @@ const api = axios.create({
 
 // ─── Response interceptor: handle 401 → refresh or redirect ─────────────────
 
-const AUTH_PATHS = ['/auth/login', '/auth/register', '/auth/refresh', '/auth/me'];
+const AUTH_PATHS = [
+    '/auth/login',
+    '/auth/signin-google',
+    '/auth/register',
+    '/auth/signup/send-otp',
+    '/auth/signup/verify-otp',
+    '/auth/refresh',
+    '/auth/me',
+];
 
 function isAuthRequest(url?: string): boolean {
     if (!url) return false;

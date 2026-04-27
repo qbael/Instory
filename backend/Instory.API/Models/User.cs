@@ -31,6 +31,9 @@ namespace Instory.API.Models;
         [MaxLength(255)]
         [Column("avatar_url")]
         public string? AvatarUrl { get; set; }
+        
+        [Column("is_blocked")]
+        public  bool IsBlocked { get; set; } = false;
  
         public ICollection<Post> Posts { get; set; } = new List<Post>();
         public ICollection<Comment> Comments { get; set; } = new List<Comment>();

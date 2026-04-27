@@ -2,6 +2,7 @@ import { lazy } from 'react';
 
 export const LoginPage = lazy(() => import('@/pages/Auth/LoginPage'));
 export const RegisterPage = lazy(() => import('@/pages/Auth/RegisterPage'));
+export const VerifyOtpPage = lazy(() => import('@/pages/Auth/VerifyOtpPage'));
 export const HomePage = lazy(() => import('@/pages/Home/HomePage'));
 export const ProfilePage = lazy(() => import('@/pages/Profile/ProfilePage'));
 export const EditProfilePage = lazy(() => import('@/pages/Profile/EditProfilePage'));
@@ -11,3 +12,5 @@ export const AdminPage = lazy(() => import('@/pages/Admin/AdminPage'));
 export const NotFoundPage = lazy(() => import('@/pages/NotFoundPage'));
 export const ChatPage = lazy(() => import('@/pages/Chat/ChatPage'));
 export const StoryArchivePage = lazy(() => import('@/pages/Story/StoryArchivePage'));
+export const HashtagTreding = lazy(() => import('@/pages/Hashtag/HashtagTrending'));
+export const EditPost = lazy(() => import('@/pages/Post/EditPost'));

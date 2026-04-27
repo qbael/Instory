@@ -8,14 +8,15 @@ import { useAuth } from '@/hooks/useAuth';
 import { loginSchema, type LoginFormData } from '@/utils/validators';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
+import { GoogleLogin } from '@react-oauth/google';
+import type { CredentialResponse } from '@react-oauth/google';
 
 export default function LoginPage() {
-  const { login, isLoading, error, clearError } = useAuth();
+  const { login, googleLogin, isLoading, error, clearError } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const from =
-    (location.state as { from?: { pathname: string } } | null)?.from
-      ?.pathname ?? '/';
+    (location.state as { from?: { pathname: string } } | null)?.from?.pathname ?? '/';
 
   const [showPassword, setShowPassword] = useState(false);
 
@@ -99,7 +100,7 @@ export default function LoginPage() {
               />
               Ghi nhớ đăng nhập
             </label>
-            <span className="text-sm font-medium text-primary">
+            <span className="text-sm font-medium text-primary hover:cursor-pointer hover:underline">
               Quên mật khẩu?
             </span>
           </div>
@@ -108,6 +109,31 @@ export default function LoginPage() {
             Đăng nhập
           </Button>
         </form>
+
+        <div className="my-6 flex items-center justify-center space-x-4">
+          <span className="h-px w-full bg-border"></span>
+          <span className="text-sm text-text-secondary">hoặc</span>
+          <span className="h-px w-full bg-border"></span>
+        </div>
+
+        <div className="flex justify-center">
+          <GoogleLogin
+            onSuccess={async (credentialResponse: CredentialResponse) => {
+              const idToken = credentialResponse.credential;
+              if (!idToken) return;
+              try {
+                const result = await googleLogin({ idToken });
+                toast.success(`Xin chào, ${result.username}!`);
+                navigate(from, { replace: true });
+              } catch {
+                /* error stored in Redux */
+              }
+            }}
+            onError={() => {
+              toast.error('Đăng nhập Google thất bại');
+            }}
+          />
+        </div>
       </div>
 
       {/* Register link card */}

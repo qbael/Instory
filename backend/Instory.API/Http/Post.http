@@ -1,5 +1,4 @@
 @InstoryAPI_HostAddress = http://localhost:5174
-
 GET {{InstoryAPI_HostAddress}}/api/v1/posts/feed?pageNumber=1&pageSize=5
 ###
 GET {{InstoryAPI_HostAddress}}/api/v1/posts/1
@@ -39,3 +38,15 @@ Content-Type: application/json
 
 ###
 GET {{InstoryAPI_HostAddress}}/api/v1/posts/7/comments?pageNumber=1&pageSize=5
+
+### Get Trending Hashtags
+GET {{InstoryAPI_HostAddress}}/api/v1/hashtags/trending?top=10
+
+### GET
+GET {{InstoryAPI_HostAddress}}/api/v1/hashtags/search?query=db&limit=10
+
+### Get reportreasons
+GET  {{InstoryAPI_HostAddress}}/api/v1/reports/reasons
+
+### POst postreport
+POST {{InstoryAPI_HostAddress}}/api/v1/reports/22

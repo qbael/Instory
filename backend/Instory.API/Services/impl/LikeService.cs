@@ -21,8 +21,11 @@ public class LikeService : ILikeService
 
         if (existingLike != null)
         {
-            _likeRepository.Remove(existingLike);
-            post.LikeCount = Math.Max(0, post.LikeCount - 1);
+            bool isCurrentlyLiked = !existingLike.IsDeleted; // Check if the like is currently active
+            existingLike.IsDeleted = isCurrentlyLiked;
+            existingLike.UpdatedAt = DateTime.UtcNow;
+            if (isCurrentlyLiked) post.LikeCount = Math.Max(0, post.LikeCount - 1);
+            else post.LikeCount++;
         }
         else
         {

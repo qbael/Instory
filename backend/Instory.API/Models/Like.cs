@@ -17,6 +17,9 @@ public class Like : BaseEntity
     [Required]
     [Column("user_id")]
     public int UserId { get; set; }
+
+    [Column("is_deleted")]
+    public bool IsDeleted { get; set; } = false;
     
     [ForeignKey(nameof(PostId))]
     public Post Post { get; set; } = null!;

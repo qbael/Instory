@@ -150,6 +150,19 @@ export interface Hashtag {
   postsCount: number;
 }
 
+// ─── Report Reason ──────────────────────────────────────────────────────────
+
+export interface ReportReason {
+  id: number;
+  code: string;
+  name: string;
+  description: string | null;
+  severity: number;
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string | null;
+}
+
 // ─── Post Report ─────────────────────────────────────────────────────────────
 
 export type ReportStatus = "pending" | "reviewed" | "resolved";
@@ -158,7 +171,8 @@ export interface PostReport {
   id: number;
   postId: number;
   reporterId: number;
-  reason: string | null;
+  reasonId?: number;
+  reasonDetail: string | null;
   status: ReportStatus;
   createdAt: string;
   post: Post;
@@ -189,6 +203,22 @@ export interface RegisterDto {
   email: string;
   password: string;
   fullName?: string;
+}
+
+export interface SendSignupOtpDto {
+  username: string;
+  email: string;
+  password: string;
+  fullName?: string;
+}
+
+export interface VerifySignupOtpDto {
+  email: string;
+  otpCode: string;
+}
+
+export interface GoogleLoginRequestDto {
+  idToken: string;
 }
 
 export interface AuthResponse {

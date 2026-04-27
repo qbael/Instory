@@ -8,6 +8,7 @@ import GuestRoute from './GuestRoute';
 import {
   LoginPage,
   RegisterPage,
+  VerifyOtpPage,
   HomePage,
   ProfilePage,
   EditProfilePage,
@@ -17,6 +18,8 @@ import {
   NotFoundPage,
   ChatPage,
   StoryArchivePage,
+  HashtagTreding,
+  EditPost,
 } from './routes';
 
 export default function AppRouter() {
@@ -29,6 +32,7 @@ export default function AppRouter() {
             <Route element={<AuthLayout />}>
               <Route path="/login" element={<LoginPage />} />
               <Route path="/register" element={<RegisterPage />} />
+              <Route path="/register/verify-otp" element={<VerifyOtpPage />} />
             </Route>
           </Route>
 
@@ -43,6 +47,8 @@ export default function AppRouter() {
               <Route path="chat" element={<ChatPage />} />
               <Route path="admin" element={<AdminPage />} />
               <Route path="stories/archive" element={<StoryArchivePage />} />
+              <Route path='hashtagtrending' element={<HashtagTreding />}/>
+              <Route path="post/:postId/edit" element={<EditPost />} />
             </Route>
           </Route>
 
