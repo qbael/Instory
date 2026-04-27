@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { ArrowLeft, Video } from 'lucide-react';
 import { useNavigate } from 'react-router';
 import { storyService } from '@/services/storyService';
@@ -30,21 +30,28 @@ export default function StoryArchivePage() {
   const [hasMore, setHasMore] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
   const [viewerGroup, setViewerGroup] = useState<StoryGroup | null>(null);
+  const loadingRef = useRef(false);
 
   const loadMore = useCallback(async () => {
-    if (isLoading || !hasMore) return;
+    if (loadingRef.current || !hasMore) return;
+    loadingRef.current = true;
     setIsLoading(true);
     try {
       const { data } = await storyService.getArchive(page, 20);
-      setStories((prev) => [...prev, ...data.data]);
+      setStories((prev) => {
+        const existing = new Set(prev.map((s) => s.id));
+        const newOnes = data.data.filter((s) => !existing.has(s.id));
+        return [...prev, ...newOnes];
+      });
       setHasMore(data.hasNextPage);
       setPage((p) => p + 1);
     } catch {
       // ignore
     } finally {
+      loadingRef.current = false;
       setIsLoading(false);
     }
-  }, [page, isLoading, hasMore]);
+  }, [page, hasMore]);
 
   useEffect(() => {
     loadMore();
@@ -56,7 +63,7 @@ export default function StoryArchivePage() {
   const openViewer = (story: Story) => {
     if (!currentUser) return;
     const group: StoryGroup = {
-      user: story.user,
+      user: story.user ?? currentUser,
       stories: [story],
       hasUnviewed: false,
     };
@@ -150,6 +157,10 @@ export default function StoryArchivePage() {
           groups={[viewerGroup]}
           initialGroupIndex={0}
           onClose={() => setViewerGroup(null)}
+          onDeleted={(storyId) => {
+            setStories((prev) => prev.filter((s) => s.id !== storyId));
+            setViewerGroup(null);
+          }}
         />
       )}
     </div>

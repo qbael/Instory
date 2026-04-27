@@ -8,5 +8,6 @@ public interface IStoryRepository : IRepository<Story>
 {
     Task<PaginatedResult<Story>> GetStoriesPaginatedAsync(int page, int pageSize);
     Task<List<Story>> GetFeedStoriesAsync();
+    Task<List<Story>> GetActiveByUserIdAsync(int userId);
     Task<PaginatedResult<Story>> GetArchivedStoriesAsync(int userId, int page, int pageSize);
 }

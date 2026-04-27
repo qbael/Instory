@@ -37,11 +37,11 @@ public class AuthService : IAuthService
     {
         var existingUser = await _userManager.FindByEmailAsync(model.Email);
         if (existingUser != null)
-            return new ServiceResponse<bool> { Success = false, Message = "Email is already in use", StatusCode = 400 };
+            return new ServiceResponse<bool> { Success = false, Message = "Email đã được sử dụng", StatusCode = 400 };
         
         var existingUsername = await _userManager.FindByNameAsync(model.Username);
         if (existingUsername != null)
-            return new ServiceResponse<bool> { Success = false, Message = "Username is already taken", StatusCode = 400 };
+            return new ServiceResponse<bool> { Success = false, Message = "Tên đăng nhập đã được sử dụng", StatusCode = 400 };
 
         var user = new User
         {
@@ -67,7 +67,7 @@ public class AuthService : IAuthService
                    await _userManager.FindByEmailAsync(model.UsernameOrEmail);
 
         if (user == null || !await _userManager.CheckPasswordAsync(user, model.Password))
-            return new ServiceResponse<LoginDto> { Success = false, Message = "Invalid credentials", StatusCode = 401 };
+            return new ServiceResponse<LoginDto> { Success = false, Message = "Email/Tên đăng nhập hoặc mật khẩu không chính xác", StatusCode = 401 };
 
         var token = await _tokenService.GenerateTokenAsync(user);
         var refreshToken = _tokenService.GenerateRefreshToken();

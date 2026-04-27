@@ -8,10 +8,11 @@ export const highlightService = {
     return api.get<StoryHighlight[]>(BASE, { params: { userId } });
   },
 
-  create(title: string, cover?: File) {
+  create(title: string, cover?: File, coverUrl?: string) {
     const formData = new FormData();
     formData.append('title', title);
     if (cover) formData.append('cover', cover);
+    if (coverUrl) formData.append('coverUrl', coverUrl);
     return api.post<StoryHighlight>(BASE, formData, {
       headers: { 'Content-Type': 'multipart/form-data' },
     });

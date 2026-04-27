@@ -29,9 +29,6 @@ public class Story : BaseEntity
     [Column("media_type")]
     public MediaType MediaType { get; set; } = MediaType.Image;
 
-    [Column("is_deleted")]
-    public bool IsDeleted { get; set; } = false;
- 
     [ForeignKey(nameof(UserId))]
     public User User { get; set; } = null!;
  

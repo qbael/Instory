@@ -36,8 +36,8 @@ public class ProfileController : ControllerBase
     }
 
     [Authorize]
-    [HttpPatch("me")]
-    public async Task<IActionResult> Update(UpdateProfileDto dto)
+    [HttpPut("me")]
+    public async Task<IActionResult> Update([FromForm] UpdateProfileDto dto)
     {
         var id = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
         var profile = await _profileService.UpdateAsync(id, dto);

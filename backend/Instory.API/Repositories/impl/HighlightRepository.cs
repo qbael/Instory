@@ -39,4 +39,21 @@ public class HighlightRepository : Repository<StoryHighlight>, IHighlightReposit
                     .ThenInclude(s => s.StoryViews)
             .FirstOrDefaultAsync();
     }
+
+    public async Task AddStoryAsync(StoryHighlightStory item)
+    {
+        await _context.Set<StoryHighlightStory>().AddAsync(item);
+        await _context.SaveChangesAsync();
+    }
+
+    public async Task<StoryHighlightStory?> FindStoryHighlightAsync(int highlightId, int storyId)
+    {
+        return await _context.Set<StoryHighlightStory>()
+            .FirstOrDefaultAsync(hs => hs.HighlightId == highlightId && hs.StoryId == storyId);
+    }
+
+    public void RemoveStory(StoryHighlightStory item)
+    {
+        _context.Set<StoryHighlightStory>().Remove(item);
+    }
 }

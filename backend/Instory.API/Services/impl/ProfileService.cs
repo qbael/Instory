@@ -13,11 +13,13 @@ public class ProfileService : IProfileService
 {
     private readonly IUserRepository _userRepository;
     private readonly UserManager<User> _userManager;
-    
-    public ProfileService(IUserRepository userRepository, UserManager<User> userManager)
+    private readonly IMediaService _mediaService;
+
+    public ProfileService(IUserRepository userRepository, UserManager<User> userManager, IMediaService mediaService)
     {
         _userRepository = userRepository;
         _userManager = userManager;
+        _mediaService = mediaService;
     }
 
     public async Task<UserProfileDto> GetByIdAsync(int id, int currentUserId)
@@ -52,10 +54,20 @@ public class ProfileService : IProfileService
  
         if (dto.FullName is not null) user.FullName = dto.FullName;
         if (dto.Bio is not null) user.Bio = dto.Bio;
-        if (dto.AvatarUrl is not null) user.AvatarUrl = dto.AvatarUrl;
-        
+
+        string? oldAvatarUrl = null;
+        if (dto.Avatar != null)
+        {
+            oldAvatarUrl = user.AvatarUrl;
+            user.AvatarUrl = await _mediaService.UploadFileAsync(dto.Avatar, "avatars");
+        }
+
         _userRepository.Update(user);
         await _userRepository.SaveChangesAsync();
+
+        if (oldAvatarUrl != null)
+            await _mediaService.DeleteAsync(oldAvatarUrl);
+
         return UserProfileDto.FromUser(user, id);
     }
 }

@@ -34,6 +34,31 @@ export function StoryBar() {
     setViewerOpen(true);
   }, []);
 
+  const openCreator = useCallback(
+    () => dispatch(openModal({ modal: 'createStory' })),
+    [dispatch],
+  );
+
+  const handleStoryDeleted = useCallback((storyId: number) => {
+    setGroups((prev) =>
+      prev
+        .map((g) => ({ ...g, stories: g.stories.filter((s) => s.id !== storyId) }))
+        .filter((g) => g.stories.length > 0),
+    );
+  }, []);
+
+  const handleStoryViewed = useCallback((groupIdx: number, storyIdx: number) => {
+    setGroups((prev) =>
+      prev.map((g, gi) => {
+        if (gi !== groupIdx) return g;
+        const updatedStories = g.stories.map((s, si) =>
+          si === storyIdx ? { ...s, isViewed: true } : s,
+        );
+        return { ...g, stories: updatedStories, hasUnviewed: updatedStories.some((s) => !s.isViewed) };
+      }),
+    );
+  }, []);
+
   const ownGroup: StoryGroup | undefined = groups.find(
     (g) => g.user.id === currentUser?.id,
   );
@@ -43,13 +68,18 @@ export function StoryBar() {
     <>
       <div className="mb-4 overflow-hidden rounded-lg border border-border bg-bg-card">
         <div className="flex gap-2 overflow-x-auto px-4 py-3 scrollbar-none">
-          {/* Your story — clicking always opens the creator */}
+          {/* Your story */}
           <StoryCircle
             src={currentUser?.avatarUrl}
             name={currentUser?.userName ?? 'Bạn'}
-            hasUnviewed={false}
+            hasUnviewed={ownGroup?.hasUnviewed ?? false}
             isOwn
-            onClick={() => dispatch(openModal({ modal: 'createStory' }))}
+            onClick={
+              ownGroup
+                ? () => openViewer(groups.indexOf(ownGroup))
+                : openCreator
+            }
+            onPlusClick={ownGroup ? openCreator : undefined}
           />
 
           {/* Friends' stories */}
@@ -65,16 +95,6 @@ export function StoryBar() {
               />
             );
           })}
-
-          {/* Own stories (view) */}
-          {ownGroup && (
-            <StoryCircle
-              src={currentUser?.avatarUrl}
-              name="Xem story"
-              hasUnviewed={ownGroup.hasUnviewed}
-              onClick={() => openViewer(groups.indexOf(ownGroup))}
-            />
-          )}
         </div>
       </div>
 
@@ -83,6 +103,8 @@ export function StoryBar() {
           groups={groups}
           initialGroupIndex={viewerStartIdx}
           onClose={() => setViewerOpen(false)}
+          onDeleted={handleStoryDeleted}
+          onViewed={handleStoryViewed}
         />
       )}
     </>

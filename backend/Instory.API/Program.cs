@@ -118,6 +118,7 @@ builder.Services.AddScoped<Instory.API.Repositories.IPostImageRepository, PostIm
 
 builder.Services.AddScoped<ITokenService, TokenService>();
 builder.Services.AddScoped<IStoryService, StoryService>();
+builder.Services.AddScoped<IHighlightService, HighlightService>();
 
 builder.Services.Configure<AwsSettings>(builder.Configuration.GetSection("AWS"));
 builder.Services.AddSingleton<IAmazonS3>(sp =>
@@ -138,7 +139,9 @@ builder.Services.AddScoped<IProfileService, ProfileService>();
 builder.Services.AddScoped<IPostService, PostService>();
 builder.Services.AddScoped<ICommentService, CommentService>();
 builder.Services.AddScoped<ILikeService, LikeService>();
+builder.Services.AddScoped<IFriendshipService, FriendshipService>();
 // builder.Services.AddScoped<IPostImageService, PostImageService>();
+builder.Services.AddScoped<ISearchService, SearchService>();
 
 var app = builder.Build();
 

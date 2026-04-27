@@ -8,6 +8,7 @@ type ModalType =
   | 'friends'
   | 'confirmDelete'
   | 'createStory'
+  | 'createHighlight'
   | null;
 
 interface UiState {

@@ -10,4 +10,6 @@ public class CreateHighlightDto
     public string Title { get; set; } = string.Empty;
 
     public IFormFile? Cover { get; set; }
+
+    public string? CoverUrl { get; set; }
 }

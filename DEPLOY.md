@@ -3,10 +3,13 @@
 ## Architecture
 
 ```
-git push → GitHub Actions → build + test → push ECR → EC2 pull & restart
+git push → GitHub Actions → build + test backend → push ECR → EC2 pull & restart
+                          → build frontend → scp dist → EC2 /var/www/instory
 
-User → Nginx (443) → .NET App (8080) → RDS PostgreSQL
-                                      → AWS S3 (media)
+User → Nginx (443) → /             → Static files React (/var/www/instory)
+                   → /api/         → .NET App (8080) → RDS PostgreSQL
+                   → /hubs/        → .NET App (8080, WebSocket)
+                                                      → AWS S3 (media)
 ```
 
 ## AWS Resources
@@ -15,7 +18,8 @@ User → Nginx (443) → .NET App (8080) → RDS PostgreSQL
 |---|---|
 | ECR | `689327565628.dkr.ecr.ap-southeast-2.amazonaws.com/instory-api` |
 | RDS | `instory-db.cbomcyqc8i6z.ap-southeast-2.rds.amazonaws.com` — PostgreSQL 17, db.t3.micro |
-| EC2 | IP `3.25.112.35`, Ubuntu 24.04, t2.micro |
+| EC2 | IP `3.25.112.35`, Ubuntu 24.04, t2.micro — serves backend + frontend |
+| Domain | `instory.codes` (name.com) — HTTPS via Certbot/Let's Encrypt |
 | Secrets Manager | `instory/production` |
 | IAM Role | `instory-ec2-role` (gắn vào EC2) |
 | IAM User | `iuser-deploy` (dùng cho GitHub Actions) |
@@ -289,7 +293,70 @@ jobs:
 
 ---
 
-## Bước 7: Domain + HTTPS với Certbot
+## Bước 7: Deploy Frontend
+
+Frontend được build trong GitHub Actions và copy lên EC2 tự động.
+
+### 7.1 Chuẩn bị thư mục trên EC2
+```bash
+sudo mkdir -p /var/www/instory
+sudo chown ubuntu:ubuntu /var/www/instory
+```
+
+### 7.2 Cập nhật Nginx config
+Tách `/api/` và `/hubs/` proxy về backend, `/` serve React static files:
+```nginx
+server {
+    server_name instory.codes www.instory.codes;
+
+    root /var/www/instory;
+    index index.html;
+
+    location / {
+        try_files $uri $uri/ /index.html;
+    }
+
+    location /api/ {
+        proxy_pass http://localhost:8080;
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+
+    location /hubs/ {
+        proxy_pass http://localhost:8080;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "upgrade";
+        proxy_set_header Host $host;
+    }
+
+    listen 443 ssl;
+    ssl_certificate /etc/letsencrypt/live/instory.codes/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/instory.codes/privkey.pem;
+    include /etc/letsencrypt/options-ssl-nginx.conf;
+    ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem;
+}
+
+server {
+    listen 80;
+    server_name instory.codes www.instory.codes;
+    return 301 https://$host$request_uri;
+}
+```
+
+### 7.3 GitHub Actions — frontend deploy
+CI/CD tự động build frontend với env production và scp lên EC2:
+- `VITE_API_URL=https://instory.codes/api`
+- `VITE_SIGNALR_URL=https://instory.codes/hubs`
+
+Xem `.github/workflows/ci-cd.yml` — job `frontend` build + upload artifact, job `deploy` download + scp lên `/var/www/instory/`.
+
+---
+
+## Bước 8: Domain + HTTPS với Certbot
 
 ### 7.1 Mua domain và trỏ DNS
 - Domain: `instory.codes` (mua trên name.com)
@@ -422,4 +489,5 @@ aws ecr get-login-password --region ap-southeast-2 --profile deploy | \
 - [x] CI/CD hoạt động end-to-end (push main → tự động deploy)
 - [x] Domain `instory.codes` (name.com) + DNS trỏ về EC2
 - [x] HTTPS với Certbot — `https://instory.codes` ✅
-- [ ] Frontend deploy (Nginx trên EC2 serve static files)
+- [x] Frontend deploy — GitHub Actions build + scp → EC2, Nginx serve static files
+- [x] Nginx config tách `/api/`, `/hubs/` → backend, `/` → React static files

@@ -29,6 +29,15 @@ public class StoryController : ControllerBase
         return Ok(result);
     }
 
+    [HttpGet("user/{userId}")]
+    public async Task<IActionResult> GetUserStories(int userId)
+    {
+        var currentUserId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+        var result = await _storyService.GetUserStoriesAsync(userId, currentUserId);
+        if (result == null) return NoContent();
+        return Ok(result);
+    }
+
     [HttpGet("{id}")]
     public async Task<IActionResult> GetById(int id)
     {
@@ -51,6 +60,14 @@ public class StoryController : ControllerBase
         var currentUserId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
         var result = await _storyService.GetArchiveAsync(currentUserId, page, pageSize);
         return Ok(result);
+    }
+
+    [HttpPost("{id}/view")]
+    public async Task<IActionResult> MarkViewed(int id)
+    {
+        var currentUserId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+        await _storyService.MarkViewedAsync(id, currentUserId);
+        return NoContent();
     }
 
     [HttpDelete("{id}")]

@@ -8,4 +8,7 @@ public interface IHighlightRepository : IRepository<StoryHighlight>
 {
     Task<List<StoryHighlight>> GetByUserIdAsync(int userId);
     Task<StoryHighlight?> GetByIdWithStoriesAsync(int id);
+    Task AddStoryAsync(StoryHighlightStory item);
+    Task<StoryHighlightStory?> FindStoryHighlightAsync(int highlightId, int storyId);
+    void RemoveStory(StoryHighlightStory item);
 }

@@ -10,6 +10,7 @@ using Instory.API.Models;
 using Instory.API.Models.Enums;
 using Instory.API.Repositories;
 using Microsoft.AspNetCore.Http;
+using Microsoft.EntityFrameworkCore;
 
 namespace Instory.API.Services.impl;
 
@@ -49,22 +50,48 @@ public class StoryService : IStoryService
                     u.CreatedAt, u.UpdatedAt
                 );
 
-                var items = g.Select(s => new StoryFeedItemDto(
-                    s.Id,
-                    s.UserId,
-                    s.MediaUrl,
-                    s.Caption,
-                    s.MediaType.ToString(),
-                    s.ExpiresAt,
-                    s.CreatedAt,
-                    userDto,
-                    s.StoryViews.Count,
-                    s.StoryViews.Any(v => v.ViewerId == currentUserId)
-                )).ToList();
+                var items = g
+                    .OrderBy(s => s.StoryViews.Any(v => v.ViewerId == currentUserId) ? 1 : 0)
+                    .ThenByDescending(s => s.CreatedAt)
+                    .Select(s => new StoryFeedItemDto(
+                        s.Id,
+                        s.UserId,
+                        s.MediaUrl,
+                        s.Caption,
+                        s.MediaType.ToString(),
+                        s.ExpiresAt,
+                        s.CreatedAt,
+                        userDto,
+                        s.StoryViews.Count,
+                        s.StoryViews.Any(v => v.ViewerId == currentUserId)
+                    )).ToList();
 
                 return new StoryGroupDto(userDto, items, items.Any(i => !i.IsViewed));
             })
+            .OrderByDescending(g => g.HasUnviewed)
+            .ThenByDescending(g => g.Stories.Max(s => s.CreatedAt))
             .ToList();
+    }
+
+    public async Task<StoryGroupDto?> GetUserStoriesAsync(int userId, int currentUserId)
+    {
+        var stories = await _storyRepository.GetActiveByUserIdAsync(userId);
+        if (stories.Count == 0) return null;
+
+        var u = stories[0].User;
+        var userDto = new StoryFeedUserDto(
+            u.Id, u.UserName!, u.Email, u.FullName, u.Bio, u.AvatarUrl,
+            u.CreatedAt, u.UpdatedAt
+        );
+
+        var items = stories.Select(s => new StoryFeedItemDto(
+            s.Id, s.UserId, s.MediaUrl, s.Caption, s.MediaType.ToString(),
+            s.ExpiresAt, s.CreatedAt, userDto,
+            s.StoryViews.Count,
+            s.StoryViews.Any(v => v.ViewerId == currentUserId)
+        )).ToList();
+
+        return new StoryGroupDto(userDto, items, items.Any(i => !i.IsViewed));
     }
 
     public async Task<PaginatedResult<StoryResponseDto>> GetAllAsync(int page, int pageSize)
@@ -107,7 +134,7 @@ public class StoryService : IStoryService
             MediaUrl = mediaUrl,
             Caption = dto.Caption,
             MediaType = mediaType,
-            ExpiresAt = DateTime.UtcNow.AddHours(24),
+            ExpiresAt = DateTime.UtcNow.AddMinutes(1),
         };
 
         await _storyRepository.AddAsync(story);
@@ -136,6 +163,22 @@ public class StoryService : IStoryService
         return result.Map(StoryResponseDto.FromEntity);
     }
 
+    public async Task MarkViewedAsync(int storyId, int currentUserId)
+    {
+        var alreadyViewed = await _context.StoryViews
+            .AnyAsync(v => v.StoryId == storyId && v.ViewerId == currentUserId);
+
+        if (alreadyViewed) return;	
+
+        _context.StoryViews.Add(new StoryView
+        {
+            StoryId = storyId,
+            ViewerId = currentUserId,
+            ViewedAt = DateTime.UtcNow,
+        });
+        await _context.SaveChangesAsync();
+    }
+
     public async Task DeleteByIdAsync(int id, int currentUserId)
     {
         var story = await _storyRepository.GetByIdAsync(id)
@@ -144,7 +187,12 @@ public class StoryService : IStoryService
         if (story.UserId != currentUserId)
             throw new UnauthorizedAccessException("You are not allowed to delete this story.");
 
-        story.IsDeleted = true;
+		var mediaUrl = story.MediaUrl;
+
+        _storyRepository.Remove(story);
         await _storyRepository.SaveChangesAsync();
+
+		if (mediaUrl != null)
+			await _mediaService.DeleteAsync(mediaUrl);
     }
 }

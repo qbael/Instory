@@ -9,7 +9,6 @@ public record StoryResponseDto(
     string? Caption,
     string MediaType,
     DateTime ExpiresAt,
-    bool IsDeleted,
     DateTime CreatedAt
 )
 {
@@ -20,7 +19,6 @@ public record StoryResponseDto(
         story.Caption,
         story.MediaType.ToString(),
         story.ExpiresAt,
-        story.IsDeleted,
         story.CreatedAt
     );
 }

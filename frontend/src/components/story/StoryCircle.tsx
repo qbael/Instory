@@ -9,6 +9,7 @@ interface StoryCircleProps {
   hasUnviewed: boolean;
   isOwn?: boolean;
   onClick: () => void;
+  onPlusClick?: () => void;
 }
 
 export const StoryCircle = memo(function StoryCircle({
@@ -17,6 +18,7 @@ export const StoryCircle = memo(function StoryCircle({
   hasUnviewed,
   isOwn,
   onClick,
+  onPlusClick,
 }: StoryCircleProps) {
   return (
     <button
@@ -30,7 +32,7 @@ export const StoryCircle = memo(function StoryCircle({
             'rounded-full p-[2px]',
             hasUnviewed
               ? 'bg-gradient-to-tr from-warning via-accent to-primary'
-              : isOwn
+              : isOwn && !onPlusClick
                 ? 'bg-transparent'
                 : 'bg-border',
           )}
@@ -45,7 +47,17 @@ export const StoryCircle = memo(function StoryCircle({
           </div>
         </div>
         {isOwn && (
-          <span className="absolute -bottom-0.5 -right-0.5 flex h-5 w-5 items-center justify-center rounded-full bg-primary text-white ring-2 ring-bg-card">
+          <span
+            className="absolute -bottom-0.5 -right-0.5 flex h-5 w-5 items-center justify-center rounded-full bg-primary text-white ring-2 ring-bg-card"
+            onClick={
+              onPlusClick
+                ? (e) => {
+                    e.stopPropagation();
+                    onPlusClick();
+                  }
+                : undefined
+            }
+          >
             <Plus className="h-3 w-3" strokeWidth={3} />
           </span>
         )}

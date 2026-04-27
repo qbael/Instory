@@ -9,4 +9,5 @@ public interface IUserRepository : IRepository<User>
     Task<User?> GetUserByRefreshTokenAsync(string refreshToken);
     Task<User?> GetByUsernameAsync(string username);
     Task<User?> GetByIdWithDetailsAsync(int id);
+    Task<List<User>> SearchAsync(string query);
 }

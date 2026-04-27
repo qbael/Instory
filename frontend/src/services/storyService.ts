@@ -18,6 +18,10 @@ export const storyService = {
     });
   },
 
+  getByUser(userId: number) {
+    return api.get<StoryGroup>(`${BASE}/user/${userId}`);
+  },
+
   getArchive(page = 1, pageSize = 20) {
     return api.get<PaginatedResponse<Story>>(`${BASE}/archive`, {
       params: { page, pageSize },

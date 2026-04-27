@@ -28,7 +28,18 @@ public class StoryRepository : Repository<Story>, IStoryRepository
     {
         return await _dbSet
             .AsNoTracking()
-            .Where(s => !s.IsDeleted && s.ExpiresAt > DateTime.UtcNow)
+            .Where(s => s.ExpiresAt > DateTime.UtcNow)
+            .Include(s => s.User)
+            .Include(s => s.StoryViews)
+            .OrderBy(s => s.CreatedAt)
+            .ToListAsync();
+    }
+
+    public async Task<List<Story>> GetActiveByUserIdAsync(int userId)
+    {
+        return await _dbSet
+            .AsNoTracking()
+            .Where(s => s.UserId == userId && s.ExpiresAt > DateTime.UtcNow)
             .Include(s => s.User)
             .Include(s => s.StoryViews)
             .OrderBy(s => s.CreatedAt)
@@ -39,7 +50,7 @@ public class StoryRepository : Repository<Story>, IStoryRepository
     {
         var query = _dbSet
             .AsNoTracking()
-            .Where(s => s.UserId == userId && !s.IsDeleted && s.ExpiresAt <= DateTime.UtcNow)
+            .Where(s => s.UserId == userId && s.ExpiresAt <= DateTime.UtcNow)
             .Include(s => s.User)
             .OrderByDescending(s => s.ExpiresAt);
 

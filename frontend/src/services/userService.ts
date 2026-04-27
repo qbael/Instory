@@ -5,8 +5,8 @@ import type {
   User,
   UserProfile,
   Friendship,
-  SearchParams,
-  SearchResults,
+  Hashtag,
+  Post,
 } from '@/types';
 
 const BASE = 'v1/profile';
@@ -62,7 +62,15 @@ export const userService = {
     return api.get<PaginatedResponse<Friendship>>('v1/friendship/sent', { params });
   },
 
-  search(params: SearchParams) {
-    return api.get<SearchResults>('v1/search', { params });
+  searchUsers(query: string) {
+    return api.get<User[]>('v1/search/users', { params: { query } });
+  },
+
+  searchPosts(query: string) {
+    return api.get<Post[]>('v1/search/posts', { params: { query } });
+  },
+
+  searchHashtags(query: string) {
+    return api.get<Hashtag[]>('v1/search/hashtags', { params: { query } });
   },
 };

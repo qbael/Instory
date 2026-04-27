@@ -2,6 +2,7 @@ using System;
 using System.IO;
 using System.Threading.Tasks;
 using Amazon.S3;
+using Amazon.S3.Model;
 using Amazon.S3.Transfer;
 using Instory.API.Models;
 using Microsoft.AspNetCore.Http;
@@ -13,11 +14,13 @@ public class MediaService : IMediaService
 {
     private readonly AwsSettings _awsSettings;
     private readonly IAmazonS3 _s3Client;
+    private readonly ILogger<MediaService> _logger;
 
-    public MediaService(IOptions<AwsSettings> awsSettings, IAmazonS3 s3Client)
+    public MediaService(IOptions<AwsSettings> awsSettings, IAmazonS3 s3Client, ILogger<MediaService> logger)
     {
         _awsSettings = awsSettings.Value;
         _s3Client = s3Client;
+        _logger = logger;
     }
 
     public async Task<string> UploadFileAsync(IFormFile file, string folderName)
@@ -42,5 +45,48 @@ public class MediaService : IMediaService
         await fileTransferUtility.UploadAsync(uploadRequest);
 
         return $"https://{_awsSettings.BucketName}.s3.{_awsSettings.Region}.amazonaws.com/{fileName}";
+    }
+
+    public async Task DeleteAsync(string url)
+    {
+        var expectedPrefix = $"https://{_awsSettings.BucketName}.s3.{_awsSettings.Region}.amazonaws.com/";
+        if (!url.StartsWith(expectedPrefix))
+            return;
+
+        var uri = new Uri(url);
+        var key = uri.AbsolutePath.TrimStart('/');
+
+        try
+        {
+            await _s3Client.DeleteObjectAsync(_awsSettings.BucketName, key);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "S3 delete failed for key: {Key}", key);
+        }
+    }
+
+    public async Task<string> CopyAsync(string sourceUrl, string destFolderName)
+    {
+        var expectedPrefix = $"https://{_awsSettings.BucketName}.s3.{_awsSettings.Region}.amazonaws.com/";
+        if (!sourceUrl.StartsWith(expectedPrefix))
+            throw new ArgumentException("Source URL doesn't belong to this bucket");
+
+        var sourceUri = new Uri(sourceUrl);
+        var sourceKey = sourceUri.AbsolutePath.TrimStart('/');
+
+        var extension = Path.GetExtension(sourceKey);
+        var destKey = $"{destFolderName}/{Guid.NewGuid()}{extension}";
+
+        await _s3Client.CopyObjectAsync(new CopyObjectRequest
+        {
+            SourceBucket = _awsSettings.BucketName,
+            SourceKey = sourceKey,
+            DestinationBucket = _awsSettings.BucketName,
+            DestinationKey = destKey,
+            CannedACL = S3CannedACL.PublicRead
+        });
+
+        return $"https://{_awsSettings.BucketName}.s3.{_awsSettings.Region}.amazonaws.com/{destKey}";
     }
 }

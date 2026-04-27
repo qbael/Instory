@@ -9,27 +9,49 @@ import type { Post, Hashtag } from '@/types';
 
 type Tab = 'people' | 'posts' | 'hashtags';
 
+const tabs: { key: Tab; label: string }[] = [
+  { key: 'people', label: 'Mọi người' },
+  { key: 'posts', label: 'Bài viết' },
+  { key: 'hashtags', label: 'Hashtag' },
+];
+
 export default function SearchPage() {
   const [searchParams] = useSearchParams();
   const initialTag = searchParams.get('tag');
-  const { query, setQuery, results, isLoading, clear } = useSearch();
-  const [tab, setTab] = useState<Tab>('people');
+  const [tab, setTab] = useState<Tab>(initialTag ? 'hashtags' : 'people');
+  const { query, setQuery, results, isLoading, clear } = useSearch(tab);
 
   // Pre-fill from tag query param
   if (initialTag && !query) {
     setQuery(`#${initialTag}`);
   }
 
-  const tabs: { key: Tab; label: string }[] = [
-    { key: 'people', label: 'Mọi người' },
-    { key: 'posts', label: 'Bài viết' },
-    { key: 'hashtags', label: 'Hashtag' },
-  ];
-
-  const isEmpty = results && !results.users.length && !results.posts.length && !results.hashtags.length;
+  const isEmpty = results &&
+    !results.users.length &&
+    !results.posts.length &&
+    !results.hashtags.length;
 
   return (
     <div>
+      {/* Tabs — always visible */}
+      <div className="mb-4 flex gap-1 rounded-lg bg-bg-card p-1">
+        {tabs.map(({ key, label }) => (
+          <button
+            key={key}
+            type="button"
+            onClick={() => setTab(key)}
+            className={cn(
+              'flex-1 cursor-pointer rounded-md py-2 text-center text-sm font-medium transition-colors',
+              tab === key
+                ? 'bg-primary text-white shadow-sm'
+                : 'text-text-secondary hover:text-text-primary',
+            )}
+          >
+            {label}
+          </button>
+        ))}
+      </div>
+
       {/* Search input */}
       <div className="relative mb-4">
         <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-text-secondary" />
@@ -37,7 +59,11 @@ export default function SearchPage() {
           type="text"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          placeholder="Tìm kiếm mọi người, bài viết, hashtag…"
+          placeholder={
+            tab === 'people' ? 'Tìm kiếm mọi người…'
+            : tab === 'posts' ? 'Tìm kiếm bài viết…'
+            : 'Tìm kiếm hashtag…'
+          }
           className="w-full rounded-lg border border-border bg-bg py-2.5 pl-10 pr-10 text-sm text-text-primary placeholder:text-text-secondary/70 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
         />
         {query && (
@@ -50,27 +76,6 @@ export default function SearchPage() {
           </button>
         )}
       </div>
-
-      {/* Tabs */}
-      {query.trim() && (
-        <div className="mb-4 flex gap-1 rounded-lg bg-bg-card p-1">
-          {tabs.map(({ key, label }) => (
-            <button
-              key={key}
-              type="button"
-              onClick={() => setTab(key)}
-              className={cn(
-                'flex-1 cursor-pointer rounded-md py-2 text-center text-sm font-medium transition-colors',
-                tab === key
-                  ? 'bg-primary text-white shadow-sm'
-                  : 'text-text-secondary hover:text-text-primary',
-              )}
-            >
-              {label}
-            </button>
-          ))}
-        </div>
-      )}
 
       {/* Loading */}
       {isLoading && (
@@ -90,7 +95,7 @@ export default function SearchPage() {
               {results.users.length > 0 ? (
                 <div className="rounded-lg border border-border bg-bg-card">
                   {results.users.map((u) => (
-                    <UserCard key={u.id} user={u} />
+                    <UserCard key={u.id} user={u} showFriendButton={false} />
                   ))}
                 </div>
               ) : (

@@ -34,4 +34,14 @@ public class UserRepository : Repository<User>, IUserRepository
             .Include(u => u.ReceivedFriendRequests)
             .SingleOrDefaultAsync(u => u.Id == id);
     }
+    
+    public async Task<List<User>> SearchAsync(string query)
+    {
+        return await _dbSet
+            .Where(u => EF.Functions.ILike(u.UserName, $"%{query}%")
+                        || EF.Functions.ILike(u.FullName, $"%{query}%"))
+            .Take(10)
+            .ToListAsync();
+    }
+    
 }

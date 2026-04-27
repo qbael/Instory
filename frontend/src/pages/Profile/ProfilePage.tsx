@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useParams, Link, useNavigate } from 'react-router';
 import {
   Grid3X3,
@@ -11,6 +11,7 @@ import {
   UserX,
   UserCheck,
   Camera,
+  Plus,
 } from 'lucide-react';
 import { Avatar } from '@/components/ui/Avatar';
 import { Spinner } from '@/components/ui/Spinner';
@@ -22,14 +23,17 @@ import {
   DropdownMenuItem,
 } from '@/components/ui/DropdownMenu';
 import { ProfileHighlights } from '@/components/profile/ProfileHighlights';
+import { StoryViewer } from '@/components/story/StoryViewer';
 import { highlightService } from '@/services/highlightService';
+import { storyService } from '@/services/storyService';
 import { useProfile } from '@/hooks/useProfile';
 import { usePosts } from '@/hooks/usePosts';
 import { useInfiniteScroll } from '@/hooks/useInfiniteScroll';
 import { useAppSelector, useAppDispatch } from '@/store';
 import { getOrCreateDirectChat } from '@/store/slices/chatSlice';
+import { openModal } from '@/store/slices/uiSlice';
 import { cn } from '@/utils/cn';
-import type { StoryHighlight } from '@/types';
+import type { StoryHighlight, StoryGroup } from '@/types';
 
 type OwnTab = 'posts' | 'liked' | 'saved';
 type OtherTab = 'posts';
@@ -69,6 +73,16 @@ export default function ProfilePage() {
   const [unfriendDialogOpen, setUnfriendDialogOpen] = useState(false);
 
   const [highlights, setHighlights] = useState<StoryHighlight[]>([]);
+  const [storyGroup, setStoryGroup] = useState<StoryGroup | null>(null);
+  const [storyViewerOpen, setStoryViewerOpen] = useState(false);
+
+  const loadStories = useCallback(() => {
+    if (!profile?.id) return;
+    storyService
+      .getByUser(profile.id)
+      .then(({ data }) => setStoryGroup(data))
+      .catch(() => setStoryGroup(null));
+  }, [profile?.id]);
 
   useEffect(() => {
     loadProfile();
@@ -78,14 +92,31 @@ export default function ProfilePage() {
     if (profile?.id) fetchPage(1);
   }, [profile?.id, fetchPage]);
 
-  useEffect(() => {
-    if (profile?.id) {
-      highlightService
-        .getByUser(profile.id)
-        .then(({ data }) => setHighlights(data))
-        .catch(() => {});
-    }
+  const loadHighlights = useCallback(() => {
+    if (!profile?.id) return;
+    highlightService
+      .getByUser(profile.id)
+      .then(({ data }) => setHighlights(data))
+      .catch(() => {});
   }, [profile?.id]);
+
+  useEffect(() => {
+    loadHighlights();
+  }, [loadHighlights]);
+
+  useEffect(() => {
+    window.addEventListener('highlight-created', loadHighlights);
+    return () => window.removeEventListener('highlight-created', loadHighlights);
+  }, [loadHighlights]);
+
+  useEffect(() => {
+    loadStories();
+  }, [loadStories]);
+
+  useEffect(() => {
+    window.addEventListener('story-created', loadStories);
+    return () => window.removeEventListener('story-created', loadStories);
+  }, [loadStories]);
 
   useEffect(() => {
     setTab('posts');
@@ -118,16 +149,48 @@ export default function ProfilePage() {
         <div className="flex gap-6">
           {/* Avatar */}
           <div className="group relative shrink-0">
-            <Avatar
-              src={profile.avatarUrl}
-              alt={profile.fullName ?? profile.userName}
-              size="xl"
-              className="!h-20 !w-20"
-            />
+            <div
+              className={cn(
+                'rounded-full p-[2px]',
+                storyGroup
+                  ? storyGroup.hasUnviewed
+                    ? 'bg-gradient-to-tr from-warning via-accent to-primary'
+                    : 'bg-border'
+                  : 'bg-transparent',
+              )}
+              onClick={
+                storyGroup
+                  ? () => setStoryViewerOpen(true)
+                  : isOwn
+                    ? () => dispatch(openModal({ modal: 'createStory' }))
+                    : undefined
+              }
+              style={storyGroup || isOwn ? { cursor: 'pointer' } : undefined}
+            >
+              <div className={cn('rounded-full', storyGroup ? 'bg-bg-card p-[2px]' : '')}>
+                <Avatar
+                  src={profile.avatarUrl}
+                  alt={profile.fullName ?? profile.userName}
+                  size="xl"
+                  className="!h-20 !w-20"
+                />
+              </div>
+            </div>
             {isOwn && (
-              <div className="absolute inset-0 flex cursor-pointer items-center justify-center rounded-full bg-black/30 opacity-0 transition-opacity group-hover:opacity-100">
+              <div className="pointer-events-none absolute inset-0 flex items-center justify-center rounded-full bg-black/30 opacity-0 transition-opacity group-hover:opacity-100">
                 <Camera className="h-6 w-6 text-white" />
               </div>
+            )}
+            {isOwn && (
+              <span
+                onClick={(e) => {
+                  e.stopPropagation();
+                  dispatch(openModal({ modal: 'createStory' }));
+                }}
+                className="absolute -bottom-0.5 -right-0.5 flex h-6 w-6 cursor-pointer items-center justify-center rounded-full bg-primary text-white ring-2 ring-bg-card hover:bg-primary/90"
+              >
+                <Plus className="h-3.5 w-3.5" strokeWidth={3} />
+              </span>
             )}
           </div>
 
@@ -350,6 +413,21 @@ export default function ProfilePage() {
         <div ref={sentinelRef} className="flex justify-center py-4">
           {postsLoading && <Spinner />}
         </div>
+      )}
+
+      {storyViewerOpen && storyGroup && (
+        <StoryViewer
+          groups={[storyGroup]}
+          initialGroupIndex={0}
+          onClose={() => setStoryViewerOpen(false)}
+          onDeleted={(storyId) => {
+            setStoryGroup((prev) => {
+              if (!prev) return prev;
+              const stories = prev.stories.filter((s) => s.id !== storyId);
+              return stories.length === 0 ? null : { ...prev, stories };
+            });
+          }}
+        />
       )}
 
       <AlertDialog

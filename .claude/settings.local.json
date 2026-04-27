@@ -8,7 +8,15 @@
       "Bash(find \"C:\\\\Dang\\\\Github\\\\C-Sharp\\\\Instory\\\\backend\\\\Instory.API\" -name \"*.cs\" -exec grep -l \"ValidationExtension\\\\|AddValidation\" {} \\\\;)",
       "Bash(xargs grep *)",
       "Bash(find /c/Dang/Github/C-Sharp/Instory/backend -name \"*.cs\" -type f -exec grep -l \"AddValidation\" {} \\\\;)",
-      "Bash(grep -E \"\\\\.cs$\")"
+      "Bash(grep -E \"\\\\.cs$\")",
+      "Bash(find \"C:/Dang/Github/C-Sharp/Instory/backend/Instory.API/Services/impl\" -name \"*.cs\" -exec wc -l {} +)",
+      "Bash(grep -v \"^Build\\\\|^  Deter\\\\|warning\\\\|Warning\\\\|^$\")",
+      "Bash(dotnet publish *)",
+      "Read(//c/Temp/instory-run/**)",
+      "Bash(dotnet Instory.API.dll)",
+      "PowerShell(Get-MpComputerStatus)",
+      "PowerShell(Get-CimInstance -ClassName Win32_DeviceGuard -Namespace root\\\\Microsoft\\\\Windows\\\\DeviceGuard -ErrorAction SilentlyContinue)",
+      "PowerShell(\\(Get-MpComputerStatus\\).SmartAppControlState)"
     ]
   }
 }
