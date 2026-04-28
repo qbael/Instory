@@ -1,7 +1,6 @@
-import { useState, useCallback, useEffect, useRef, use } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 import type { Post } from "@/types";
 import { postService } from "@/services/postService";
-import { DEFAULT_PAGE_SIZE } from "@/utils/constants";
 import { hashtagService } from "@/services/hashtagService";
 
 // Thêm "none" và { hashtag: string } vào FeedType

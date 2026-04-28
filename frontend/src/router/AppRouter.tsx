@@ -5,6 +5,7 @@ import { AppLayout } from '@/components/layout/AppLayout';
 import { AuthLayout } from '@/components/layout/AuthLayout';
 import ProtectedRoute from './ProtectedRoute';
 import GuestRoute from './GuestRoute';
+import AdminRoute from './AdminRoute';
 import {
   LoginPage,
   RegisterPage,
@@ -36,7 +37,6 @@ export default function AppRouter() {
             </Route>
           </Route>
 
-          {/* Protected routes (redirect to /login if not authenticated) */}
           <Route element={<ProtectedRoute />}>
             <Route element={<AppLayout />}>
               <Route index element={<HomePage />} />
@@ -45,10 +45,12 @@ export default function AppRouter() {
               <Route path="search" element={<SearchPage />} />
               <Route path="notifications" element={<NotificationsPage />} />
               <Route path="chat" element={<ChatPage />} />
-              <Route path="admin" element={<AdminPage />} />
               <Route path="stories/archive" element={<StoryArchivePage />} />
               <Route path='hashtagtrending' element={<HashtagTreding />}/>
               <Route path="post/:postId/edit" element={<EditPost />} />
+            </Route>
+            <Route element={<AdminRoute />}>
+              <Route path="admin" element={<AdminPage />} />
             </Route>
           </Route>
 

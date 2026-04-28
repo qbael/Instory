@@ -7,18 +7,18 @@ import { UserCardSkeleton } from '@/components/user/UserCardSkeleton';
 import { cn } from '@/utils/cn';
 import type { Post, Hashtag } from '@/types';
 
-type Tab = 'people' | 'posts' | 'hashtags';
+type Tab = 'people' | 'posts' | 'tags';
 
 const tabs: { key: Tab; label: string }[] = [
   { key: 'people', label: 'Mọi người' },
   { key: 'posts', label: 'Bài viết' },
-  { key: 'hashtags', label: 'Hashtag' },
+  { key: 'tags', label: 'Hashtag' },
 ];
 
 export default function SearchPage() {
   const [searchParams] = useSearchParams();
   const initialTag = searchParams.get('tag');
-  const [tab, setTab] = useState<Tab>(initialTag ? 'hashtags' : 'people');
+  const [tab, setTab] = useState<Tab>(initialTag ? 'tags' : 'people');
   const { query, setQuery, results, isLoading, clear } = useSearch(tab);
 
   // Pre-fill from tag query param
@@ -116,7 +116,7 @@ export default function SearchPage() {
           )}
 
           {/* Hashtags tab */}
-          {tab === 'hashtags' && (
+          {tab === 'tags' && (
             <div>
               {results.hashtags.length > 0 ? (
                 <div className="rounded-lg border border-border bg-bg-card">
@@ -125,7 +125,7 @@ export default function SearchPage() {
                   ))}
                 </div>
               ) : (
-                <EmptyResults query={query} type="hashtags" />
+                <EmptyResults query={query} type="tags" />
               )}
             </div>
           )}
@@ -207,7 +207,7 @@ function HashtagRow({ hashtag }: { hashtag: Hashtag }) {
 const typeLabelsVI: Record<string, string> = {
   people: 'mọi người',
   posts: 'bài viết',
-  hashtags: 'hashtag',
+  tags: 'hashtag',
 };
 
 function EmptyResults({ query, type }: { query: string; type?: string }) {

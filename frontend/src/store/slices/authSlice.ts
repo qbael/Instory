@@ -149,6 +149,7 @@ const authSlice = createSlice({
           avatarUrl: null,
           createdAt: '',
           updatedAt: null,
+          roles: action.payload.roles,
         };
       })
       .addCase(login.rejected, (state, action) => {
@@ -173,6 +174,7 @@ const authSlice = createSlice({
           avatarUrl: null,
           createdAt: '',
           updatedAt: null,
+          roles: action.payload.roles,
         };
       })
       .addCase(googleLogin.rejected, (state, action) => {

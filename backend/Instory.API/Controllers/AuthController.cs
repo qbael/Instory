@@ -45,7 +45,8 @@ public class AuthController : ControllerBase
             Message = result.Message,
             UserId = result.Data.User.Id,
             Username = result.Data.User.UserName!,
-            Email = result.Data.User.Email!
+            Email = result.Data.User.Email!,
+            Roles = result.Data.Roles
         });
     }
 
@@ -122,12 +123,13 @@ public class AuthController : ControllerBase
         
         return Ok(new
         {
-            result.Data!.Id,
-            result.Data.UserName,
-            result.Data.Email,
-            result.Data.FullName,
-            result.Data.Bio,
-            result.Data.AvatarUrl
+            result.Data!.user.Id,
+            result.Data.user.UserName,
+            result.Data.user.Email,
+            result.Data.user.FullName,
+            result.Data.user.Bio,
+            result.Data.user.AvatarUrl,
+            result.Data.Roles
         });
     }
 

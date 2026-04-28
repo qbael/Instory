@@ -8,4 +8,5 @@ public record LoginDto
     public string RefreshToken { get; init; } = null!;
     public User User { get; init; } = null!;
     public int RefreshTokenValidityInDays { get; init; }
+    public IList<string> Roles { get; init; } = new List<string>();
 }

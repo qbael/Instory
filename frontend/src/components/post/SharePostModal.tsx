@@ -19,14 +19,12 @@ const SharePostModal: React.FC<SharePostModalProps> = ({
 }) => {
   const [caption, setCaption] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [error, setError] = useState<string | null>(null);
 
   // Nếu Modal không mở thì không render gì cả
   if (!isOpen) return null;
 
   const handleSubmit = async () => {
     setIsSubmitting(true);
-    setError(null);
     
     try {
       await postService.share(post.id, caption);
@@ -43,7 +41,6 @@ const SharePostModal: React.FC<SharePostModalProps> = ({
         "Lỗi hệ thống khi báo cáo bài viết";
 
       toast.error(errorMessage);
-      setError(err.response?.data?.message || err.message || "Có lỗi xảy ra khi chia sẻ bài viết");
     } finally {
       setIsSubmitting(false);
     }

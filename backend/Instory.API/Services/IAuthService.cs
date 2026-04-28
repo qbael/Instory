@@ -13,5 +13,6 @@ public interface IAuthService
     Task<ServiceResponse<bool>> VerifySignupOtpAsync(VerifyOtpRequestDto model);
     Task<ServiceResponse<LoginDto>> GoogleLoginAsync(GoogleLoginRequestDto model);
     Task<ServiceResponse<LoginDto>> RefreshTokenAsync(string refreshToken);
-    Task<ServiceResponse<User>> GetCurrentUserAsync(string userName);
+    Task<ServiceResponse<GetCurrentUserDto>> GetCurrentUserAsync(string userName);
+    Task<ServiceResponse<bool>> GrantAdminRoleAsync(int userId);
 }

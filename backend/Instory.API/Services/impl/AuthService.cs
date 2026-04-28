@@ -92,6 +92,7 @@ public class AuthService : IAuthService
         user.RefreshToken = refreshToken;
         user.RefreshTokenExpiryTime = DateTime.UtcNow.AddDays(refreshTokenValidityInDays);
         await _userManager.UpdateAsync(user);
+        var role = await _userManager.GetRolesAsync(user);
 
         return new ServiceResponse<LoginDto> {
             Success = true,
@@ -100,6 +101,7 @@ public class AuthService : IAuthService
                 Token = token, 
                 RefreshToken = refreshToken, 
                 User = user,
+                Roles = role,
                 RefreshTokenValidityInDays = refreshTokenValidityInDays
             }
         };
@@ -339,14 +341,20 @@ public class AuthService : IAuthService
         };
     }
 
-    public async Task<ServiceResponse<User>> GetCurrentUserAsync(string userName)
+    public async Task<ServiceResponse<GetCurrentUserDto>> GetCurrentUserAsync(string userName)
     {
         var user = await _userManager.FindByNameAsync(userName);
-        if (user == null) return new ServiceResponse<User>() { Success = false, Message = "User not found", StatusCode = 404 };
+        if (user == null) return new ServiceResponse<GetCurrentUserDto>() { Success = false, Message = "User not found", StatusCode = 404 };
         
-        if (user.IsBlocked) return new ServiceResponse<User>() { Success = false, Message = "User account is deactivated", StatusCode = 403 };
+        if (user.IsBlocked) return new ServiceResponse<GetCurrentUserDto>() { Success = false, Message = "User account is deactivated", StatusCode = 403 };
         
-        return new ServiceResponse<User>() { Success = true, Data = user, StatusCode = 200, Message = "User retrieved successfully" };
+        return new ServiceResponse<GetCurrentUserDto>() 
+        { 
+            Success = true, 
+            Data = new GetCurrentUserDto() { user = user, Roles = await _userManager.GetRolesAsync(user) },
+            StatusCode = 200, 
+            Message = "User retrieved successfully" 
+        };
     }
 
     private async Task<string> EnsureUniqueUsernameAsync(string baseUsername)
@@ -360,4 +368,19 @@ public class AuthService : IAuthService
         }
         return candidate;
     }
+    
+        public async Task<ServiceResponse<bool>> GrantAdminRoleAsync(int userId)
+        {
+            var user = await _userManager.Users.FirstOrDefaultAsync(u => u.Id == userId);
+            if (user == null) return new ServiceResponse<bool>() { Success = false, Message = "User not found", StatusCode = 404 };
+    
+            if (!await _roleManager.RoleExistsAsync("Admin"))
+                await _roleManager.CreateAsync(new Role { Name = "Admin" });
+    
+            var result = await _userManager.AddToRoleAsync(user, "Admin");
+            if (!result.Succeeded)
+                return new ServiceResponse<bool> { Success = false, Message = result.Errors.First().Description, StatusCode = 400 };
+    
+            return new ServiceResponse<bool> { Success = true, Message = "Admin role granted successfully", StatusCode = 200, Data = true};
+        }
 }

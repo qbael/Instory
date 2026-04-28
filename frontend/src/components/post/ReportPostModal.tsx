@@ -5,7 +5,6 @@ import { Modal } from "@/components/ui/Modal";
 import { Button } from "@/components/ui/Button";
 import { postService } from "@/services/postService";
 import type { ReportReason } from "@/types";
-import axios from "axios";
 
 interface ReportPostModalProps {
   postId: number;

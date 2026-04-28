@@ -86,7 +86,7 @@ export function CommentSection({
   return (
     <div className="border-t border-border">
       {/* Load comments trigger */}
-      {/* {!isLoaded && initialCount > 0 && (
+      {!isLoaded && initialCount > 0 && (
         <button
           type="button"
           onClick={loadComments}
@@ -100,7 +100,7 @@ export function CommentSection({
             `Xem tất cả ${initialCount} bình luận`
           )}
         </button>
-      )} */}
+      )}
 
       {/* Comment list */}
       {comments.length > 0 && (

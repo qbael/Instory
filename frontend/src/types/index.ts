@@ -9,6 +9,8 @@ export interface User {
   avatarUrl: string | null;
   createdAt: string;
   updatedAt: string | null;
+  roles: string[];
+  isBlocked?: boolean;
 }
 
 export interface UserProfile extends User {
@@ -179,6 +181,29 @@ export interface PostReport {
   reporter: User;
 }
 
+export interface AdminReport {
+  id: number;
+  reason: string | null;
+  reasonDetail: string | null;
+  status: ReportStatus;
+  createdAt: string;
+  reporter: {
+    id: number;
+    userName: string;
+    avatarUrl: string | null;
+  };
+  post: {
+    id: number;
+    content: string | null;
+    user: {
+      id: number;
+      userName: string;
+      avatarUrl: string | null;
+    };
+    images: { imageUrl: string }[];
+  };
+}
+
 // ─── Share Post ──────────────────────────────────────────────────────────────
 
 export interface SharePost {
@@ -226,6 +251,7 @@ export interface AuthResponse {
   userId: number;
   username: string;
   email: string;
+  roles: string[];
 }
 
 // ─── API Response Wrappers ───────────────────────────────────────────────────

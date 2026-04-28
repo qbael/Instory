@@ -1,23 +1,22 @@
-using System;
+using System.Text;
+using System.Text.Json.Serialization;
+using Amazon;
+using Amazon.Runtime;
+using Amazon.S3;
 using Instory.API.Data;
+using Instory.API.Exceptions;
+using Instory.API.Helpers;
+using Instory.API.Hubs;
 using Instory.API.Models;
+using Instory.API.Repositories;
+using Instory.API.Repositories.impl;
+using Instory.API.Services;
+using Instory.API.Services.impl;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
-using System.Text;
-using System.Threading.Tasks;
-using Instory.API.Exceptions;
-using Instory.API.Helpers;
-using Instory.API.Services;
-using Instory.API.Services.impl;
-using Amazon.S3;
-using Instory.API.Hubs;
-using Instory.API.Repositories.impl;
-using Microsoft.AspNetCore.Builder;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -43,7 +42,7 @@ builder.Services.AddControllers()
     .AddJsonOptions(options =>
     {
         options.JsonSerializerOptions.Converters.Add(
-            new System.Text.Json.Serialization.JsonStringEnumConverter());
+            new JsonStringEnumConverter());
     });
 builder.Services.AddSignalR();
 
@@ -104,24 +103,24 @@ builder.Services.AddAuthentication(options =>
 builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
 builder.Services.AddProblemDetails();
 
-builder.Services.AddScoped(typeof(Instory.API.Repositories.IRepository<>), typeof(Repository<>));
-builder.Services.AddScoped<Instory.API.Repositories.IUserRepository, UserRepository>();
-builder.Services.AddScoped<Instory.API.Repositories.IStoryRepository, StoryRepository>();
-builder.Services.AddScoped<Instory.API.Repositories.IChatRepository, ChatRepository>();
-builder.Services.AddScoped<Instory.API.Repositories.IFriendshipRepository, FriendshipRepository>();
-builder.Services.AddScoped<Instory.API.Repositories.INotificationRepository, NotificationRepository>();
-builder.Services.AddScoped<Instory.API.Repositories.IHighlightRepository, HighlightRepository>();
-builder.Services.AddScoped<Instory.API.Repositories.IPostRepository, PostRepository>();
-builder.Services.AddScoped<Instory.API.Repositories.ICommentRepository, CommentRepository>();
-builder.Services.AddScoped<Instory.API.Repositories.ILikeRepository, LikeRepository>();
-builder.Services.AddScoped<Instory.API.Repositories.IPostImageRepository, PostImageRepository>();
-builder.Services.AddScoped<Instory.API.Repositories.IEmailOtpRepository, EmailOtpRepository>();
-builder.Services.AddScoped<Instory.API.Repositories.IHashtagRepository, HashtagRepository>();
-builder.Services.AddScoped<Instory.API.Repositories.IPostHashtagRepository, PostHashtagRepository>();
-builder.Services.AddScoped<Instory.API.Repositories.IHashtagTrendRepository, HashtagTrendRepository>();
-builder.Services.AddScoped<Instory.API.Repositories.IPostReportRepository, PostReportRepository>();
-builder.Services.AddScoped<Instory.API.Repositories.IReportReasonRepository, ReportReasonRepository>();
-builder.Services.AddScoped<Instory.API.Repositories.ISharePostRepository, SharePostRepository>();
+builder.Services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
+builder.Services.AddScoped<IUserRepository, UserRepository>();
+builder.Services.AddScoped<IStoryRepository, StoryRepository>();
+builder.Services.AddScoped<IChatRepository, ChatRepository>();
+builder.Services.AddScoped<IFriendshipRepository, FriendshipRepository>();
+builder.Services.AddScoped<INotificationRepository, NotificationRepository>();
+builder.Services.AddScoped<IHighlightRepository, HighlightRepository>();
+builder.Services.AddScoped<IPostRepository, PostRepository>();
+builder.Services.AddScoped<ICommentRepository, CommentRepository>();
+builder.Services.AddScoped<ILikeRepository, LikeRepository>();
+builder.Services.AddScoped<IPostImageRepository, PostImageRepository>();
+builder.Services.AddScoped<IEmailOtpRepository, EmailOtpRepository>();
+builder.Services.AddScoped<IHashtagRepository, HashtagRepository>();
+builder.Services.AddScoped<IPostHashtagRepository, PostHashtagRepository>();
+builder.Services.AddScoped<IHashtagTrendRepository, HashtagTrendRepository>();
+builder.Services.AddScoped<IPostReportRepository, PostReportRepository>();
+builder.Services.AddScoped<IReportReasonRepository, ReportReasonRepository>();
+builder.Services.AddScoped<ISharePostRepository, SharePostRepository>();
 
 
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
@@ -133,11 +132,11 @@ builder.Services.AddScoped<IHighlightService, HighlightService>();
 builder.Services.Configure<AwsSettings>(builder.Configuration.GetSection("AWS"));
 builder.Services.AddSingleton<IAmazonS3>(sp =>
 {
-    var awsSettings = sp.GetRequiredService<Microsoft.Extensions.Options.IOptions<AwsSettings>>().Value;
-    var credentials = new Amazon.Runtime.BasicAWSCredentials(awsSettings.AccessKey, awsSettings.SecretKey);
+    var awsSettings = sp.GetRequiredService<IOptions<AwsSettings>>().Value;
+    var credentials = new BasicAWSCredentials(awsSettings.AccessKey, awsSettings.SecretKey);
     var config = new AmazonS3Config
     {
-        RegionEndpoint = Amazon.RegionEndpoint.GetBySystemName(awsSettings.Region)
+        RegionEndpoint = RegionEndpoint.GetBySystemName(awsSettings.Region)
     };
     return new AmazonS3Client(credentials, config);
 });
@@ -156,7 +155,7 @@ builder.Services.AddScoped<ISearchService, SearchService>();
 builder.Services.AddScoped<IHashtagService, HashtagService>();
 builder.Services.AddScoped<IPostReportService, PostReportService>();
 builder.Services.AddScoped<ISharePostService, SharePostService>();
-
+builder.Services.AddScoped<IAdminService, AdminService>();
 
 var app = builder.Build();
 

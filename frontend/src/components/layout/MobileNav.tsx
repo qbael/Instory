@@ -1,5 +1,5 @@
 import { Link, useLocation } from 'react-router';
-import { Home, Search, SquarePlus, Heart, User, MessageCircle, TrendingUp } from 'lucide-react';
+import { Home, Search, SquarePlus, User, MessageCircle, TrendingUp } from 'lucide-react';
 import { cn } from '@/utils/cn';
 import { useAppSelector, useAppDispatch } from '@/store';
 import { openModal } from '@/store/slices/uiSlice';
@@ -8,7 +8,6 @@ export function MobileNav() {
   const location = useLocation();
   const dispatch = useAppDispatch();
   const user = useAppSelector((s) => s.auth.user);
-  const unreadCount = useAppSelector((s) => s.notification.unreadCount);
 
   const items = [
     { icon: Home, to: '/' },
@@ -16,7 +15,6 @@ export function MobileNav() {
     { icon: SquarePlus, action: () => dispatch(openModal({ modal: 'createPost' })) },
     { icon: MessageCircle, to: '/chat' },
     {icon : TrendingUp, label: 'Xu hướng', to: '/hashtagtrending' },
-    // { icon: Heart, to: '/notifications', badge: unreadCount > 0 },
     { icon: User, to: `/profile/${user?.userName}` },
   ];
 
