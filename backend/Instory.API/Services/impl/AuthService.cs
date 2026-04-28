@@ -278,7 +278,6 @@ public class AuthService : IAuthService
         if (!user.EmailConfirmed && payload.EmailVerified)
         {
             user.EmailConfirmed = true;
-            await _userManager.UpdateAsync(user);
         }
 
         var token = await _tokenService.GenerateTokenAsync(user);

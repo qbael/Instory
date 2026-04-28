@@ -121,6 +121,7 @@ builder.Services.AddScoped<IHashtagTrendRepository, HashtagTrendRepository>();
 builder.Services.AddScoped<IPostReportRepository, PostReportRepository>();
 builder.Services.AddScoped<IReportReasonRepository, ReportReasonRepository>();
 builder.Services.AddScoped<ISharePostRepository, SharePostRepository>();
+builder.Services.AddScoped<IAdminRepository, AdminRepository>();
 
 
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();

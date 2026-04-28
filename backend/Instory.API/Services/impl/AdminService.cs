@@ -1,47 +1,26 @@
-using System;
-using System.Linq;
-using System.Threading.Tasks;
-using Instory.API.Data;
 using Instory.API.DTOs.Admin;
 using Instory.API.Helpers;
 using Instory.API.Models;
 using Instory.API.Models.Enums;
+using Instory.API.Repositories;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.EntityFrameworkCore;
 
 namespace Instory.API.Services.impl;
 
 public class AdminService : IAdminService
 {
-    private readonly InstoryDbContext _context;
+    private readonly IAdminRepository _adminRepository;
     private readonly UserManager<User> _userManager;
 
-    public AdminService(InstoryDbContext context, UserManager<User> userManager)
+    public AdminService(IAdminRepository adminRepository, UserManager<User> userManager)
     {
-        _context = context;
+        _adminRepository = adminRepository;
         _userManager = userManager;
     }
 
     public async Task<PaginatedResult<UserAdminDto>> GetUsersAsync(int pageNumber, int pageSize, string? search = null)
     {
-        var query = _userManager.Users.AsQueryable();
-
-        if (!string.IsNullOrWhiteSpace(search))
-        {
-            var searchLower = search.ToLower();
-            query = query.Where(u =>
-                u.UserName!.ToLower().Contains(searchLower) ||
-                u.Email!.ToLower().Contains(searchLower));
-        }
-
-        query = query.OrderByDescending(u => u.CreatedAt);
-
-        var count = await query.CountAsync();
-
-        var users = await query
-            .Skip((pageNumber - 1) * pageSize)
-            .Take(pageSize)
-            .ToListAsync();
+        var (users, count) = await _adminRepository.GetUsersAsync(pageNumber, pageSize, search);
 
         var userDtos = new List<UserAdminDto>();
         foreach (var user in users)
@@ -94,60 +73,13 @@ public class AdminService : IAdminService
 
     public async Task<PaginatedResult<ReportAdminDto>> GetReportsAsync(int pageNumber, int pageSize)
     {
-        var query = _context.PostReports
-            .Include(r => r.Reporter)
-            .Include(r => r.ReportReason)
-            .Include(r => r.Post)
-                .ThenInclude(p => p.User)
-            .Include(r => r.Post)
-                .ThenInclude(p => p.PostImages)
-            .Where(r => r.Status == ReportStatus.Pending)
-            .OrderByDescending(r => r.CreatedAt);
-
-        var count = await query.CountAsync();
-
-        var reports = await query
-            .Skip((pageNumber - 1) * pageSize)
-            .Take(pageSize)
-            .Select(r => new ReportAdminDto
-            {
-                Id = r.Id,
-                Reason = r.ReportReason.Name,
-                ReasonDetail = r.ReasonDetail,
-                Status = r.Status,
-                CreatedAt = r.CreatedAt,
-                Reporter = new ReporterDto
-                {
-                    Id = r.Reporter.Id,
-                    UserName = r.Reporter.UserName!,
-                    AvatarUrl = r.Reporter.AvatarUrl
-                },
-                Post = new ReportedPostDto
-                {
-                    Id = r.Post.Id,
-                    Content = r.Post.Content,
-                    User = new ReporterDto
-                    {
-                        Id = r.Post.User.Id,
-                        UserName = r.Post.User.UserName!,
-                        AvatarUrl = r.Post.User.AvatarUrl
-                    },
-                    Images = r.Post.PostImages.OrderBy(i => i.SortOrder).Select(i => new ReportedPostImageDto
-                    {
-                        ImageUrl = i.ImageUrl
-                    }).ToList()
-                }
-            })
-            .ToListAsync();
-
+        var (reports, count) = await _adminRepository.GetPendingReportsAsync(pageNumber, pageSize);
         return new PaginatedResult<ReportAdminDto>(reports, pageNumber, pageSize, count);
     }
 
     public async Task ResolveReportAsync(int reportId, string action)
     {
-        var report = await _context.PostReports
-            .Include(r => r.Post)
-            .FirstOrDefaultAsync(r => r.Id == reportId);
+        var report = await _adminRepository.GetReportWithPostAsync(reportId);
 
         if (report == null)
             throw new Exception("Báo cáo không tồn tại");
@@ -169,27 +101,12 @@ public class AdminService : IAdminService
             report.Status = ReportStatus.Rejected;
         }
 
-        await _context.SaveChangesAsync();
+        await _adminRepository.SaveChangesAsync();
     }
 
     public async Task<List<ReportReasonAdminDto>> GetReportReasonsAsync()
     {
-        var reasons = await _context.ReportReasons
-            .OrderByDescending(r => r.CreatedAt)
-            .Select(r => new ReportReasonAdminDto
-            {
-                Id = r.Id,
-                Code = r.Code,
-                Name = r.Name,
-                Description = r.Description,
-                Severity = r.Severity,
-                IsActive = r.IsActive,
-                CreatedAt = r.CreatedAt,
-                UsageCount = r.PostReports.Count
-            })
-            .ToListAsync();
-
-        return reasons;
+        return await _adminRepository.GetReportReasonsAsync();
     }
 
     public async Task<ReportReasonAdminDto> CreateReportReasonAsync(CreateReportReasonDto dto)
@@ -203,7 +120,7 @@ public class AdminService : IAdminService
             throw new Exception("Tên lý do không được để trống");
 
         var codeLower = code.ToLower();
-        var exists = await _context.ReportReasons.AnyAsync(r => r.Code.ToLower() == codeLower);
+        var exists = await _adminRepository.ReportReasonCodeExistsAsync(codeLower);
         if (exists)
             throw new Exception("Code đã tồn tại");
 
@@ -216,8 +133,7 @@ public class AdminService : IAdminService
             IsActive = true
         };
 
-        _context.ReportReasons.Add(reason);
-        await _context.SaveChangesAsync();
+        await _adminRepository.CreateReportReasonAsync(reason);
 
         return new ReportReasonAdminDto
         {
@@ -234,9 +150,7 @@ public class AdminService : IAdminService
 
     public async Task DeleteReportReasonAsync(int reasonId)
     {
-        var reason = await _context.ReportReasons
-            .Include(r => r.PostReports)
-            .FirstOrDefaultAsync(r => r.Id == reasonId);
+        var reason = await _adminRepository.GetReportReasonWithReportsAsync(reasonId);
 
         if (reason == null)
             throw new Exception("Lý do báo cáo không tồn tại");
@@ -244,67 +158,24 @@ public class AdminService : IAdminService
         if (reason.PostReports.Any())
             throw new Exception("Không thể xóa lý do đang được sử dụng");
 
-        _context.ReportReasons.Remove(reason);
-        await _context.SaveChangesAsync();
+        _adminRepository.RemoveReportReason(reason);
+        await _adminRepository.SaveChangesAsync();
     }
 
     public async Task<PaginatedResult<PostAdminDto>> GetPostsAsync(int pageNumber, int pageSize, string? search = null)
     {
-        var query = _context.Posts
-            .Include(p => p.User)
-            .Include(p => p.PostImages)
-            .Include(p => p.PostReports)
-            .AsQueryable();
-
-        if (!string.IsNullOrWhiteSpace(search))
-        {
-            var searchLower = search.ToLower();
-            query = query.Where(p =>
-                (p.Content != null && p.Content.ToLower().Contains(searchLower)) ||
-                p.User.UserName!.ToLower().Contains(searchLower));
-        }
-
-        query = query.OrderByDescending(p => p.CreatedAt);
-
-        var count = await query.CountAsync();
-
-        var posts = await query
-            .Skip((pageNumber - 1) * pageSize)
-            .Take(pageSize)
-            .Select(p => new PostAdminDto
-            {
-                Id = p.Id,
-                Content = p.Content,
-                IsDeleted = p.IsDeleted,
-                DeletedAt = p.DeletedAt,
-                CreatedAt = p.CreatedAt,
-                LikeCount = p.LikeCount,
-                CommentCount = p.CommentCount,
-                ReportCount = p.PostReports.Count,
-                User = new PostAdminUserDto
-                {
-                    Id = p.User.Id,
-                    UserName = p.User.UserName!,
-                    AvatarUrl = p.User.AvatarUrl
-                },
-                Images = p.PostImages
-                    .OrderBy(i => i.SortOrder)
-                    .Select(i => new PostAdminImageDto { ImageUrl = i.ImageUrl })
-                    .ToList()
-            })
-            .ToListAsync();
-
+        var (posts, count) = await _adminRepository.GetPostsAsync(pageNumber, pageSize, search);
         return new PaginatedResult<PostAdminDto>(posts, pageNumber, pageSize, count);
     }
 
     public async Task DeletePostAsync(int postId)
     {
-        var post = await _context.Posts.FindAsync(postId);
+        var post = await _adminRepository.GetPostByIdAsync(postId);
         if (post == null)
             throw new Exception("Bài viết không tồn tại");
 
         post.IsDeleted = true;
         post.DeletedAt = DateTime.UtcNow;
-        await _context.SaveChangesAsync();
+        await _adminRepository.SaveChangesAsync();
     }
 }
