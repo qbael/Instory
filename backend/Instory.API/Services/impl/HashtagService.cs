@@ -131,7 +131,7 @@ public class HashtagService : IHashtagService
         var scored = grouped.Select(x => new
         {
             x.HashtagId,
-            Score = x.Last24h * 0.7 + x.Last3d * 0.2 + x.Last7d * 0.1
+            Score = x.Last24h * 0.5 + x.Last3d * 0.3 + x.Last7d * 0.2
         });
 
         // Join Hashtag + return DTO
