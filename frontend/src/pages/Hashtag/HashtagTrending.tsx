@@ -42,7 +42,7 @@ export default function HashtagTrending() {
     const loadTrendingHashtags = async () => {
       try {
         setIsLoadingTrending(true);
-        const { data } = await hashtagService.getTrendingHashtags(10);
+        const { data } = await hashtagService.getTrendingHashtags(5);
         setTrendingHashtags(data);
         
         // Nếu ban đầu không có tag nào trên URL thì tự chọn tag Top 1

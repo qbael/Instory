@@ -20,17 +20,17 @@ public class CommentsController : ControllerBase
     [HttpGet]
     public async Task<IActionResult> GetComments(
         int postId,
-        [FromQuery] int page = 1,
+        [FromQuery] int pageNumber = 1,
         [FromQuery] int pageSize = 10)
     {
         // Validate cơ bản
-        if (page < 1 || pageSize < 1)
+        if (pageNumber < 1 || pageSize < 1)
         {
             return BadRequest("Page và PageSize phải lớn hơn 0.");
         }
 
         // Gọi Service
-        var result = await _commentService.GetCommentsAsync(postId, page, pageSize);
+        var result = await _commentService.GetCommentsAsync(postId, pageNumber, pageSize);
 
         return Ok(result);
     }

@@ -18,4 +18,8 @@ public interface IPostRepository : IRepository<Post>
 
     Task<Post?> GetPostAndImagesByPostId(int postId);
 
+    IQueryable<Post> GetBaseQuery();
+
+    Task<List<Post>> SearchPostsAsync(string query, int limit = 20);
+
 }

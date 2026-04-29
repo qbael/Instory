@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 import { Send } from "lucide-react";
 import { Avatar } from "@/components/ui/Avatar";
 import { Spinner } from "@/components/ui/Spinner";
@@ -27,22 +27,47 @@ export function CommentSection({
   const [newComment, setNewComment] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const loadComments = useCallback(async () => {
-    if (isLoaded) return;
-    setIsLoading(true);
+  const [page, setPage] = useState(1);
+  const [hasNextPage, setHasNextPage] = useState(true);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
+
+  const scrollRef = useRef<HTMLDivElement>(null);
+
+  const commentsTopRef = useRef<HTMLDivElement>(null);
+
+  const loadComments = useCallback(async (pageNumber: number) => {
+    if (pageNumber === 1) setIsLoading(true);
+    else setIsLoadingMore(true);
     try {
       const { data } = await postService.getComments(postId, {
-        pageNumber: 1,
-        pageSize: 20,
+        pageNumber: pageNumber,
+        pageSize: 10,
       });
-      setComments(data.data || []);
-      // console.log('Loaded comments:', data.data);
+      const fetchedComments = data.data || [];
+
+      setComments((prev) => 
+        pageNumber === 1 ? fetchedComments : [...prev, ...fetchedComments]
+      );
+      
+      setHasNextPage(data.hasNextPage);
+      setPage(pageNumber);
       setIsLoaded(true);
     } finally {
       setIsLoading(false);
+      setIsLoadingMore(false)
     }
-  }, [postId, isLoaded]);
+  }, [postId]);
 
+  const handleScroll = () => {
+    if (!scrollRef.current || isLoadingMore || !hasNextPage) return;
+
+    const { scrollTop, clientHeight, scrollHeight } = scrollRef.current;
+    
+    // Nếu khoảng cách cuộn đến đáy còn ít hơn 5px thì bắt đầu load thêm
+    if (scrollHeight - scrollTop - clientHeight < 5) {
+      loadComments(page + 1);
+    }
+  };
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const content = newComment.trim();
@@ -50,15 +75,8 @@ export function CommentSection({
 
     setIsSubmitting(true);
     try {
-      // Gọi API với { content } để backend nhận đúng định dạng
-      // const response = await postService.addComment(postId, { content });
-      // console.log('Add comment response:', response);
-      // // SỬA Ở ĐÂY: Lấy data ở tầng thứ 2
-      // const newAddedComment = response.data.data;
-
       const { data } = await postService.addComment(postId, content);
       // console.log('Add comment response:', data);
-      // SỬA Ở ĐÂY: Lấy data ở tầng thứ 2
       const newAddedComment = data.data;
 
       const completeComment = {
@@ -74,37 +92,40 @@ export function CommentSection({
         increaseCommentCount(postId);
       }
       setNewComment("");
+      setTimeout(() => {
+        if (scrollRef.current) {
+          scrollRef.current.scrollTo({
+            top: 0,
+            behavior: 'smooth'
+          });
+        }
+      }, 100);
     } finally {
       setIsSubmitting(false);
     }
   };
   useEffect(() => {
     if (showComments && !isLoaded) {
-      loadComments();
+      loadComments(1);
     }
-  }, [showComments, postId]);
+  }, [showComments, postId, isLoaded, loadComments]);
   return (
+    // {/* Hiển thị spinner khi load trang 1 */}
     <div className="border-t border-border">
-      {/* Load comments trigger */}
-      {!isLoaded && initialCount > 0 && (
-        <button
-          type="button"
-          onClick={loadComments}
-          className="w-full cursor-pointer px-3 py-2 text-left text-sm text-text-secondary hover:text-text-primary"
-        >
-          {isLoading ? (
-            <span className="flex items-center gap-2">
-              <Spinner size="sm" /> Đang tải…
-            </span>
-          ) : (
-            `Xem tất cả ${initialCount} bình luận`
-          )}
-        </button>
+      {isLoading && page === 1 && (
+        <div className="flex justify-center py-4">
+          <Spinner size="sm" />
+        </div>
       )}
 
+      <div ref={commentsTopRef}></div>
       {/* Comment list */}
       {comments.length > 0 && (
-        <div className="max-h-48 space-y-2.5 overflow-y-auto px-3 py-2">
+        <div 
+          ref={scrollRef}
+          onScroll={handleScroll}
+          className="max-h-48 space-y-2.5 overflow-y-auto px-3 py-2"
+        >
           {comments.map((c) => (
             <div key={c.id} className="flex gap-2.5">
               <Avatar
@@ -126,6 +147,13 @@ export function CommentSection({
               </div>
             </div>
           ))}
+
+          {/* Spinner hiển thị ở dưới cùng khi đang load thêm comment */}
+          {isLoadingMore && (
+            <div className="flex justify-center py-2">
+              <Spinner size="sm" />
+            </div>
+          )}
         </div>
       )}
 
