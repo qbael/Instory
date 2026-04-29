@@ -15,4 +15,9 @@ public class SharePostRepository : Repository<SharePost>, ISharePostRepository
         return await _dbSet
         .AnyAsync(x => x.PostId == postId && x.UserId == userId);
     }
+
+    public IQueryable<SharePost> GetBaseQuery()
+    {
+        return _dbSet.AsQueryable();
+    }
 }

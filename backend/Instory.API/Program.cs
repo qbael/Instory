@@ -134,6 +134,8 @@ builder.Services.AddScoped<ILikeService, LikeService>();
 builder.Services.AddScoped<IHashtagService, HashtagService>();
 builder.Services.AddScoped<IPostReportService, PostReportService>();
 builder.Services.AddScoped<ISharePostService, SharePostService>();
+builder.Services.AddScoped<ISearchService, SearchService>();
+
 
 
 var app = builder.Build();

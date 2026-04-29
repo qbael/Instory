@@ -50,3 +50,6 @@ GET  {{InstoryAPI_HostAddress}}/api/v1/reports/reasons
 
 ### POst postreport
 POST {{InstoryAPI_HostAddress}}/api/v1/reports/22
+
+###
+GET {{InstoryAPI_HostAddress}}/api/v1/search/posts?query=%23database

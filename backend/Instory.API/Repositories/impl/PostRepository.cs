@@ -59,4 +59,27 @@ public class PostRepository : Repository<Post>, IPostRepository
         .Include(p => p.PostImages)
         .FirstOrDefaultAsync(p => p.Id == postId);
     }
+
+    public IQueryable<Post> GetBaseQuery()
+    {
+        return _dbSet.AsQueryable();
+    }
+
+    public async Task<List<Post>> SearchPostsAsync(string query, int limit = 20)
+    {
+        var queryable = _dbSet
+        .Include(p => p.User)
+        .Include(p => p.PostImages)
+        .AsNoTracking();
+
+        // Sử dụng ILike để tìm kiếm chuỗi (bao gồm cả hashtag nếu query có dấu #)
+        var posts = await queryable
+            .Where(p => EF.Functions.ILike(p.Content, $"%{query}%"))
+            .OrderByDescending(p => p.LikeCount)
+            .ThenByDescending(p => p.CreatedAt)
+            .Take(limit)
+            .ToListAsync();
+
+        return posts;
+    }
 }

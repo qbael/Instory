@@ -1,4 +1,4 @@
-import { useState, memo } from 'react';
+import { useState, memo, useEffect } from 'react';
 import { Link, useSearchParams } from 'react-router';
 import { Search, Hash, X } from 'lucide-react';
 import { useSearch } from '@/hooks/useSearch';
@@ -10,16 +10,23 @@ import type { Post, Hashtag } from '@/types';
 type Tab = 'people' | 'posts' | 'hashtags';
 
 export default function SearchPage() {
-  const [searchParams] = useSearchParams();
+  const [searchParams,setSearchParams] = useSearchParams();
   const initialTag = searchParams.get('tag');
   const { query, setQuery, results, isLoading, clear } = useSearch();
   const [tab, setTab] = useState<Tab>('people');
 
   // Pre-fill from tag query param
-  if (initialTag && !query) {
+  // if (initialTag && !query) {
+  //   setQuery(`#${initialTag}`);
+  // }
+  // Chuyển setQuery vào useEffect để tránh lỗi update state trong lúc render của React
+  // UX: Tự động chuyển sang tab 'posts' nếu đang tìm theo tag param
+  useEffect(() => {
+  if (initialTag) {
     setQuery(`#${initialTag}`);
+    setTab('posts');
   }
-
+}, [initialTag, setQuery]);
   const tabs: { key: Tab; label: string }[] = [
     { key: 'people', label: 'Mọi người' },
     { key: 'posts', label: 'Bài viết' },
@@ -36,7 +43,12 @@ export default function SearchPage() {
         <input
           type="text"
           value={query}
-          onChange={(e) => setQuery(e.target.value)}
+          onChange={(e) => {
+            setQuery(e.target.value);
+            if (searchParams.has('tag')) {      
+              setSearchParams(new URLSearchParams()); 
+            }
+          }}
           placeholder="Tìm kiếm mọi người, bài viết, hashtag…"
           className="w-full rounded-lg border border-border bg-bg py-2.5 pl-10 pr-10 text-sm text-text-primary placeholder:text-text-secondary/70 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
         />
@@ -152,7 +164,7 @@ const PostGrid = memo(function PostGrid({ posts }: { posts: Post[] }) {
           to={`/profile/${post.user.userName}`}
           className="group relative aspect-square overflow-hidden rounded bg-border"
         >
-          {post.images[0].imageUrl ? (
+          {post.images?.[0]?.imageUrl ? (
             <img
               src={post.images[0].imageUrl}
               alt=""
@@ -192,7 +204,7 @@ function HashtagRow({ hashtag }: { hashtag: Hashtag }) {
       <div>
         <p className="text-sm font-semibold text-text-primary">#{hashtag.tag}</p>
         <p className="text-xs text-text-secondary">
-          {hashtag.postsCount.toLocaleString()} bài viết
+          {(hashtag.totalPost ?? 0).toLocaleString()} bài viết
         </p>
       </div>
     </Link>

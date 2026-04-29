@@ -158,7 +158,7 @@ public class HashtagService : IHashtagService
             return new List<HashtagDTO>();
         }
 
-        var searchTerm = query.ToLower().Trim();
+        var searchTerm = query.Replace("#", "").ToLower().Trim();
 
         var result = await _hashtagRepository.GetAllHashtags()
             .Where(h => h.Tag.Contains(searchTerm))
