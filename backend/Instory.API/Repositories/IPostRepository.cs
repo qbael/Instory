@@ -12,6 +12,8 @@ public interface IPostRepository : IRepository<Post>
 
     Task<IEnumerable<Post>> GetPostsByUserIdAsync(int userId);
 
+    IQueryable<Post> GetPostsByUserIdQueryable(int userId);
+
     IQueryable<Post> GetPostsByHashtag(string tag);
 
     Task<Post?> GetPostDetailByPostIdAsync(int postId, int currentUserId);

@@ -46,6 +46,15 @@ public class PostRepository : Repository<Post>, IPostRepository
         .ToListAsync();
     }
 
+    public IQueryable<Post> GetPostsByUserIdQueryable(int userId)
+    {
+        return _dbSet
+            .Where(p => p.UserId == userId && !p.IsDeleted)
+            .Include(p => p.PostImages)
+            .Include(p => p.User)
+            .OrderByDescending(p => p.CreatedAt);
+    }
+
     public IQueryable<Post> GetPostsByHashtag(string tag)
     {
         return _dbSet

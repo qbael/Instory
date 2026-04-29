@@ -382,9 +382,78 @@ public class PostService : IPostService
             Console.WriteLine($"[Error] Lỗi khi cập nhật bài viết: {ex.Message}");
             throw;
         }
-
-
     }
+    
+    public async Task<PaginatedResult<PostResponseDTO>> GetUserLikedPostsAsync(int targetUserId, int currentUserId, int page, int pageSize)
+    {
+        // Lấy danh sách bài viết mà targetUser đã like (qua bảng Likes)
+        var query = _likeRepository.GetLikedPostsByUserQueryable(targetUserId);
+        var paginated = await PaginatedResult<Post>.CreateAsync(query, page, pageSize);
+
+        // Check bài nào currentUser đã like (để hiển thị trạng thái tim đỏ)
+        var likedPostIds = await _likeRepository.GetLikePostIdsByUserIdAsync(currentUserId);
+
+        return paginated.Map(p => new PostResponseDTO
+        {
+            Id = p.Id,
+            UserId = p.UserId,
+            Content = p.Content,
+            LikesCount = p.LikeCount,
+            CommentsCount = p.CommentCount,
+            SharesCount = p.ShareCount,
+            CreatedAt = p.CreatedAt,
+            IsLiked = likedPostIds.Contains(p.Id),
+            User = new UserDTO
+            {
+                Id = p.User.Id,
+                UserName = p.User.UserName,
+                AvatarUrl = p.User.AvatarUrl,
+                FullName = p.User.FullName,
+                CreatedAt = p.User.CreatedAt
+            },
+            Images = p.PostImages
+                .OrderBy(pi => pi.SortOrder)
+                .Select(pi => new PostImageDTO { Id = pi.Id, ImageUrl = pi.ImageUrl, SortOrder = pi.SortOrder })
+                .ToList()
+        });
+    }
+
+    public async Task<PaginatedResult<PostResponseDTO>> GetUserPostsAsync(int targetUserId, int currentUserId, int page, int pageSize)
+    {
+        var query = _postRepository.GetPostsByUserIdQueryable(targetUserId);
+        var paginatedPosts = await PaginatedResult<Post>.CreateAsync(query, page, pageSize);
+        var likedPostIds = await _likeRepository.GetLikePostIdsByUserIdAsync(currentUserId);
+
+        return paginatedPosts.Map(p => new PostResponseDTO
+        {
+            Id = p.Id,
+            UserId = p.UserId,
+            Content = p.Content,
+            LikesCount = p.LikeCount,
+            CommentsCount = p.CommentCount,
+            SharesCount = p.ShareCount,
+            CreatedAt = p.CreatedAt,
+            IsLiked = likedPostIds.Contains(p.Id),
+            User = new UserDTO
+            {
+                Id = p.User.Id,
+                UserName = p.User.UserName,
+                AvatarUrl = p.User.AvatarUrl,
+                FullName = p.User.FullName,
+                CreatedAt = p.User.CreatedAt
+            },
+            Images = p.PostImages
+                .OrderBy(pi => pi.SortOrder)
+                .Select(pi => new PostImageDTO
+                {
+                    Id = pi.Id,
+                    ImageUrl = pi.ImageUrl,
+                    SortOrder = pi.SortOrder
+                })
+                .ToList()
+        });
+    }
+
     private static PostResponseDTO MapToResponseDTO(Post post)
     {
         return new PostResponseDTO

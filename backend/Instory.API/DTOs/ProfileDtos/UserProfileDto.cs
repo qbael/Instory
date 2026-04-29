@@ -35,7 +35,7 @@ public record UserProfileDto
             FullName = user.FullName,
             Bio = user.Bio,
             AvatarUrl = user.AvatarUrl,
-            PostsCount = user.Posts.Count,
+            PostsCount = user.Posts.Count(p => !p.IsDeleted),
             FriendsCount = friendsCount,
             FriendshipStatus = status,
             FriendshipRequestId = requestId,
