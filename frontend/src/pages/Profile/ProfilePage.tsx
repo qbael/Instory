@@ -1,9 +1,10 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useParams, Link, useNavigate } from 'react-router';
+import { PostDetailModal } from '@/components/post/PostDetailModal';
 import {
   Grid3X3,
   Heart,
-  Bookmark,
+  Send,
   Settings,
   MessageCircle,
   UserPlus,
@@ -35,7 +36,7 @@ import { openModal } from '@/store/slices/uiSlice';
 import { cn } from '@/utils/cn';
 import type { StoryHighlight, StoryGroup } from '@/types';
 
-type OwnTab = 'posts' | 'liked' | 'saved';
+type OwnTab = 'posts' | 'liked' | 'shared';
 type OtherTab = 'posts';
 type Tab = OwnTab | OtherTab;
 
@@ -57,20 +58,47 @@ export default function ProfilePage() {
     unfriend,
   } = useProfile(username!);
   const {
-    posts,
-    isLoading: postsLoading,
-    hasMore,
-    loadMore,
+    posts: ownPosts,
+    isLoading: ownPostsLoading,
+    hasMore: ownHasMore,
+    loadMore: ownLoadMore,
     fetchPage,
+    toggleLike,
+    handleIncreaseCommentCount,
+    handleDeletePostFromUI,
   } = usePosts({ userId: profile?.id ?? 0 });
+
+  const {
+    posts: sharedPosts,
+    isLoading: sharedLoading,
+    hasMore: sharedHasMore,
+    loadMore: sharedLoadMore,
+    fetchPage: fetchSharedPage,
+  } = usePosts(profile?.id ? { sharedByUserId: profile.id } : 'none');
+
+  const {
+    posts: likedPosts,
+    isLoading: likedLoading,
+    hasMore: likedHasMore,
+    loadMore: likedLoadMore,
+    fetchPage: fetchLikedPage,
+  } = usePosts(profile?.id ? { likedByUserId: profile.id } : 'none');
+
+  const [tab, setTab] = useState<Tab>('posts');
+  const [unfriendDialogOpen, setUnfriendDialogOpen] = useState(false);
+  const [selectedPostId, setSelectedPostId] = useState<number | null>(null);
+
+  // Chọn đúng danh sách bài theo tab đang active
+  const posts = tab === 'posts' ? ownPosts : tab === 'liked' ? likedPosts : sharedPosts;
+  const postsLoading = tab === 'posts' ? ownPostsLoading : tab === 'liked' ? likedLoading : sharedLoading;
+  const hasMore = tab === 'posts' ? ownHasMore : tab === 'liked' ? likedHasMore : sharedHasMore;
+  const loadMore = tab === 'posts' ? ownLoadMore : tab === 'liked' ? likedLoadMore : sharedLoadMore;
+
   const { sentinelRef } = useInfiniteScroll({
     hasMore,
     isLoading: postsLoading,
     onLoadMore: loadMore,
   });
-
-  const [tab, setTab] = useState<Tab>('posts');
-  const [unfriendDialogOpen, setUnfriendDialogOpen] = useState(false);
 
   const [highlights, setHighlights] = useState<StoryHighlight[]>([]);
   const [storyGroup, setStoryGroup] = useState<StoryGroup | null>(null);
@@ -89,8 +117,8 @@ export default function ProfilePage() {
   }, [loadProfile]);
 
   useEffect(() => {
-    if (profile?.id) fetchPage(1);
-  }, [profile?.id, fetchPage]);
+    if (profile?.id) { fetchPage(1); fetchSharedPage(1); fetchLikedPage(1); }
+  }, [profile?.id, fetchPage, fetchSharedPage, fetchLikedPage]);
 
   const loadHighlights = useCallback(() => {
     if (!profile?.id) return;
@@ -138,8 +166,7 @@ export default function ProfilePage() {
     );
   }
 
-  const currentPosts =
-    tab === 'liked' || tab === 'saved' ? [] : posts;
+  const currentPosts = posts;
 
   return (
     <div className="mx-auto max-w-[935px]">
@@ -361,10 +388,10 @@ export default function ProfilePage() {
               label="Đã thích"
             />
             <TabButton
-              active={tab === 'saved'}
-              onClick={() => setTab('saved')}
-              icon={<Bookmark className="h-3 w-3" />}
-              label="Đã lưu"
+              active={tab === 'shared'}
+              onClick={() => setTab('shared')}
+              icon={<Send className="h-3 w-3" />}
+              label="Đã chia sẻ"
             />
           </>
         )}
@@ -377,9 +404,10 @@ export default function ProfilePage() {
 
       <div className="grid grid-cols-3 gap-1 pt-0.5">
         {currentPosts.map((post) => (
-          <Link
+          <button
             key={post.id}
-            to={`/profile/${post.user.userName}`}
+            type="button"
+            onClick={() => setSelectedPostId(post.id)}
             className="group relative aspect-square overflow-hidden bg-border"
           >
             {post.images?.[0]?.imageUrl ? (
@@ -405,7 +433,7 @@ export default function ProfilePage() {
                 {post.commentsCount}
               </span>
             </div>
-          </Link>
+          </button>
         ))}
       </div>
 
@@ -429,6 +457,21 @@ export default function ProfilePage() {
           }}
         />
       )}
+
+      {selectedPostId != null && (() => {
+        const post = posts.find((p) => p.id === selectedPostId);
+        if (!post) return null;
+        return (
+          <PostDetailModal
+            post={post}
+            isLiked={post.isLiked}
+            onClose={() => setSelectedPostId(null)}
+            onLikeToggle={(id) => { toggleLike(id); }}
+            onCommentAdded={handleIncreaseCommentCount}
+            onDeleted={(id) => { handleDeletePostFromUI(id); setSelectedPostId(null); }}
+          />
+        );
+      })()}
 
       <AlertDialog
         open={unfriendDialogOpen}
@@ -486,9 +529,9 @@ function EmptyTab({ tab, isOwn }: { tab: Tab; isOwn: boolean }) {
       title: 'Chưa thích bài viết nào',
       subtitle: 'Khi bạn thích bài viết, chúng sẽ xuất hiện ở đây.',
     },
-    saved: {
-      title: 'Chưa lưu bài viết nào',
-      subtitle: 'Lưu ảnh và video mà bạn muốn xem lại.',
+    shared: {
+      title: 'Chưa chia sẻ bài viết nào',
+      subtitle: 'Khi bạn chia sẻ bài viết của người khác, chúng sẽ xuất hiện ở đây.',
     },
   };
 
@@ -499,7 +542,7 @@ function EmptyTab({ tab, isOwn }: { tab: Tab; isOwn: boolean }) {
       <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full border-2 border-text-primary">
         {tab === 'posts' && <Camera className="h-8 w-8" strokeWidth={1} />}
         {tab === 'liked' && <Heart className="h-8 w-8" strokeWidth={1} />}
-        {tab === 'saved' && <Bookmark className="h-8 w-8" strokeWidth={1} />}
+        {tab === 'shared' && <Send className="h-8 w-8" strokeWidth={1} />}
       </div>
       <h2 className="mb-1 text-2xl font-extrabold">{title}</h2>
       <p className="max-w-xs text-center text-sm text-text-secondary">

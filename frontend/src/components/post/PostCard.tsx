@@ -1,6 +1,6 @@
 import { memo, useState, useRef, useEffect } from "react";
 import { Link, useNavigate } from "react-router";
-import { MoreHorizontal, Trash2, Edit, Flag } from "lucide-react";
+import { MoreHorizontal, Trash2, Edit, Flag, ChevronLeft, ChevronRight } from "lucide-react";
 import { toast } from "sonner";
 import { Avatar } from "@/components/ui/Avatar";
 import { PostActions } from "./PostActions";
@@ -47,6 +47,7 @@ export const PostCard = memo(function PostCard({
 }: PostCardProps) {
   const [showComments, setShowComments] = useState(false);
   const [showMenu, setShowMenu] = useState(false);
+  const [imageIndex, setImageIndex] = useState(0);
   const [isDeleting, setIsDeleting] = useState(false);
   const [showReportModal, setShowReportModal] = useState(false);
   const [showShareModal, setShowShareModal] = useState(false);
@@ -186,42 +187,52 @@ export const PostCard = memo(function PostCard({
         </div>
       </div>
 
-      {/* Image */}
-      {post.images && post.images.length > 0 && (
-        <div
-          className={`grid gap-1 ${
-            post.images.length === 1
-              ? "grid-cols-1"
-              : post.images.length === 2
-                ? "grid-cols-2"
-                : post.images.length === 3
-                  ? "grid-cols-3"
-                  : "grid-cols-2"
-          }`}
-        >
-          {post.images.slice(0, 4).map((img, i) => {
-            const src = (img as any).imageUrl || (img as any).url || "";
-            return (
-              <div
-                key={i}
-                className="relative aspect-square overflow-hidden bg-border"
+      {/* Image carousel */}
+      {post.images && post.images.length > 0 && (() => {
+        const imgs = post.images;
+        const hasMultiple = imgs.length > 1;
+        const src = (imgs[imageIndex] as any).imageUrl || (imgs[imageIndex] as any).url || "";
+        return (
+          <div className="relative aspect-square overflow-hidden bg-black">
+            <img
+              src={src}
+              alt={`Hình ${imageIndex + 1}`}
+              loading="lazy"
+              className="h-full w-full object-contain"
+            />
+            {hasMultiple && imageIndex > 0 && (
+              <button
+                type="button"
+                onClick={() => setImageIndex((i) => i - 1)}
+                className="absolute left-2 top-1/2 -translate-y-1/2 cursor-pointer rounded-full bg-white/90 p-1 shadow hover:bg-white"
               >
-                <img
-                  src={src}
-                  alt={`Hình ${i + 1}`}
-                  loading="lazy"
-                  className="h-full w-full object-cover"
-                />
-                {i === 3 && post.images.length > 4 && (
-                  <div className="absolute inset-0 flex items-center justify-center bg-black/40 text-white text-lg">
-                    +{post.images.length - 4}
-                  </div>
-                )}
+                <ChevronLeft className="h-4 w-4 text-black" />
+              </button>
+            )}
+            {hasMultiple && imageIndex < imgs.length - 1 && (
+              <button
+                type="button"
+                onClick={() => setImageIndex((i) => i + 1)}
+                className="absolute right-2 top-1/2 -translate-y-1/2 cursor-pointer rounded-full bg-white/90 p-1 shadow hover:bg-white"
+              >
+                <ChevronRight className="h-4 w-4 text-black" />
+              </button>
+            )}
+            {hasMultiple && (
+              <div className="absolute bottom-2 left-1/2 flex -translate-x-1/2 gap-1">
+                {imgs.map((_, i) => (
+                  <div
+                    key={i}
+                    className={`h-[6px] w-[6px] rounded-full transition-colors ${
+                      i === imageIndex ? "bg-primary" : "bg-white/50"
+                    }`}
+                  />
+                ))}
               </div>
-            );
-          })}
-        </div>
-      )}
+            )}
+          </div>
+        );
+      })()}
 
       {/* Actions */}
       <PostActions

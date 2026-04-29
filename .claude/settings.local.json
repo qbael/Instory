@@ -16,7 +16,12 @@
       "Bash(dotnet Instory.API.dll)",
       "PowerShell(Get-MpComputerStatus)",
       "PowerShell(Get-CimInstance -ClassName Win32_DeviceGuard -Namespace root\\\\Microsoft\\\\Windows\\\\DeviceGuard -ErrorAction SilentlyContinue)",
-      "PowerShell(\\(Get-MpComputerStatus\\).SmartAppControlState)"
+      "PowerShell(\\(Get-MpComputerStatus\\).SmartAppControlState)",
+      "PowerShell(docker exec instory_db psql -U instory -d Instory -c '\\\\dt')",
+      "Bash(docker volume *)",
+      "Bash(docker-compose down *)",
+      "Bash(docker-compose up *)",
+      "Bash(npx tsc *)"
     ]
   }
 }

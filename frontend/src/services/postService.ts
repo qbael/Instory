@@ -75,8 +75,14 @@ export const postService = {
   },
 
   getUserPosts(userId: number, params?: PaginationParams) {
-    return api.get<PaginatedResponse<Post>>(`v1/users/${userId}/posts`, {
-      params,
-    });
+    return api.get<PaginatedResponse<Post>>(`v1/users/${userId}/posts`, { params });
+  },
+
+  getUserSharedPosts(userId: number, params?: PaginationParams) {
+    return api.get<PaginatedResponse<Post>>(`v1/users/${userId}/shared-posts`, { params });
+  },
+
+  getUserLikedPosts(userId: number, params?: PaginationParams) {
+    return api.get<PaginatedResponse<Post>>(`v1/users/${userId}/liked-posts`, { params });
   },
 };

@@ -4,7 +4,7 @@ import { postService } from "@/services/postService";
 import { hashtagService } from "@/services/hashtagService";
 
 // Thêm "none" và { hashtag: string } vào FeedType
-type FeedType = "home" | "none" | { userId: number } | { hashtag: string };
+type FeedType = "home" | "none" | { userId: number } | { hashtag: string } | { sharedByUserId: number } | { likedByUserId: number };
 
 export function usePosts(feedType: FeedType = "home") {
   const [posts, setPosts] = useState<Post[]>([]);
@@ -22,9 +22,13 @@ export function usePosts(feedType: FeedType = "home") {
 
       const isUserFeed = typeof feedType === "object" && "userId" in feedType;
       const isHashtagFeed = typeof feedType === "object" && "hashtag" in feedType;
+      const isSharedFeed = typeof feedType === "object" && "sharedByUserId" in feedType;
+      const isLikedFeed = typeof feedType === "object" && "likedByUserId" in feedType;
 
       if (isUserFeed && feedType.userId <= 0) return;
       if (isHashtagFeed && !feedType.hashtag) return;
+      if (isSharedFeed && feedType.sharedByUserId <= 0) return;
+      if (isLikedFeed && feedType.likedByUserId <= 0) return;
 
       fetchingRef.current = true;
       setIsLoading(true);
@@ -36,8 +40,11 @@ export function usePosts(feedType: FeedType = "home") {
         if (isUserFeed) {
           response = await postService.getUserPosts(feedType.userId, paginationParams);
         } else if (isHashtagFeed) {
-          // Giả định bạn có hàm này trong postService, nếu không hãy điều chỉnh lại nhé
-          response = await hashtagService.getPostsByHashtag(feedType.hashtag, paginationParams); 
+          response = await hashtagService.getPostsByHashtag(feedType.hashtag, paginationParams);
+        } else if (isSharedFeed) {
+          response = await postService.getUserSharedPosts(feedType.sharedByUserId, paginationParams);
+        } else if (isLikedFeed) {
+          response = await postService.getUserLikedPosts(feedType.likedByUserId, paginationParams);
         } else {
           response = await postService.getFeed(paginationParams);
         }
