@@ -27,4 +27,9 @@ public class SharePostRepository : Repository<SharePost>, ISharePostRepository
             .Where(s => !s.Post.IsDeleted)
             .OrderByDescending(s => s.CreatedAt);
     }
+
+    public IQueryable<SharePost> GetBaseQuery()
+    {
+        return _dbSet.AsQueryable();
+    }
 }

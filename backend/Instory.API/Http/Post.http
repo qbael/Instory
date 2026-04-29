@@ -37,7 +37,7 @@ Content-Type: application/json
 }
 
 ###
-GET {{InstoryAPI_HostAddress}}/api/v1/posts/7/comments?pageNumber=1&pageSize=5
+GET {{InstoryAPI_HostAddress}}/api/v1/posts/7/comments?pageNumber=2&pageSize=10
 
 ### Get Trending Hashtags
 GET {{InstoryAPI_HostAddress}}/api/v1/hashtags/trending?top=10
@@ -50,3 +50,6 @@ GET  {{InstoryAPI_HostAddress}}/api/v1/reports/reasons
 
 ### POst postreport
 POST {{InstoryAPI_HostAddress}}/api/v1/reports/22
+
+###
+GET {{InstoryAPI_HostAddress}}/api/v1/search/posts?query=%23database

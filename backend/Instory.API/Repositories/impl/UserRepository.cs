@@ -34,7 +34,7 @@ public class UserRepository : Repository<User>, IUserRepository
             .Include(u => u.ReceivedFriendRequests)
             .SingleOrDefaultAsync(u => u.Id == id);
     }
-    
+
     public async Task<List<User>> SearchAsync(string query)
     {
         return await _dbSet
@@ -43,5 +43,5 @@ public class UserRepository : Repository<User>, IUserRepository
             .Take(10)
             .ToListAsync();
     }
-    
+
 }
