@@ -426,7 +426,34 @@ public class PostService : IPostService
         var query = _postRepository.GetPostsByUserIdQueryable(targetUserId);
         var paginatedPosts = await PaginatedResult<Post>.CreateAsync(query, page, pageSize);
         var likedPostIds = await _likeRepository.GetLikePostIdsByUserIdAsync(currentUserId);
-
+        return paginatedPosts.Map(p => new PostResponseDTO
+        {
+            Id = p.Id,
+            UserId = p.UserId,
+            Content = p.Content,
+            LikesCount = p.LikeCount,
+            CommentsCount = p.CommentCount,
+            SharesCount = p.ShareCount,
+            CreatedAt = p.CreatedAt,
+            IsLiked = likedPostIds.Contains(p.Id),
+            User = new UserDTO
+            {
+                Id = p.User.Id,
+                UserName = p.User.UserName,
+                AvatarUrl = p.User.AvatarUrl,
+                FullName = p.User.FullName,
+                CreatedAt = p.User.CreatedAt
+            },
+            Images = p.PostImages
+                .OrderBy(pi => pi.SortOrder)
+                .Select(pi => new PostImageDTO
+                {
+                    Id = pi.Id,
+                    ImageUrl = pi.ImageUrl,
+                    SortOrder = pi.SortOrder
+                })
+                .ToList()
+        });
     }
 
     public async Task<PaginatedResult<NewsFeedItemDTO>> GetNewsFeedAsync(int currentId, int pageNumber, int pageSize)
@@ -522,35 +549,6 @@ public class PostService : IPostService
             item.Post.IsLiked = likedPostIds.Contains(item.Post.Id);
         }
         return paginatedFeed;
-
-        return paginatedPosts.Map(p => new PostResponseDTO
-        {
-            Id = p.Id,
-            UserId = p.UserId,
-            Content = p.Content,
-            LikesCount = p.LikeCount,
-            CommentsCount = p.CommentCount,
-            SharesCount = p.ShareCount,
-            CreatedAt = p.CreatedAt,
-            IsLiked = likedPostIds.Contains(p.Id),
-            User = new UserDTO
-            {
-                Id = p.User.Id,
-                UserName = p.User.UserName,
-                AvatarUrl = p.User.AvatarUrl,
-                FullName = p.User.FullName,
-                CreatedAt = p.User.CreatedAt
-            },
-            Images = p.PostImages
-                .OrderBy(pi => pi.SortOrder)
-                .Select(pi => new PostImageDTO
-                {
-                    Id = pi.Id,
-                    ImageUrl = pi.ImageUrl,
-                    SortOrder = pi.SortOrder
-                })
-                .ToList()
-        });
     }
 
     private static PostResponseDTO MapToResponseDTO(Post post)

@@ -1,5 +1,6 @@
 using System.Text;
 using System.Text.Json.Serialization;
+using Serilog;
 using Amazon;
 using Amazon.Runtime;
 using Amazon.S3;
@@ -19,6 +20,9 @@ using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 
 var builder = WebApplication.CreateBuilder(args);
+
+builder.Host.UseSerilog((context, config) =>
+    config.ReadFrom.Configuration(context.Configuration));
 
 builder.Services.AddOpenApi();
 
@@ -171,6 +175,8 @@ if (app.Environment.IsDevelopment())
         options.SwaggerEndpoint("/openapi/v1.json", "Instory API V1");
     });
 }
+
+app.UseSerilogRequestLogging();
 
 app.UseHttpsRedirection();
 
