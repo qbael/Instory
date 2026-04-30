@@ -16,7 +16,7 @@ interface CommentSectionProps {
 
 export function CommentSection({
   postId,
-  initialCount,
+  initialCount: _initialCount,
   showComments,
   increaseCommentCount,
 }: CommentSectionProps) {

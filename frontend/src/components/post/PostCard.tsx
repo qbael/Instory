@@ -63,10 +63,6 @@ export const PostCard = memo(function PostCard({
   const [isLightboxOpen, setIsLightboxOpen] = useState(false);
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
 
-const openImage = (index: number) => {
-  setSelectedImageIndex(index);
-  setIsLightboxOpen(true);
-};
   // Handle delete post
   const handleDeletePost = async () => {
     const confirmed = await ConfirmDialog.show({
@@ -207,7 +203,8 @@ const openImage = (index: number) => {
               src={src}
               alt={`Hình ${imageIndex + 1}`}
               loading="lazy"
-              className="h-full w-full object-contain"
+              className="h-full w-full object-contain cursor-pointer"
+              onClick={() => { setSelectedImageIndex(imageIndex); setIsLightboxOpen(true); }}
             />
             {hasMultiple && imageIndex > 0 && (
               <button
@@ -237,43 +234,11 @@ const openImage = (index: number) => {
                     }`}
                   />
                 ))}
-      {/* Image */}
-      {post.images && post.images.length > 0 && (
-        <div className="px-3 pb-3">
-          <div
-            className={`grid gap-1 rounded-xl overflow-hidden cursor-pointer ${
-              post.images.length === 1 ? "grid-cols-1" : "grid-cols-2"
-            }`}
-          >
-            {post.images.slice(0, 4).map((img, i) => (
-              <div 
-                key={i} 
-                className={`relative overflow-hidden bg-gray-100 ${
-                  post.images.length === 3 && i === 0 ? "row-span-2" : "aspect-square"
-                }`}
-                onClick={() => openImage(i)} // Click vào ảnh nào mở đúng ảnh đó
-              >
-                <img
-                  src={img.imageUrl}
-                  alt=""
-                  className="w-full h-full object-cover"
-                />
-                
-                {/* Overlay +N cho ảnh cuối cùng */}
-                {i === 3 && post.images.length > 4 && (
-                  <div className="absolute inset-0 flex items-center justify-center bg-black/50 text-white text-xl font-bold backdrop-blur-sm">
-                    +{post.images.length - 4}
-                  </div>
-                )}
               </div>
             )}
           </div>
         );
       })()}
-            ))}
-          </div>
-        </div>
-      )}
       <Lightbox
         images={post.images} 
         initialIndex={selectedImageIndex}

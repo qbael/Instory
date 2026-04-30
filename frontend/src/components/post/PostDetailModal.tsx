@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, useCallback } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router';
 import {
   X,
@@ -72,7 +72,7 @@ export function PostDetailModal({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [localLikesCount, setLocalLikesCount] = useState(post.likesCount);
   const [localIsLiked, setLocalIsLiked] = useState(isLiked);
-  const [localCommentsCount, setLocalCommentsCount] = useState(post.commentsCount);
+  const [_localCommentsCount, setLocalCommentsCount] = useState(post.commentsCount);
 
   const backdropRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
