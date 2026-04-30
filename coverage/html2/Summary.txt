@@ -1,0 +1,39 @@
+Summary
+  Generated on: 4/30/2026 - 11:47:04 PM
+  Coverage date: 4/30/2026 - 6:11:44 PM - 4/30/2026 - 11:46:58 PM
+  Parser: MultiReport (6x Cobertura)
+  Assemblies: 1
+  Classes: 17
+  Files: 17
+  Line coverage: 62.3%
+  Covered lines: 1134
+  Uncovered lines: 684
+  Coverable lines: 1818
+  Total lines: 2632
+  Branch coverage: 59.5% (231 of 388)
+  Covered branches: 231
+  Total branches: 388
+  Method coverage: 75.2% (82 of 109)
+  Full method coverage: 54.1% (59 of 109)
+  Covered methods: 82
+  Fully covered methods: 59
+  Total methods: 109
+
+Instory.API                                       62.3%
+  CommentService                                  72.3%
+  HashtagService                                  61.6%
+  Instory.API.Services.impl.AdminService          73.8%
+  Instory.API.Services.impl.AuthService           67.3%
+  Instory.API.Services.impl.ChatService           50.5%
+  Instory.API.Services.impl.FriendshipService     71.4%
+  Instory.API.Services.impl.HighlightService        60%
+  Instory.API.Services.impl.MediaService             0%
+  Instory.API.Services.impl.NotificationService   86.6%
+  Instory.API.Services.impl.PostReportService      100%
+  Instory.API.Services.impl.ProfileService        47.5%
+  Instory.API.Services.impl.SearchService          100%
+  Instory.API.Services.impl.SmtpEmailSender          0%
+  Instory.API.Services.impl.StoryService          88.8%
+  LikeService                                      100%
+  PostService                                     55.9%
+  SharePostService                                  49%

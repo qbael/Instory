@@ -84,7 +84,6 @@ public class PostService : IPostService
 
             await _postRepository.AddAsync(post);
             await _unitOfWork.SaveChangesAsync(); // Lưu Post trước để có PostId cho việc lưu ảnh
-            Console.WriteLine($"Post đã được lưu với ID: {post.Id}");
 
             await _hashtagService.ProcessHashtagsAsync(post.Id, request.Content);
 
@@ -382,7 +381,6 @@ public class PostService : IPostService
         catch (Exception ex)
         {
             await _unitOfWork.RollbackTransactionAsync();
-            Console.WriteLine($"[Error] Lỗi khi cập nhật bài viết: {ex.Message}");
             throw;
         }
     }

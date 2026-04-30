@@ -21,7 +21,14 @@ jobs:
           dotnet-version: '10.0.x'
       - run: dotnet restore backend/Instory.slnx
       - run: dotnet build   backend/Instory.slnx --no-restore -c Release
-      - run: dotnet test    backend/Instory.Tests --no-build -c Release
+      - name: Test (with coverage)
+        run: dotnet test backend/Instory.Tests --no-build -c Release --collect:"XPlat Code Coverage" --results-directory ./coverage --settings backend/Instory.Tests/coverage.runsettings
+      - name: Upload coverage report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: ./coverage/**/coverage.cobertura.xml
 
   frontend:
     runs-on: ubuntu-latest
