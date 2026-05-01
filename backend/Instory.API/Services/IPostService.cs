@@ -16,5 +16,6 @@ public interface IPostService
     Task<PostResponseDTO> GetPostDetailByPostId(int postId, int currnetUserId);
 
     Task<PostResponseDTO> UpdatePostAsync(int postId, int currentUserId, UpdatePostRequestDTO request);
+    Task<PaginatedResult<NewsFeedItemDTO>> GetNewsFeedAsync(int currentId, int pageNumber, int pageSize);
 
 }

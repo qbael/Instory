@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect, useRef } from "react";
-import type { Post } from "@/types";
+import type { NewsFeedItem, Post } from "@/types";
 import { postService } from "@/services/postService";
 import { hashtagService } from "@/services/hashtagService";
 
@@ -7,12 +7,12 @@ import { hashtagService } from "@/services/hashtagService";
 type FeedType = "home" | "none" | { userId: number } | { hashtag: string };
 
 export function usePosts(feedType: FeedType = "home") {
-  const [posts, setPosts] = useState<Post[]>([]);
+  const [posts, setPosts] = useState<NewsFeedItem[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [hasMore, setHasMore] = useState(true);
   const [page, setPage] = useState(1);
   const fetchingRef = useRef(false);
-  const postsRef = useRef<Post[]>([]); // Dùng ref để luôn có dữ liệu mới nhất trong callback
+  const postsRef = useRef<NewsFeedItem[]>([]); // Dùng ref để luôn có dữ liệu mới nhất trong callback
   // Stringify feedType để dùng làm dependency ổn định cho useEffect/useCallback
   const feedTypeKey = JSON.stringify(feedType);
 
@@ -88,23 +88,25 @@ export function usePosts(feedType: FeedType = "home") {
 
 const toggleLike = useCallback(async (postId: number) => {
     // 1. Lấy bài viết trực tiếp từ ref một cách đồng bộ
-    const targetPost = postsRef.current.find((p) => p.id === postId);
+    const targetPost = postsRef.current.find((p) => p.post.id === postId);
     if (!targetPost) return;
 
-    const wasLiked = targetPost.isLiked;
+    const wasLiked = targetPost.post.isLiked;
 
     // 2. Optimistic Update: Cập nhật giao diện ngay lập tức
     setPosts((prev) =>
       prev.map((p) => {
-        if (p.id !== postId) return p;
+        if (p.post.id !== postId) return p;
         return {
           ...p,
+          post: {
+          ...p.post,    // Giữ nguyên các trường khác của bài post gốc (content, images...)
           isLiked: !wasLiked,
-          likesCount: wasLiked ? p.likesCount - 1 : p.likesCount + 1,
+          likesCount: wasLiked ? p.post.likesCount - 1 : p.post.likesCount + 1,
+      },
         };
       }),
     );
-
     // 3. Gọi API với dữ liệu chính xác
     try {
       if (wasLiked) {
@@ -116,11 +118,14 @@ const toggleLike = useCallback(async (postId: number) => {
       // 4. Nếu API lỗi, Rollback lại state cũ
       setPosts((prev) =>
         prev.map((p) => {
-          if (p.id !== postId) return p;
+          if (p.post.id !== postId) return p;
           return {
             ...p,
-            isLiked: wasLiked,
-            likesCount: wasLiked ? p.likesCount + 1 : p.likesCount - 1,
+            post: {
+            ...p.post,    // Giữ nguyên các trường khác của bài post gốc (content, images...)
+            isLiked: !wasLiked,
+            likesCount: wasLiked ? p.post.likesCount - 1 : p.post.likesCount + 1,
+          },
           };
         }),
       );
@@ -130,13 +135,18 @@ const toggleLike = useCallback(async (postId: number) => {
   const handleIncreaseCommentCount = useCallback((postId: number) => {
     setPosts((prev) =>
       prev.map((p) =>
-        p.id === postId ? { ...p, commentsCount: p.commentsCount + 1 } : p,
+        p.post.id === postId ? 
+        { ...p, 
+          post: {
+            ...p.post,
+            commentsCount: p.post.commentsCount + 1
+          } } : p,
       ),
     );
   }, []);
 
   const handleDeletePostFromUI = (deletedPostId: number) => {
-    setPosts((prev) => prev.filter((p) => p.id !== deletedPostId));
+    setPosts((prev) => prev.filter((p) => p.post.id !== deletedPostId));
   };
 
   useEffect(() => {

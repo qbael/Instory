@@ -25,7 +25,8 @@ public class PostController : ControllerBase
     {
         var currentUserId = User.GetUserId();
 
-        var result = await _postService.GetAllPostsAsync(currentUserId, pageNumber, pageSize);
+        // var result = await _postService.GetAllPostsAsync(currentUserId, pageNumber, pageSize);
+        var result = await _postService.GetNewsFeedAsync(currentUserId, pageNumber, pageSize);
 
         return Ok(result);
     }

@@ -47,6 +47,14 @@ export interface CreatePostDto {
   content?: string;
   image?: File;
 }
+export interface NewsFeedItem {
+  feedType: "POST" | "SHARE";
+  feedCreatedAt: string;
+  shareId?: number;
+  shareCaption?: string;
+  sharer?: User;
+  post: Post;
+}
 
 // ─── Comment ─────────────────────────────────────────────────────────────────
 

@@ -3,6 +3,7 @@ using Instory.API.Helpers;
 using Instory.API.Models;
 using Instory.API.Repositories;
 using Instory.API.Services;
+using Microsoft.EntityFrameworkCore;
 
 public class PostService : IPostService
 {
@@ -391,77 +392,126 @@ public class PostService : IPostService
 
     public async Task<PaginatedResult<NewsFeedItemDTO>> GetNewsFeedAsync(int currentId, int pageNumber, int pageSize)
     {
+        // =======================================================================
+        // BƯỚC 1: LẤY DANH SÁCH "CHÌA KHÓA" (ID) ĐÃ SẮP XẾP VÀ PHÂN TRANG
+        // =======================================================================
         var postsQuery = _postRepository.GetBaseQuery()
-        .Where(p => !p.IsDeleted)
-        .Select(p => new NewsFeedItemDTO
-        {
-            FeedType = "POST",
-            FeedCreatedAt = p.CreatedAt,
-            ShareId = null,
-            ShareCaption = null,
-            Sharer = null,
-
-            Post = new PostResponseDTO
+            .Where(p => !p.IsDeleted)
+            .Select(p => new
             {
-                Id = p.Id,
-                // UserId = p.UserId,
-                Content = p.Content,
-                LikesCount = p.LikeCount,
-                CommentsCount = p.CommentCount,
-                SharesCount = p.ShareCount,
-                CreatedAt = p.CreatedAt,
-                User = new UserDTO
-                {
-                    UserName = p.User.UserName,
-                    AvatarUrl = p.User.AvatarUrl,
-                    FullName = p.User.FullName,
-                    CreatedAt = p.User.CreatedAt
-                },
-                Images = p.PostImages
-                    .OrderBy(pi => pi.SortOrder)
-                    .Select(pi => new PostImageDTO
-                    {
-                        Id = pi.Id,
-                        ImageUrl = pi.ImageUrl,
-                        SortOrder = pi.SortOrder
-                    }).ToList()
-            }
-        });
+                FeedType = "POST",
+                FeedCreatedAt = p.CreatedAt,
+                PostId = p.Id,
+                ShareId = (int?)null
+            });
+
         var sharesQuery = _sharePostRepository.GetBaseQuery()
-        .Where(s => !s.Post.IsDeleted)
-        .Select(s => new NewsFeedItemDTO
-        {
-            FeedType = "SHARE",
-            FeedCreatedAt = s.CreatedAt,
-            ShareId = s.Id,
-            ShareCaption = s.Caption,
-            Sharer = new UserDTO
+            .Where(s => !s.Post.IsDeleted)
+            .Select(s => new
             {
-                UserName = s.User.UserName,
-                AvatarUrl = s.User.AvatarUrl,
-                FullName = s.User.FullName,
-                CreatedAt = s.User.CreatedAt
-            },
+                FeedType = "SHARE",
+                FeedCreatedAt = s.CreatedAt,
+                PostId = s.PostId,
+                ShareId = (int?)s.Id
+            });
 
-            Post = new PostResponseDTO
+        // Lúc này Concat cực kỳ an toàn vì object trả về toàn là kiểu nguyên thủy (int, string, DateTime)
+        var combinedQuery = postsQuery.Concat(sharesQuery).OrderByDescending(f => f.FeedCreatedAt);
+
+        // Đếm tổng số lượng bản ghi cho phân trang
+        var totalCount = await combinedQuery.CountAsync();
+
+        // Lấy ra đúng 10 ID của trang hiện tại
+        var pageKeys = await combinedQuery
+            .Skip((pageNumber - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync();
+
+        if (!pageKeys.Any())
+        {
+            return new PaginatedResult<NewsFeedItemDTO>(new List<NewsFeedItemDTO>(), pageNumber, pageSize, totalCount);
+        }
+
+        // =======================================================================
+        // BƯỚC 2: FETCH FULL DỮ LIỆU CHO 10 ID VỪA LẤY ĐƯỢC
+        // =======================================================================
+        var postIdsToFetch = pageKeys.Select(k => k.PostId).Distinct().ToList();
+        var shareIdsToFetch = pageKeys.Where(k => k.FeedType == "SHARE").Select(k => k.ShareId.Value).ToList();
+
+        // 1. Lấy Full thông tin bài đăng gốc
+        var postsData = await _postRepository.GetBaseQuery()
+            .Include(p => p.User)
+            .Include(p => p.PostImages)
+            .Where(p => postIdsToFetch.Contains(p.Id))
+            .ToListAsync();
+
+        // 2. Lấy Full thông tin lượt Share (nếu trang này có bài Share)
+        var sharesData = new List<SharePost>();
+        if (shareIdsToFetch.Any())
+        {
+            sharesData = await _sharePostRepository.GetBaseQuery()
+                .Include(s => s.User)
+                .Where(s => shareIdsToFetch.Contains(s.Id))
+                .ToListAsync();
+        }
+
+        // 3. Lấy trạng thái Like
+        var likedPostIds = await _likeRepository.GetLikePostIdsByUserIdAsync(currentId);
+
+        // =======================================================================
+        // BƯỚC 3: MAPPING SANG DTO TRÊN RAM (MEMORY) THEO ĐÚNG THỨ TỰ CỦA PAGEKEYS
+        // =======================================================================
+        var resultItems = new List<NewsFeedItemDTO>();
+
+        foreach (var key in pageKeys)
+        {
+            var postEntity = postsData.FirstOrDefault(p => p.Id == key.PostId);
+            if (postEntity == null) continue;
+
+            var feedItem = new NewsFeedItemDTO
             {
-                Id = s.Post.Id,
-                UserId = s.Post.UserId,
-                Content = s.Post.Content,
-                LikesCount = s.Post.LikeCount,
-                CommentsCount = s.Post.CommentCount,
-                SharesCount = s.Post.ShareCount,
-                CreatedAt = s.Post.CreatedAt,
-                // IsLiked sẽ gán sau
+                FeedType = key.FeedType,
+                FeedCreatedAt = key.FeedCreatedAt,
+                ShareId = key.ShareId
+            };
+
+            // Nếu là bài Share, map thông tin người share
+            if (key.FeedType == "SHARE")
+            {
+                var shareEntity = sharesData.FirstOrDefault(s => s.Id == key.ShareId);
+                if (shareEntity != null)
+                {
+                    feedItem.ShareCaption = shareEntity.Caption;
+                    feedItem.Sharer = new UserDTO
+                    {
+                        UserName = shareEntity.User.UserName,
+                        AvatarUrl = shareEntity.User.AvatarUrl,
+                        FullName = shareEntity.User.FullName,
+                        CreatedAt = shareEntity.User.CreatedAt
+                    };
+                }
+            }
+
+            // Map thông tin bài viết gốc
+            feedItem.Post = new PostResponseDTO
+            {
+                Id = postEntity.Id,
+                UserId = postEntity.UserId,
+                Content = postEntity.Content,
+                LikesCount = postEntity.LikeCount,
+                CommentsCount = postEntity.CommentCount,
+                SharesCount = postEntity.ShareCount,
+                CreatedAt = postEntity.CreatedAt,
+                IsLiked = likedPostIds.Contains(postEntity.Id), // Map IsLiked trực tiếp luôn
 
                 User = new UserDTO
                 {
-                    UserName = s.Post.User.UserName,
-                    AvatarUrl = s.Post.User.AvatarUrl,
-                    FullName = s.Post.User.FullName,
-                    CreatedAt = s.Post.User.CreatedAt
+                    UserName = postEntity.User.UserName,
+                    AvatarUrl = postEntity.User.AvatarUrl,
+                    FullName = postEntity.User.FullName,
+                    CreatedAt = postEntity.User.CreatedAt
                 },
-                Images = s.Post.PostImages
+                Images = postEntity.PostImages
                     .OrderBy(pi => pi.SortOrder)
                     .Select(pi => new PostImageDTO
                     {
@@ -469,20 +519,12 @@ public class PostService : IPostService
                         ImageUrl = pi.ImageUrl,
                         SortOrder = pi.SortOrder
                     }).ToList()
-            }
-        });
+            };
 
-        var combinedQuery = postsQuery.Concat(sharesQuery)
-        .OrderByDescending(f => f.FeedCreatedAt);
-
-        var paginatedFeed = await PaginatedResult<NewsFeedItemDTO>.CreateAsync(combinedQuery, pageNumber, pageSize);
-        var likedPostIds = await _likeRepository.GetLikePostIdsByUserIdAsync(currentId);
-        foreach (var item in paginatedFeed.Data)
-        {
-            item.Post.IsLiked = likedPostIds.Contains(item.Post.Id);
+            resultItems.Add(feedItem);
         }
-        return paginatedFeed;
 
+        return new PaginatedResult<NewsFeedItemDTO>(resultItems, pageNumber, pageSize, totalCount);
     }
     private static PostResponseDTO MapToResponseDTO(Post post)
     {

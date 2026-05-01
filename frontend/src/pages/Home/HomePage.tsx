@@ -7,6 +7,7 @@ import { usePosts } from "@/hooks/usePosts";
 import { useInfiniteScroll } from "@/hooks/useInfiniteScroll";
 import { useSignalRContext } from "@/hooks/useSignalRContext";
 import { Spinner } from "@/components/ui/Spinner";
+import NewsFeed from "@/components/post/NewsFeed";
 
 export default function HomePage() {
   const {
@@ -53,7 +54,7 @@ export default function HomePage() {
         </div>
       )}
 
-      {posts.map((post) => (
+      {/* {posts.map((post) => (
         <PostCard
           key={post.id}
           post={post}
@@ -61,7 +62,13 @@ export default function HomePage() {
           onCommentAdded={handleIncreaseCommentCount}
           onDeleteSuccess={handleDeletePostFromUI}
         />
-      ))}
+      ))} */}
+      <NewsFeed 
+        feedItems={posts} 
+        onLikeToggle={toggleLike} 
+        onDeleteSuccess={handleDeletePostFromUI}
+        onCommentAdded={handleIncreaseCommentCount}
+      />
 
       {/* Infinite scroll sentinel */}
       <div ref={sentinelRef} className="flex justify-center py-4">
