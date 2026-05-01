@@ -1,4 +1,4 @@
-import { useState, memo } from 'react';
+import { useState, memo, useEffect } from 'react';
 import { Link, useSearchParams } from 'react-router';
 import { Search, Hash, X } from 'lucide-react';
 import { useSearch } from '@/hooks/useSearch';
@@ -16,15 +16,17 @@ const tabs: { key: Tab; label: string }[] = [
 ];
 
 export default function SearchPage() {
-  const [searchParams] = useSearchParams();
+  const [searchParams,setSearchParams] = useSearchParams();
   const initialTag = searchParams.get('tag');
   const [tab, setTab] = useState<Tab>(initialTag ? 'tags' : 'people');
   const { query, setQuery, results, isLoading, clear } = useSearch(tab);
 
-  // Pre-fill from tag query param
-  if (initialTag && !query) {
+
+  useEffect(() => {
+  if (initialTag) {
     setQuery(`#${initialTag}`);
-  }
+    setTab('posts');
+  }},[initialTag, setQuery])
 
   const isEmpty = results &&
     !results.users.length &&
@@ -58,7 +60,12 @@ export default function SearchPage() {
         <input
           type="text"
           value={query}
-          onChange={(e) => setQuery(e.target.value)}
+          onChange={(e) => {
+            setQuery(e.target.value);
+            if (searchParams.has('tag')) {      
+              setSearchParams(new URLSearchParams()); 
+            }
+          }}
           placeholder={
             tab === 'people' ? 'Tìm kiếm mọi người…'
             : tab === 'posts' ? 'Tìm kiếm bài viết…'
@@ -197,7 +204,7 @@ function HashtagRow({ hashtag }: { hashtag: Hashtag }) {
       <div>
         <p className="text-sm font-semibold text-text-primary">#{hashtag.tag}</p>
         <p className="text-xs text-text-secondary">
-          {hashtag.postsCount.toLocaleString()} bài viết
+          {(hashtag.totalPost ?? 0).toLocaleString()} bài viết
         </p>
       </div>
     </Link>

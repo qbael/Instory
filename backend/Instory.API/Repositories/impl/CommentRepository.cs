@@ -12,7 +12,7 @@ public class CommentRepository : Repository<Comment>, ICommentRepository
     public async Task<PaginatedResult<Comment>> GetCommentsByPostIdAsync(int postId, int page, int pageSize)
     {
         // Tạo câu Query (chưa execute xuống DB)
-        var query = _context.Comments
+        var query = _dbSet
             .Include(c => c.User)
             .Where(c => c.PostId == postId)
             .OrderByDescending(c => c.CreatedAt);

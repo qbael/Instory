@@ -17,4 +17,7 @@ public interface IPostService
 
     Task<PostResponseDTO> UpdatePostAsync(int postId, int currentUserId, UpdatePostRequestDTO request);
 
+    Task<PaginatedResult<PostResponseDTO>> GetUserPostsAsync(int targetUserId, int currentUserId, int page, int pageSize);
+    Task<PaginatedResult<PostResponseDTO>> GetUserLikedPostsAsync(int targetUserId, int currentUserId, int page, int pageSize);
+
 }

@@ -149,7 +149,7 @@ export interface Notification {
 export interface Hashtag {
   id: number;
   tag: string;
-  postsCount: number;
+  totalPost: number;
 }
 
 // ─── Report Reason ──────────────────────────────────────────────────────────

@@ -11,9 +11,12 @@ public class SearchController : ControllerBase
 {
     private readonly ISearchService _searchService;
 
-    public SearchController(ISearchService searchService)
+    private readonly IHashtagService _hashtagService;
+
+    public SearchController(ISearchService searchService, IHashtagService hashtagService)
     {
         _searchService = searchService;
+        _hashtagService = hashtagService;
     }
 
     [HttpGet("users")]
@@ -23,6 +26,26 @@ public class SearchController : ControllerBase
             return BadRequest("Query không được để trống.");
 
         var result = await _searchService.SearchUsersAsync(query.Trim());
+        return Ok(result);
+    }
+
+    [HttpGet("hashtags")]
+    public async Task<IActionResult> SearchHashtags([FromQuery] string? query)
+    {
+        if (string.IsNullOrWhiteSpace(query))
+            return BadRequest("Query không được để trống.");
+
+        var result = await _hashtagService.SearchHashtagsAsync(query.Trim());
+        return Ok(result);
+    }
+
+    [HttpGet("posts")]
+    public async Task<IActionResult> SearchPosts([FromQuery] string? query)
+    {
+        if (string.IsNullOrWhiteSpace(query))
+            return BadRequest("Query không được để trống.");
+
+        var result = await _searchService.SearchPostsAsync(query.Trim());
         return Ok(result);
     }
 }

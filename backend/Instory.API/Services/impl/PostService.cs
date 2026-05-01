@@ -13,8 +13,10 @@ public class PostService : IPostService
     private readonly IMediaService _mediaService;
 
     private readonly IHashtagService _hashtagService;
+
+    private readonly ISharePostRepository _sharePostRepository;
     private readonly IUnitOfWork _unitOfWork;
-    public PostService(IPostRepository postRepository, IPostImageRepository postImageRepository, ILikeRepository likeRepository, IMediaService mediaService, IUnitOfWork unitOfWork, IHashtagService hashtagService)
+    public PostService(IPostRepository postRepository, IPostImageRepository postImageRepository, ILikeRepository likeRepository, IMediaService mediaService, IUnitOfWork unitOfWork, IHashtagService hashtagService, ISharePostRepository sharePostRepository)
     {
         _postRepository = postRepository;
         _postImageRepository = postImageRepository;
@@ -22,6 +24,7 @@ public class PostService : IPostService
         _mediaService = mediaService;
         _unitOfWork = unitOfWork;
         _hashtagService = hashtagService;
+        _sharePostRepository = sharePostRepository;
     }
 
     public async Task<PaginatedResult<PostResponseDTO>> GetAllPostsAsync(int currentUserId, int page, int pageSize)
@@ -81,7 +84,6 @@ public class PostService : IPostService
 
             await _postRepository.AddAsync(post);
             await _unitOfWork.SaveChangesAsync(); // Lưu Post trước để có PostId cho việc lưu ảnh
-            Console.WriteLine($"Post đã được lưu với ID: {post.Id}");
 
             await _hashtagService.ProcessHashtagsAsync(post.Id, request.Content);
 
@@ -379,12 +381,174 @@ public class PostService : IPostService
         catch (Exception ex)
         {
             await _unitOfWork.RollbackTransactionAsync();
-            Console.WriteLine($"[Error] Lỗi khi cập nhật bài viết: {ex.Message}");
             throw;
         }
-
-
     }
+    
+    public async Task<PaginatedResult<PostResponseDTO>> GetUserLikedPostsAsync(int targetUserId, int currentUserId, int page, int pageSize)
+    {
+        // Lấy danh sách bài viết mà targetUser đã like (qua bảng Likes)
+        var query = _likeRepository.GetLikedPostsByUserQueryable(targetUserId);
+        var paginated = await PaginatedResult<Post>.CreateAsync(query, page, pageSize);
+
+        // Check bài nào currentUser đã like (để hiển thị trạng thái tim đỏ)
+        var likedPostIds = await _likeRepository.GetLikePostIdsByUserIdAsync(currentUserId);
+
+        return paginated.Map(p => new PostResponseDTO
+        {
+            Id = p.Id,
+            UserId = p.UserId,
+            Content = p.Content,
+            LikesCount = p.LikeCount,
+            CommentsCount = p.CommentCount,
+            SharesCount = p.ShareCount,
+            CreatedAt = p.CreatedAt,
+            IsLiked = likedPostIds.Contains(p.Id),
+            User = new UserDTO
+            {
+                Id = p.User.Id,
+                UserName = p.User.UserName,
+                AvatarUrl = p.User.AvatarUrl,
+                FullName = p.User.FullName,
+                CreatedAt = p.User.CreatedAt
+            },
+            Images = p.PostImages
+                .OrderBy(pi => pi.SortOrder)
+                .Select(pi => new PostImageDTO { Id = pi.Id, ImageUrl = pi.ImageUrl, SortOrder = pi.SortOrder })
+                .ToList()
+        });
+    }
+
+    public async Task<PaginatedResult<PostResponseDTO>> GetUserPostsAsync(int targetUserId, int currentUserId, int page, int pageSize)
+    {
+        var query = _postRepository.GetPostsByUserIdQueryable(targetUserId);
+        var paginatedPosts = await PaginatedResult<Post>.CreateAsync(query, page, pageSize);
+        var likedPostIds = await _likeRepository.GetLikePostIdsByUserIdAsync(currentUserId);
+        return paginatedPosts.Map(p => new PostResponseDTO
+        {
+            Id = p.Id,
+            UserId = p.UserId,
+            Content = p.Content,
+            LikesCount = p.LikeCount,
+            CommentsCount = p.CommentCount,
+            SharesCount = p.ShareCount,
+            CreatedAt = p.CreatedAt,
+            IsLiked = likedPostIds.Contains(p.Id),
+            User = new UserDTO
+            {
+                Id = p.User.Id,
+                UserName = p.User.UserName,
+                AvatarUrl = p.User.AvatarUrl,
+                FullName = p.User.FullName,
+                CreatedAt = p.User.CreatedAt
+            },
+            Images = p.PostImages
+                .OrderBy(pi => pi.SortOrder)
+                .Select(pi => new PostImageDTO
+                {
+                    Id = pi.Id,
+                    ImageUrl = pi.ImageUrl,
+                    SortOrder = pi.SortOrder
+                })
+                .ToList()
+        });
+    }
+
+    public async Task<PaginatedResult<NewsFeedItemDTO>> GetNewsFeedAsync(int currentId, int pageNumber, int pageSize)
+    {
+        var postsQuery = _postRepository.GetBaseQuery()
+        .Where(p => !p.IsDeleted)
+        .Select(p => new NewsFeedItemDTO
+        {
+            FeedType = "POST",
+            FeedCreatedAt = p.CreatedAt,
+            ShareId = null,
+            ShareCaption = null,
+            Sharer = null,
+
+            Post = new PostResponseDTO
+            {
+                Id = p.Id,
+                // UserId = p.UserId,
+                Content = p.Content,
+                LikesCount = p.LikeCount,
+                CommentsCount = p.CommentCount,
+                SharesCount = p.ShareCount,
+                CreatedAt = p.CreatedAt,
+                User = new UserDTO
+                {
+                    UserName = p.User.UserName,
+                    AvatarUrl = p.User.AvatarUrl,
+                    FullName = p.User.FullName,
+                    CreatedAt = p.User.CreatedAt
+                },
+                Images = p.PostImages
+                    .OrderBy(pi => pi.SortOrder)
+                    .Select(pi => new PostImageDTO
+                    {
+                        Id = pi.Id,
+                        ImageUrl = pi.ImageUrl,
+                        SortOrder = pi.SortOrder
+                    }).ToList()
+            }
+        });
+        var sharesQuery = _sharePostRepository.GetBaseQuery()
+        .Where(s => !s.Post.IsDeleted)
+        .Select(s => new NewsFeedItemDTO
+        {
+            FeedType = "SHARE",
+            FeedCreatedAt = s.CreatedAt,
+            ShareId = s.Id,
+            ShareCaption = s.Caption,
+            Sharer = new UserDTO
+            {
+                UserName = s.User.UserName,
+                AvatarUrl = s.User.AvatarUrl,
+                FullName = s.User.FullName,
+                CreatedAt = s.User.CreatedAt
+            },
+
+            Post = new PostResponseDTO
+            {
+                Id = s.Post.Id,
+                UserId = s.Post.UserId,
+                Content = s.Post.Content,
+                LikesCount = s.Post.LikeCount,
+                CommentsCount = s.Post.CommentCount,
+                SharesCount = s.Post.ShareCount,
+                CreatedAt = s.Post.CreatedAt,
+                // IsLiked sẽ gán sau
+
+                User = new UserDTO
+                {
+                    UserName = s.Post.User.UserName,
+                    AvatarUrl = s.Post.User.AvatarUrl,
+                    FullName = s.Post.User.FullName,
+                    CreatedAt = s.Post.User.CreatedAt
+                },
+                Images = s.Post.PostImages
+                    .OrderBy(pi => pi.SortOrder)
+                    .Select(pi => new PostImageDTO
+                    {
+                        Id = pi.Id,
+                        ImageUrl = pi.ImageUrl,
+                        SortOrder = pi.SortOrder
+                    }).ToList()
+            }
+        });
+
+        var combinedQuery = postsQuery.Concat(sharesQuery)
+        .OrderByDescending(f => f.FeedCreatedAt);
+
+        var paginatedFeed = await PaginatedResult<NewsFeedItemDTO>.CreateAsync(combinedQuery, pageNumber, pageSize);
+        var likedPostIds = await _likeRepository.GetLikePostIdsByUserIdAsync(currentId);
+        foreach (var item in paginatedFeed.Data)
+        {
+            item.Post.IsLiked = likedPostIds.Contains(item.Post.Id);
+        }
+        return paginatedFeed;
+    }
+
     private static PostResponseDTO MapToResponseDTO(Post post)
     {
         return new PostResponseDTO

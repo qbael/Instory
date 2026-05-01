@@ -207,7 +207,7 @@ export default function EditPost() {
         <div className="mb-6 flex items-center gap-3">
           <button
             onClick={() => navigate(-1)}
-            className="rounded-full p-2 hover:bg-border/40 transition-colors"
+            className="rounded-full p-2 hover:bg-border/40 transition-colors cursor-pointer"
             aria-label="Go back"
           >
             <ArrowLeft className="h-5 w-5 text-text-primary" />

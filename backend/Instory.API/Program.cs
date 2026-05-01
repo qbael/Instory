@@ -1,5 +1,6 @@
 using System.Text;
 using System.Text.Json.Serialization;
+using Serilog;
 using Amazon;
 using Amazon.Runtime;
 using Amazon.S3;
@@ -19,6 +20,9 @@ using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 
 var builder = WebApplication.CreateBuilder(args);
+
+builder.Host.UseSerilog((context, config) =>
+    config.ReadFrom.Configuration(context.Configuration));
 
 builder.Services.AddOpenApi();
 
@@ -151,12 +155,14 @@ builder.Services.AddScoped<IPostService, PostService>();
 builder.Services.AddScoped<ICommentService, CommentService>();
 builder.Services.AddScoped<ILikeService, LikeService>();
 builder.Services.AddScoped<IFriendshipService, FriendshipService>();
-// builder.Services.AddScoped<IPostImageService, PostImageService>();
 builder.Services.AddScoped<ISearchService, SearchService>();
 builder.Services.AddScoped<IHashtagService, HashtagService>();
 builder.Services.AddScoped<IPostReportService, PostReportService>();
 builder.Services.AddScoped<ISharePostService, SharePostService>();
 builder.Services.AddScoped<IAdminService, AdminService>();
+builder.Services.AddScoped<ISearchService, SearchService>();
+
+
 
 var app = builder.Build();
 
@@ -169,6 +175,8 @@ if (app.Environment.IsDevelopment())
         options.SwaggerEndpoint("/openapi/v1.json", "Instory API V1");
     });
 }
+
+app.UseSerilogRequestLogging();
 
 app.UseHttpsRedirection();
 
