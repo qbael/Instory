@@ -8,6 +8,7 @@ interface PostActionsProps {
   likesCount: number;
   commentsCount: number;
   sharesCount: number;
+  isOwnPost?: boolean;
   onLike: (postId: number) => void;
   onCommentClick: () => void;
   onShare: () => void;
@@ -19,6 +20,7 @@ export const PostActions = memo(function PostActions({
   likesCount,
   commentsCount,
   sharesCount,
+  isOwnPost = false,
   onLike,
   onCommentClick,
   onShare,
@@ -61,18 +63,20 @@ export const PostActions = memo(function PostActions({
             <span>{commentsCount > 0 ? commentsCount : ''}</span>
           </div>
 
-          <div className='flex items-center justify-between gap-2'>
-            <button
-              type="button"
-              onClick={onShare}
-              className="cursor-pointer text-text-primary hover:text-text-secondary"
-              aria-label="Chia sẻ"
-              title='Chia sẻ'
-            >
-              <Send className="h-6 w-6" />
-            </button>
-            <span>{sharesCount > 0 ? sharesCount : ''}</span>
-          </div>
+          {!isOwnPost && (
+            <div className='flex items-center justify-between gap-2'>
+              <button
+                type="button"
+                onClick={onShare}
+                className="cursor-pointer text-text-primary hover:text-text-secondary"
+                aria-label="Chia sẻ"
+                title='Chia sẻ'
+              >
+                <Send className="h-6 w-6" />
+              </button>
+              <span>{sharesCount > 0 ? sharesCount : ''}</span>
+            </div>
+          )}
         </div>
         {/* <button
           type="button"

@@ -316,9 +316,11 @@ export function PostDetailModal({
                 >
                   <MessageCircle className="h-6 w-6" />
                 </button>
-                <button type="button" className="cursor-pointer text-text-primary hover:text-text-secondary">
-                  <Send className="h-6 w-6" />
-                </button>
+                {!isOwnPost && (
+                  <button type="button" className="cursor-pointer text-text-primary hover:text-text-secondary">
+                    <Send className="h-6 w-6" />
+                  </button>
+                )}
               </div>
             </div>
 
