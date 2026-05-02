@@ -39,7 +39,7 @@ export default function EditPost() {
         setCaption(response.data.content || "");
         setExistingImages(response.data.images || []);
         setImagePreviews(response.data.images.map((img) => img.imageUrl) || []);
-      } catch (error) {
+      } catch {
         toast.error("Không thể tải bài viết");
         navigate(`/`);        
       } finally {

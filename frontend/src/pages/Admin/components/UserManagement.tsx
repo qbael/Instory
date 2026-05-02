@@ -70,8 +70,9 @@ export function UserManagement() {
       await adminService.toggleUserBlock(userId);
       toast.success(currentStatus ? 'Đã mở khóa tài khoản' : 'Đã khóa tài khoản');
       setUsers(users.map(u => u.id === userId ? { ...u, isBlocked: !currentStatus } : u));
-    } catch (err: any) {
-      toast.error(err.response?.data?.message || 'Thao tác thất bại');
+    } catch (err) {
+      const e = err as { response?: { data?: { message?: string } } };
+      toast.error(e.response?.data?.message || 'Thao tác thất bại');
     }
   };
 

@@ -41,7 +41,7 @@ public class SmtpEmailSender : IEmailSender
 
         if (!string.IsNullOrWhiteSpace(username))
         {
-            await client.AuthenticateAsync(username, password);
+            await client.AuthenticateAsync(username, password ?? string.Empty);
         }
 
         await client.SendAsync(email);

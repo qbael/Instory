@@ -18,7 +18,7 @@ import { postService } from '@/services/postService';
 import { timeAgo } from '@/utils/formatDate';
 import { cn } from '@/utils/cn';
 import { useAppSelector } from '@/store';
-import type { Post, Comment } from '@/types';
+import type { Post, Comment, User } from '@/types';
 
 interface PostDetailModalProps {
   post: Post;
@@ -72,7 +72,7 @@ export function PostDetailModal({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [localLikesCount, setLocalLikesCount] = useState(post.likesCount);
   const [localIsLiked, setLocalIsLiked] = useState(isLiked);
-  const [_localCommentsCount, setLocalCommentsCount] = useState(post.commentsCount);
+  const [, setLocalCommentsCount] = useState(post.commentsCount);
 
   const backdropRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -129,7 +129,7 @@ export function PostDetailModal({
         {
           ...added,
           createdAt: added.createdAt ?? new Date().toISOString(),
-          user: { userName: currentUser?.userName ?? '', avatarUrl: currentUser?.avatarUrl ?? null } as any,
+          user: { userName: currentUser?.userName ?? '', avatarUrl: currentUser?.avatarUrl ?? null } as unknown as User,
         },
       ]);
       setLocalCommentsCount((c) => c + 1);

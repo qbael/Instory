@@ -7,7 +7,6 @@ using Amazon.S3.Transfer;
 using Instory.API.Models;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Options;
-using Amazon.S3.Model;
 namespace Instory.API.Services.impl;
 
 public class MediaService : IMediaService

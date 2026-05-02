@@ -21,8 +21,9 @@ export function ReportReasonManagement() {
     try {
       const { data } = await adminService.getReportReasons();
       setReasons(data || []);
-    } catch (err: any) {
-      toast.error(err.response?.data?.message || 'Lỗi tải danh sách lý do báo cáo');
+    } catch (err) {
+      const e = err as { response?: { data?: { message?: string } } };
+      toast.error(e.response?.data?.message || 'Lỗi tải danh sách lý do báo cáo');
     } finally {
       setIsLoading(false);
     }
@@ -54,8 +55,9 @@ export function ReportReasonManagement() {
       setName('');
       setDescription('');
       setSeverity(1);
-    } catch (err: any) {
-      toast.error(err.response?.data?.message || 'Thêm lý do thất bại');
+    } catch (err) {
+      const e = err as { response?: { data?: { message?: string } } };
+      toast.error(e.response?.data?.message || 'Thêm lý do thất bại');
     } finally {
       setIsSubmitting(false);
     }
@@ -68,8 +70,9 @@ export function ReportReasonManagement() {
       await adminService.deleteReportReason(reasonId);
       toast.success('Đã xóa lý do báo cáo');
       setReasons((prev) => prev.filter((r) => r.id !== reasonId));
-    } catch (err: any) {
-      toast.error(err.response?.data?.message || 'Xóa lý do thất bại');
+    } catch (err) {
+      const e = err as { response?: { data?: { message?: string } } };
+      toast.error(e.response?.data?.message || 'Xóa lý do thất bại');
     } finally {
       setDeletingId(null);
     }

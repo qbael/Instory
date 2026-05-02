@@ -196,7 +196,7 @@ export const PostCard = memo(function PostCard({
       {post.images && post.images.length > 0 && (() => {
         const imgs = post.images;
         const hasMultiple = imgs.length > 1;
-        const src = (imgs[imageIndex] as any).imageUrl || (imgs[imageIndex] as any).url || "";
+        const src = imgs[imageIndex]?.imageUrl ?? "";
         return (
           <div className="relative aspect-square overflow-hidden bg-black">
             <img

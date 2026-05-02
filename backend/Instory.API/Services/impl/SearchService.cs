@@ -31,7 +31,7 @@ public class SearchService : ISearchService
             CommentsCount = p.CommentCount,
             User = new UserDTO
             {
-                UserName = p.User.UserName,
+                UserName = p.User.UserName ?? string.Empty,
                 AvatarUrl = p.User.AvatarUrl,
                 FullName = p.User.FullName,
             },

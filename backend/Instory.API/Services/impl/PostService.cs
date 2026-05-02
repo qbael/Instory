@@ -50,7 +50,7 @@ public class PostService : IPostService
             User = new UserDTO
             {
                 // Id = p.User.Id,
-                UserName = p.User.UserName,
+                UserName = p.User.UserName ?? string.Empty,
                 AvatarUrl = p.User.AvatarUrl,
                 FullName = p.User.FullName,
                 CreatedAt = p.User.CreatedAt
@@ -85,7 +85,7 @@ public class PostService : IPostService
             await _postRepository.AddAsync(post);
             await _unitOfWork.SaveChangesAsync(); // Lưu Post trước để có PostId cho việc lưu ảnh
 
-            await _hashtagService.ProcessHashtagsAsync(post.Id, request.Content);
+            await _hashtagService.ProcessHashtagsAsync(post.Id, request.Content ?? string.Empty);
 
             var postImagesDtoList = new List<PostImageDTO>();
 
@@ -153,7 +153,7 @@ public class PostService : IPostService
                 Images = postImagesDtoList.OrderBy(img => img.SortOrder).ToList()
             };
         }
-        catch (Exception ex)
+        catch (Exception)
         {
             // Nếu có bất kỳ lỗi gì (S3 sập, sai định dạng, đứt mạng...), hoàn tác toàn bộ DB
             // Bài viết sẽ KHÔNG bị lưu rác vào database.
@@ -163,7 +163,7 @@ public class PostService : IPostService
             throw;
         }
     }
-    public async Task<PostResponseDTO> GetPostByIdAsync(int id)
+    public async Task<PostResponseDTO?> GetPostByIdAsync(int id)
     {
         var post = await _postRepository.GetByIdAsync(id);
         if (post == null)
@@ -209,7 +209,7 @@ public class PostService : IPostService
             User = new UserDTO
             {
                 Id = p.User.Id,
-                UserName = p.User.UserName,
+                UserName = p.User.UserName ?? string.Empty,
                 AvatarUrl = p.User.AvatarUrl,
                 FullName = p.User.FullName,
                 CreatedAt = p.User.CreatedAt
@@ -248,7 +248,7 @@ public class PostService : IPostService
             User = new UserDTO
             {
                 // Id = post.User.Id,
-                UserName = post.User.UserName,
+                UserName = post.User.UserName ?? string.Empty,
                 AvatarUrl = post.User.AvatarUrl,
                 FullName = post.User.FullName,
                 // CreatedAt = post.User.CreatedAt
@@ -378,7 +378,7 @@ public class PostService : IPostService
                 }).ToList()
             };
         }
-        catch (Exception ex)
+        catch (Exception)
         {
             await _unitOfWork.RollbackTransactionAsync();
             throw;
@@ -407,7 +407,7 @@ public class PostService : IPostService
             User = new UserDTO
             {
                 Id = p.User.Id,
-                UserName = p.User.UserName,
+                UserName = p.User.UserName ?? string.Empty,
                 AvatarUrl = p.User.AvatarUrl,
                 FullName = p.User.FullName,
                 CreatedAt = p.User.CreatedAt
@@ -437,7 +437,7 @@ public class PostService : IPostService
             User = new UserDTO
             {
                 Id = p.User.Id,
-                UserName = p.User.UserName,
+                UserName = p.User.UserName ?? string.Empty,
                 AvatarUrl = p.User.AvatarUrl,
                 FullName = p.User.FullName,
                 CreatedAt = p.User.CreatedAt
@@ -477,7 +477,7 @@ public class PostService : IPostService
                 CreatedAt = p.CreatedAt,
                 User = new UserDTO
                 {
-                    UserName = p.User.UserName,
+                    UserName = p.User.UserName ?? string.Empty,
                     AvatarUrl = p.User.AvatarUrl,
                     FullName = p.User.FullName,
                     CreatedAt = p.User.CreatedAt
@@ -502,7 +502,7 @@ public class PostService : IPostService
             ShareCaption = s.Caption,
             Sharer = new UserDTO
             {
-                UserName = s.User.UserName,
+                UserName = s.User.UserName ?? string.Empty,
                 AvatarUrl = s.User.AvatarUrl,
                 FullName = s.User.FullName,
                 CreatedAt = s.User.CreatedAt
@@ -521,7 +521,7 @@ public class PostService : IPostService
 
                 User = new UserDTO
                 {
-                    UserName = s.Post.User.UserName,
+                    UserName = s.Post.User.UserName ?? string.Empty,
                     AvatarUrl = s.Post.User.AvatarUrl,
                     FullName = s.Post.User.FullName,
                     CreatedAt = s.Post.User.CreatedAt
