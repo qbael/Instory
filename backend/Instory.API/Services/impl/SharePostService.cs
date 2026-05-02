@@ -65,7 +65,7 @@ public class SharePostService : ISharePostService
             User = new UserDTO
             {
                 Id = s.Post.User.Id,
-                UserName = s.Post.User.UserName,
+                UserName = s.Post.User.UserName ?? string.Empty,
                 AvatarUrl = s.Post.User.AvatarUrl,
                 FullName = s.Post.User.FullName,
                 CreatedAt = s.Post.User.CreatedAt

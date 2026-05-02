@@ -67,10 +67,11 @@ export function ReportPostModal({
       toast.success("Báo cáo bài viết thành công");
       handleClose();
       onSuccess?.();
-    } catch (error: any) {
-      const errorMessage = 
-        error.response?.data?.message || 
-        error.response?.data?.detail || 
+    } catch (error) {
+      const err = error as { response?: { data?: { message?: string; detail?: string } } };
+      const errorMessage =
+        err.response?.data?.message ||
+        err.response?.data?.detail ||
         "Lỗi hệ thống khi báo cáo bài viết";
 
       toast.error(errorMessage);

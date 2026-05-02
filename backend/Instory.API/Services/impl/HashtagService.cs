@@ -161,7 +161,7 @@ public class HashtagService : IHashtagService
         var searchTerm = query.Replace("#", "").ToLower().Trim();
 
         var result = await _hashtagRepository.GetAllHashtags()
-            .Where(h => h.Tag.Contains(searchTerm))
+            .Where(h => h.Tag != null && h.Tag.Contains(searchTerm))
             .OrderByDescending(h => h.TotalPost)
             .Take(limit)
             .Select(h => new HashtagDTO
@@ -236,7 +236,7 @@ public class HashtagService : IHashtagService
 
         if (newPostHashtag.Any())
         {
-            _postHashtagRepository.AddRangeAsync(newPostHashtag);
+            await _postHashtagRepository.AddRangeAsync(newPostHashtag);
         }
     }
 }

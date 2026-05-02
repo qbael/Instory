@@ -11,7 +11,7 @@ public class CommentService : ICommentService
         _commentRepository = commentRepository;
         _postRepository = postRepository;
     }
-    public async Task<CommentResponseDTO> AddCommentAsync(int userId, int postId, CreateCommentRequestDTO request)
+    public async Task<CommentResponseDTO?> AddCommentAsync(int userId, int postId, CreateCommentRequestDTO request)
     {
 
         var post = await _postRepository.GetByIdAsync(postId);
@@ -85,7 +85,7 @@ public class CommentService : ICommentService
             User = new UserDTO
             {
                 Id = entity.User.Id,
-                UserName = entity.User.UserName,
+                UserName = entity.User.UserName ?? string.Empty,
                 AvatarUrl = entity.User.AvatarUrl,
                 FullName = entity.User.FullName,
                 CreatedAt = entity.User.CreatedAt
