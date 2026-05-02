@@ -1,5 +1,5 @@
 import { useState, useRef, useCallback, useEffect } from "react";
-import { ImagePlus, X } from "lucide-react";
+import { ImagePlus, MoreHorizontal, X } from "lucide-react";
 import { toast } from "sonner";
 import { Modal } from "@/components/ui/Modal";
 import { Button } from "@/components/ui/Button";
@@ -9,6 +9,8 @@ import { closeModal } from "@/store/slices/uiSlice";
 import { postService } from "@/services/postService";
 import { cn } from "@/utils/cn";
 import { ACCEPTED_IMAGE_TYPES, MAX_IMAGE_SIZE_MB } from "@/utils/constants";
+import PostMoreOptions from "./PostMoreOptions";
+import { string } from "zod";
 
 const MAX_CAPTION = 2200;
 
@@ -24,6 +26,7 @@ export function PostCreator() {
   const [isDragging, setIsDragging] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
+  const [allowComment, setAllowComment] = useState(true); 
 
   const handleClose = useCallback(() => {
     dispatch(closeModal());
@@ -125,7 +128,7 @@ export function PostCreator() {
       const formData = new FormData();
       if (caption.trim()) formData.append("Content", caption.trim());
 
-      formData.append("AllowComment", "true");
+      formData.append("AllowComment", String(allowComment));
 
       // append multiple images (backend should accept repeated 'images' fields)
       imageFiles.forEach((f) => formData.append("Images", f));
@@ -151,9 +154,18 @@ export function PostCreator() {
     >
       <div className="p-5">
         {/* User info */}
-        <div className="mb-4 flex items-center gap-3">
-          <Avatar src={user?.avatarUrl} alt={user?.userName ?? ""} size="sm" />
-          <span className="text-sm font-semibold">{user?.userName}</span>
+        <div className="mb-4 flex justify-between items-center gap-3">
+          <div className="mb-4 flex items-center gap-3">
+            <Avatar src={user?.avatarUrl} alt={user?.userName ?? ""} size="sm" />
+            <span className="text-sm font-semibold">{user?.userName}</span>
+          </div>
+
+          <PostMoreOptions 
+            allowComment={allowComment}
+            onToggleAllowComment={() =>
+              setAllowComment(prev => !prev)
+            }
+          />
         </div>
 
         {/* Caption */}

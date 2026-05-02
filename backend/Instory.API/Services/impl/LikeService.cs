@@ -14,10 +14,10 @@ public class LikeService : ILikeService
     }
     public async Task<bool> ToggleLikeAsync(int postId, int userId)
     {
-        var existingLike = await _likeRepository.GetLikeAsync(postId, userId);
         var post = await _postRepository.GetByIdAsync(postId);
 
         if (post == null) return false;
+        var existingLike = await _likeRepository.GetLikeAsync(postId, userId);
 
         if (existingLike != null)
         {

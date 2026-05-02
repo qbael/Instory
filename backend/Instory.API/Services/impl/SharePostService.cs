@@ -7,10 +7,13 @@ public class SharePostService : ISharePostService
 
     private readonly ISharePostRepository _sharePostRepository;
     private readonly IPostRepository _postRepository;
-    public SharePostService(ISharePostRepository sharePostRepository, IPostRepository postRepository)
+
+    private readonly IHashtagRepository _hashtagRepository;
+    public SharePostService(ISharePostRepository sharePostRepository, IPostRepository postRepository, IHashtagRepository hashtagRepository)
     {
         _sharePostRepository = sharePostRepository;
         _postRepository = postRepository;
+        _hashtagRepository = hashtagRepository;
     }
     public async Task SharePostAsync(int postId, int userId, SharePostDto dto)
     {

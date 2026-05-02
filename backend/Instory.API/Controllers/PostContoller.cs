@@ -1,13 +1,14 @@
 using System.Security.Claims;
 using Instory.API.DTOs;
 using Instory.API.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Instory.API.Controllers;
 
 [ApiController]
 [Route("api/v1/posts")]
-
+[Authorize]
 public class PostController : ControllerBase
 {
     private readonly IPostService _postService;
@@ -66,14 +67,21 @@ public class PostController : ControllerBase
     [HttpPost]
     public async Task<IActionResult> Create([FromForm] CreatePostRequestDTO request)
     {
-        // THÊM DÒNG NÀY ĐỂ DEBUG:
-        Console.WriteLine($"======= SỐ LƯỢNG ẢNH NHẬN ĐƯỢC: {request.Images?.Count ?? 0} =======");
-        var userId = User.GetUserId();
-        Console.WriteLine($"========== USER ID LẤY ĐƯỢC TỪ TOKEN LÀ: {userId} ==========");
-        var result = await _postService.CreatePostAsync(userId, request);
+        try
+        {
+            var userId = User.GetUserId();
+            var result = await _postService.CreatePostAsync(userId, request);
 
-        return Ok(result);
-        // return Ok(new { Message = "Tính năng tạo bài viết đang được phát triển. Vui lòng thử lại sau!" });
+            return Ok(result);
+            // return Ok(new { Message = "Tính năng tạo bài viết đang được phát triển. Vui lòng thử lại sau!" });
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(new
+            {
+                message = ex.Message
+            });
+        }
     }
 
     [HttpDelete("{id}")]

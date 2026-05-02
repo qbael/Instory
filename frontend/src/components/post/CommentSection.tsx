@@ -11,6 +11,7 @@ interface CommentSectionProps {
   postId: number;
   initialCount: number;
   showComments?: boolean;
+  allowComment: boolean;
   increaseCommentCount?: (postId: number) => void;
 }
 
@@ -18,6 +19,7 @@ export function CommentSection({
   postId,
   initialCount,
   showComments,
+  allowComment,
   increaseCommentCount,
 }: CommentSectionProps) {
   const user = useAppSelector((s) => s.auth.user);
@@ -117,7 +119,7 @@ export function CommentSection({
           <Spinner size="sm" />
         </div>
       )}
-
+      {allowComment ? (<>
       <div ref={commentsTopRef}></div>
       {/* Comment list */}
       {comments.length > 0 && (
@@ -185,6 +187,11 @@ export function CommentSection({
           </button>
         </form>
       </div>
+      </>): (
+         <div className="px-3 py-4 text-center text-sm text-text-secondary">
+            Tính năng bình luận đã tắt
+          </div>  
+      )}
     </div>
   );
 }

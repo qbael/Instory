@@ -36,6 +36,7 @@ export interface Post {
   isLiked: boolean;
   hashtags: string[];
   images: PostImage[];
+  allowComment: boolean;
 }
 export interface PostImage {
   id: number;

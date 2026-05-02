@@ -1,4 +1,5 @@
 using Instory.API.DTOs;
+using Instory.API.Exceptions;
 using Instory.API.Helpers;
 using Instory.API.Models;
 using Instory.API.Repositories;
@@ -45,7 +46,7 @@ public class PostService : IPostService
             CommentsCount = p.CommentCount,
             SharesCount = p.ShareCount,
             CreatedAt = p.CreatedAt,
-
+            AllowComment = p.AllowComment,
             IsLiked = likedPostIds.Contains(p.Id),
 
             User = new UserDTO
@@ -94,14 +95,15 @@ public class PostService : IPostService
             // 3. Xử lý ảnh song song (Concurrent Upload)
             if (request.Images?.Any() == true)
             {
-                var allowedTypes = new[] { "image/jpeg", "image/png", "image/jpg" };
+                var allowedTypes = new[] { "image/jpeg", "image/png", "image/jpg", "image/gif", "image/webp" };
                 var validImages = request.Images.Where(f => f.Length > 0).ToList();
 
                 // Validate định dạng trước khi mất công gọi AWS S3
                 if (validImages.Any(f => !allowedTypes.Contains(f.ContentType)))
                 {
                     // Nên dùng Exception tùy chỉnh (ví dụ: BadRequestException) để Middleware bắt mã 400
-                    throw new ArgumentException("File không hợp lệ (chỉ chấp nhận định dạng jpg/png).");
+                    // throw new ArgumentException("File không hợp lệ (chỉ chấp nhận định dạng jpg/png).");
+                    throw new BadRequestException("File không hợp lệ");
                 }
 
                 // Tạo danh sách các tác vụ (Tasks) upload lên S3
@@ -386,15 +388,11 @@ public class PostService : IPostService
             Console.WriteLine($"[Error] Lỗi khi cập nhật bài viết: {ex.Message}");
             throw;
         }
-
-
     }
 
     public async Task<PaginatedResult<NewsFeedItemDTO>> GetNewsFeedAsync(int currentId, int pageNumber, int pageSize)
     {
-        // =======================================================================
-        // BƯỚC 1: LẤY DANH SÁCH "CHÌA KHÓA" (ID) ĐÃ SẮP XẾP VÀ PHÂN TRANG
-        // =======================================================================
+
         var postsQuery = _postRepository.GetBaseQuery()
             .Where(p => !p.IsDeleted)
             .Select(p => new
@@ -432,9 +430,6 @@ public class PostService : IPostService
             return new PaginatedResult<NewsFeedItemDTO>(new List<NewsFeedItemDTO>(), pageNumber, pageSize, totalCount);
         }
 
-        // =======================================================================
-        // BƯỚC 2: FETCH FULL DỮ LIỆU CHO 10 ID VỪA LẤY ĐƯỢC
-        // =======================================================================
         var postIdsToFetch = pageKeys.Select(k => k.PostId).Distinct().ToList();
         var shareIdsToFetch = pageKeys.Where(k => k.FeedType == "SHARE").Select(k => k.ShareId.Value).ToList();
 
@@ -458,9 +453,6 @@ public class PostService : IPostService
         // 3. Lấy trạng thái Like
         var likedPostIds = await _likeRepository.GetLikePostIdsByUserIdAsync(currentId);
 
-        // =======================================================================
-        // BƯỚC 3: MAPPING SANG DTO TRÊN RAM (MEMORY) THEO ĐÚNG THỨ TỰ CỦA PAGEKEYS
-        // =======================================================================
         var resultItems = new List<NewsFeedItemDTO>();
 
         foreach (var key in pageKeys)
@@ -502,6 +494,7 @@ public class PostService : IPostService
                 CommentsCount = postEntity.CommentCount,
                 SharesCount = postEntity.ShareCount,
                 CreatedAt = postEntity.CreatedAt,
+                AllowComment = postEntity.AllowComment,
                 IsLiked = likedPostIds.Contains(postEntity.Id), // Map IsLiked trực tiếp luôn
 
                 User = new UserDTO

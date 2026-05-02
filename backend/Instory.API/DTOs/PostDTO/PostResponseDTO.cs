@@ -10,6 +10,7 @@ public class PostResponseDTO
     public int LikesCount { get; set; }
     public int CommentsCount { get; set; }
     public int SharesCount { get; set; }
+    public Boolean AllowComment { get; set; }
     public DateTime CreatedAt { get; set; } // Giả định có từ BaseEntity
     public bool IsLiked { get; set; } = false;
     public UserDTO User { get; set; } = null!;
