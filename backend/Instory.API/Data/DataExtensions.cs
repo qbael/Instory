@@ -7,11 +7,31 @@ namespace Instory.API.Data;
 public static class DataExtensions
 {
     
-    public static async void MigrateDb(this WebApplication app)
+    public static void MigrateDb(this WebApplication app)
     {
         using var scope = app.Services.CreateScope();
         var db = scope.ServiceProvider.GetRequiredService<InstoryDbContext>();
-        db.Database.Migrate();
+        try
+        {
+            db.Database.Migrate();
+        }
+        catch (Npgsql.PostgresException ex) when (ex.SqlState == "42P07")
+        {
+            // Tables already exist but __EFMigrationsHistory is empty/missing.
+            // Create history table and mark all migrations as applied.
+            db.Database.ExecuteSqlRaw(@"
+                CREATE TABLE IF NOT EXISTS ""__EFMigrationsHistory"" (
+                    ""MigrationId"" character varying(150) NOT NULL,
+                    ""ProductVersion"" character varying(32) NOT NULL,
+                    CONSTRAINT ""PK___EFMigrationsHistory"" PRIMARY KEY (""MigrationId"")
+                )");
+            foreach (var migration in db.Database.GetMigrations())
+            {
+                db.Database.ExecuteSql(
+                    $@"INSERT INTO ""__EFMigrationsHistory"" (""MigrationId"", ""ProductVersion"")
+                       VALUES ({migration}, '10.0.0') ON CONFLICT DO NOTHING");
+            }
+        }
     }
     
     public static async Task SeedRolesAsync(this IHost app)
