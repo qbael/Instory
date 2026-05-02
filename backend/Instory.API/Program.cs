@@ -138,12 +138,15 @@ builder.Services.Configure<AwsSettings>(builder.Configuration.GetSection("AWS"))
 builder.Services.AddSingleton<IAmazonS3>(sp =>
 {
     var awsSettings = sp.GetRequiredService<IOptions<AwsSettings>>().Value;
-    var credentials = new BasicAWSCredentials(awsSettings.AccessKey, awsSettings.SecretKey);
     var config = new AmazonS3Config
     {
         RegionEndpoint = RegionEndpoint.GetBySystemName(awsSettings.Region)
     };
-    return new AmazonS3Client(credentials, config);
+    // Local dev: dùng explicit credentials từ appsettings.Development.json
+    // Production (EC2): dùng IAM Role tự động — không cần credentials trong Secrets Manager
+    if (!string.IsNullOrEmpty(awsSettings.AccessKey) && !string.IsNullOrEmpty(awsSettings.SecretKey))
+        return new AmazonS3Client(new BasicAWSCredentials(awsSettings.AccessKey, awsSettings.SecretKey), config);
+    return new AmazonS3Client(config);
 });
 builder.Services.AddScoped<INotificationService, NotificationService>();
 builder.Services.AddScoped<IMediaService, MediaService>();
