@@ -187,14 +187,6 @@ public class AuthService : IAuthService
             return new ServiceResponse<bool> { Success = false, Message = "Invalid OTP", StatusCode = 400 };
         }
 
-        var existingUser = await _userManager.FindByEmailAsync(pending.Email);
-        if (existingUser != null)
-            return new ServiceResponse<bool> { Success = false, Message = "Email is already in use", StatusCode = 400 };
-
-        var existingUsername = await _userManager.FindByNameAsync(pending.Username);
-        if (existingUsername != null)
-            return new ServiceResponse<bool> { Success = false, Message = "Username is already taken", StatusCode = 400 };
-
         var user = new User
         {
             UserName = pending.Username,
