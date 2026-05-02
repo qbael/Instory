@@ -301,18 +301,18 @@ public class StoryServiceTests : IDisposable
     }
 
     [Fact]
-    public async Task CreateAsync_Throws_WhenVideoExceedsSizeLimit()
+    public async Task CreateAsync_Throws_WhenVideoProvided()
     {
         var fileMock = new Mock<Microsoft.AspNetCore.Http.IFormFile>();
         fileMock.Setup(f => f.ContentType).Returns("video/mp4");
-        fileMock.Setup(f => f.Length).Returns(101L * 1024 * 1024); // 101 MB
+        fileMock.Setup(f => f.Length).Returns(5L * 1024 * 1024); // 5 MB
 
         var dto = new Instory.API.DTOs.Story.CreateStoryDto { File = fileMock.Object, Caption = null };
 
         var act = async () => await _sut.CreateAsync(dto, 1);
 
         await act.Should().ThrowAsync<Microsoft.AspNetCore.Http.BadHttpRequestException>()
-            .WithMessage("*Video size must be under 100 MB*");
+            .WithMessage("*Only images (JPEG, PNG, WebP, GIF) are allowed*");
     }
 
     [Fact]

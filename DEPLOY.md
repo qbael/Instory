@@ -323,6 +323,7 @@ server {
     }
 
     location /api/ {
+        client_max_body_size 10m;
         proxy_pass http://localhost:8080;
         proxy_http_version 1.1;
         proxy_set_header Host $host;

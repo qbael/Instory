@@ -23,11 +23,7 @@ public class StoryService : IStoryService
     private static readonly string[] AllowedImageMimes =
         ["image/jpeg", "image/png", "image/webp", "image/gif"];
 
-    private static readonly string[] AllowedVideoMimes =
-        ["video/mp4", "video/quicktime", "video/webm"];
-
-    private const long MaxImageBytes = 10L * 1024 * 1024;  // 10 MB
-    private const long MaxVideoBytes = 100L * 1024 * 1024; // 100 MB
+    private const long MaxImageBytes = 10L * 1024 * 1024; // 10 MB
 
     public StoryService(IStoryRepository storyRepository, IMediaService mediaService, InstoryDbContext context)
     {
@@ -113,19 +109,12 @@ public class StoryService : IStoryService
         var file = dto.File;
         var mime = file.ContentType?.ToLowerInvariant() ?? string.Empty;
 
-        bool isImage = AllowedImageMimes.Contains(mime);
-        bool isVideo = AllowedVideoMimes.Contains(mime);
+        if (!AllowedImageMimes.Contains(mime))
+            throw new BadHttpRequestException($"Unsupported file type '{mime}'. Only images (JPEG, PNG, WebP, GIF) are allowed.");
 
-        if (!isImage && !isVideo)
-            throw new BadHttpRequestException($"Unsupported file type '{mime}'. Only images (JPEG, PNG, WebP, GIF) and videos (MP4, MOV, WebM) are allowed.");
-
-        if (isImage && file.Length > MaxImageBytes)
+        if (file.Length > MaxImageBytes)
             throw new BadHttpRequestException("Image size must be under 10 MB.");
 
-        if (isVideo && file.Length > MaxVideoBytes)
-            throw new BadHttpRequestException("Video size must be under 100 MB.");
-
-        var mediaType = isVideo ? MediaType.Video : MediaType.Image;
         var mediaUrl = await _mediaService.UploadFileAsync(file, "stories");
 
         var story = new Story
@@ -133,7 +122,7 @@ public class StoryService : IStoryService
             UserId = currentUserId,
             MediaUrl = mediaUrl,
             Caption = dto.Caption,
-            MediaType = mediaType,
+            MediaType = MediaType.Image,
             ExpiresAt = DateTime.UtcNow.AddMinutes(1),
         };
 
