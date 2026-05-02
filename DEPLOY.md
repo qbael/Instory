@@ -495,6 +495,32 @@ cat /home/ubuntu/.env | grep -E "Google|Email"
 docker exec $(docker ps -q) printenv | grep -E "Google|Email"
 ```
 
+### Upload ảnh/story bị lỗi 500 trên production
+
+**Triệu chứng:** Upload ảnh (post hoặc story) hoạt động trên localhost nhưng trả về 500 khi dùng domain production.
+
+**Cách kiểm tra:**
+```bash
+docker exec $(docker ps -q) printenv | grep AWS
+```
+
+**Nguyên nhân:** `AWS__AccessKey` và `AWS__SecretKey` không có trong Secrets Manager (chỉ có `AWS__Region` và `AWS__BucketName`). Code cũ dùng `BasicAWSCredentials("", "")` → S3 từ chối xác thực → 500.
+
+**Cách fix:** Sửa `Program.cs` để fallback về IAM Role khi credentials rỗng. EC2 đã có `instory-ec2-role` với `AmazonS3FullAccess` nên không cần credentials thủ công:
+
+```csharp
+// Trước (luôn dùng explicit credentials — fail khi rỗng)
+var credentials = new BasicAWSCredentials(awsSettings.AccessKey, awsSettings.SecretKey);
+return new AmazonS3Client(credentials, config);
+
+// Sau (fallback về IAM Role nếu không có credentials)
+if (!string.IsNullOrEmpty(awsSettings.AccessKey) && !string.IsNullOrEmpty(awsSettings.SecretKey))
+    return new AmazonS3Client(new BasicAWSCredentials(awsSettings.AccessKey, awsSettings.SecretKey), config);
+return new AmazonS3Client(config); // dùng IAM Role tự động
+```
+
+**Kết quả:** Localhost dùng credentials từ `appsettings.Development.json`, production dùng IAM Role — không cần thêm `AWS__AccessKey`/`AWS__SecretKey` vào Secrets Manager.
+
 ### IAM user sai khi login ECR
 
 **Triệu chứng:** `AccessDeniedException: user/iam-s3-user is not authorized to perform: ecr:GetAuthorizationToken`

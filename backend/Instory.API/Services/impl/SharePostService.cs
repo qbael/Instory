@@ -25,11 +25,6 @@ public class SharePostService : ISharePostService
             throw new BadRequestException("Bài viết không tồn tại");
         }
 
-        if (post.UserId == userId)
-        {
-            throw new BadRequestException("Không thể tự chia sẻ bài viết của mình");
-        }
-
         var alreadyShared = await _sharePostRepository.ExistsAsync(postId, userId);
         if (alreadyShared)
             throw new BadRequestException("Bạn đã chia sẻ bài viết này rồi");

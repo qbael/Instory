@@ -7,9 +7,7 @@ import {
   Heart,
   MessageCircle,
   Send,
-  Bookmark,
   Smile,
-  RotateCcw,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { Avatar } from '@/components/ui/Avatar';
@@ -319,15 +317,9 @@ export function PostDetailModal({
                   <MessageCircle className="h-6 w-6" />
                 </button>
                 <button type="button" className="cursor-pointer text-text-primary hover:text-text-secondary">
-                  <RotateCcw className="h-6 w-6" />
-                </button>
-                <button type="button" className="cursor-pointer text-text-primary hover:text-text-secondary">
                   <Send className="h-6 w-6" />
                 </button>
               </div>
-              <button type="button" className="cursor-pointer text-text-primary hover:text-text-secondary">
-                <Bookmark className="h-6 w-6" />
-              </button>
             </div>
 
             {/* Likes count */}
