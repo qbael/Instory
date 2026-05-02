@@ -63,7 +63,13 @@ Vào **Secrets Manager → Store a new secret → Other type**:
   "AWS__AccessKey": "YOUR_AWS_ACCESS_KEY",
   "AWS__SecretKey": "YOUR_AWS_SECRET_KEY",
   "AWS__BucketName": "YOUR_S3_BUCKET",
-  "AWS__Region": "ap-southeast-2"
+  "AWS__Region": "ap-southeast-2",
+  "Google__ClientId": "YOUR_GOOGLE_OAUTH_CLIENT_ID",
+  "Email__Host": "smtp.gmail.com",
+  "Email__Port": "587",
+  "Email__Username": "YOUR_GMAIL_ADDRESS",
+  "Email__Password": "YOUR_GMAIL_APP_PASSWORD",
+  "Email__FromName": "Instory"
 }
 ```
 Secret name: `instory/production`
