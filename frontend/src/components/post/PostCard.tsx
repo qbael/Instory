@@ -255,6 +255,7 @@ export const PostCard = memo(function PostCard({
         sharesCount={post.sharesCount}
         onLike={() => onLikeToggle(post.id)}
         onCommentClick={() => setShowComments(true)}
+        isOwnPost={!!isOwnPost}
         onShare={() => {setShowShareModal(true)}}
       />
 
