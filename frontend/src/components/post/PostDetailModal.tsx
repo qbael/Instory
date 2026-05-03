@@ -16,6 +16,7 @@ import { postService } from '@/services/postService';
 import { timeAgo } from '@/utils/formatDate';
 import { cn } from '@/utils/cn';
 import { useAppSelector } from '@/store';
+import SharePostModal from './SharePostModal';
 import type { Post, Comment, User } from '@/types';
 
 interface PostDetailModalProps {
@@ -63,6 +64,7 @@ export function PostDetailModal({
   const [imageIndex, setImageIndex] = useState(0);
   const [showOptions, setShowOptions] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [showShareModal, setShowShareModal] = useState(false);
 
   const [comments, setComments] = useState<Comment[]>([]);
   const [commentsLoading, setCommentsLoading] = useState(false);
@@ -317,7 +319,11 @@ export function PostDetailModal({
                   <MessageCircle className="h-6 w-6" />
                 </button>
                 {!isOwnPost && (
-                  <button type="button" className="cursor-pointer text-text-primary hover:text-text-secondary">
+                  <button
+                    type="button"
+                    onClick={() => setShowShareModal(true)}
+                    className="cursor-pointer text-text-primary hover:text-text-secondary"
+                  >
                     <Send className="h-6 w-6" />
                   </button>
                 )}
@@ -363,6 +369,12 @@ export function PostDetailModal({
           </div>
         </div>
       </div>
+
+      <SharePostModal
+        post={post}
+        isOpen={showShareModal}
+        onClose={() => setShowShareModal(false)}
+      />
 
       {/* ── Options sheet ─────────────────────────────────────────── */}
       {showOptions && (
