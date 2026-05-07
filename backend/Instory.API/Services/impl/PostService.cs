@@ -240,9 +240,9 @@ public class PostService : IPostService
             Id = post.Id,
             // UserId = post.UserId,
             Content = post.Content,
-            // LikesCount = post.LikeCount,
-            // CommentsCount = post.CommentCount,
-            // SharesCount = post.ShareCount,            
+            LikesCount = post.LikeCount,
+            CommentsCount = post.CommentCount,
+            SharesCount = post.ShareCount,
             CreatedAt = post.CreatedAt,
 
             User = new UserDTO

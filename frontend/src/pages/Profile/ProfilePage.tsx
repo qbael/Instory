@@ -74,6 +74,7 @@ export default function ProfilePage() {
     hasMore: sharedHasMore,
     loadMore: sharedLoadMore,
     fetchPage: fetchSharedPage,
+    toggleLike: toggleLikeSharedPage,
   } = usePosts(profile?.id ? { sharedByUserId: profile.id } : 'none');
 
   const {
@@ -82,6 +83,7 @@ export default function ProfilePage() {
     hasMore: likedHasMore,
     loadMore: likedLoadMore,
     fetchPage: fetchLikedPage,
+    toggleLike: toggleLikeLikedPage,
   } = usePosts(profile?.id ? { likedByUserId: profile.id } : 'none');
 
   const [tab, setTab] = useState<Tab>('posts');
@@ -112,6 +114,15 @@ export default function ProfilePage() {
       .catch(() => setStoryGroup(null));
   }, [profile?.id]);
 
+  const handleToggleLike = (postId: number) =>{
+    if(tab == 'posts'){
+      toggleLike(postId);
+    }else if(tab == 'shared'){
+      toggleLikeSharedPage(postId);
+    }else{
+      toggleLikeLikedPage(postId);
+    }
+  }
   useEffect(() => {
     loadProfile();
   }, [loadProfile]);
@@ -466,7 +477,8 @@ export default function ProfilePage() {
             post={post}
             isLiked={post.isLiked}
             onClose={() => setSelectedPostId(null)}
-            onLikeToggle={(id) => { toggleLike(id); }}
+            // onLikeToggle={(id) => { toggleLike(id); }}
+            onLikeToggle={(id) => handleToggleLike(id)}
             onCommentAdded={handleIncreaseCommentCount}
             onDeleted={(id) => { handleDeletePostFromUI(id); setSelectedPostId(null); }}
           />

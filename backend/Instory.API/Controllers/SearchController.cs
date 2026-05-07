@@ -44,8 +44,8 @@ public class SearchController : ControllerBase
     {
         if (string.IsNullOrWhiteSpace(query))
             return BadRequest("Query không được để trống.");
-
-        var result = await _searchService.SearchPostsAsync(query.Trim());
+        int userId = User.GetUserId();
+        var result = await _searchService.SearchPostsAsync(userId, query.Trim());
         return Ok(result);
     }
 }
