@@ -73,9 +73,14 @@ export function PostDetailModal({
   const [localLikesCount, setLocalLikesCount] = useState(post.likesCount);
   const [localIsLiked, setLocalIsLiked] = useState(isLiked);
   const [, setLocalCommentsCount] = useState(post.commentsCount);
+  const [commentsPage, setCommentsPage] = useState(1);
+  const [hasMoreComments, setHasMoreComments] = useState(true);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
 
   const backdropRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const commentsContainerRef = useRef<HTMLDivElement>(null);
+  const commentsListRef = useRef<HTMLDivElement>(null);
 
   const images = post.images ?? [];
   const hasMultiple = images.length > 1;
@@ -90,10 +95,49 @@ export function PostDetailModal({
     setCommentsLoading(true);
     postService
       .getComments(post.id, { pageNumber: 1, pageSize: 30 })
-      .then(({ data }) => setComments(data.data ?? []))
+      .then(({ data }) => {
+        const loadedComments = data.data ?? [];
+        setComments(loadedComments);
+        setHasMoreComments(loadedComments.length >= 30);
+        setCommentsPage(1);
+      })
       .catch(() => {})
       .finally(() => setCommentsLoading(false));
   }, [post.id]);
+
+  // Infinite scroll handler
+  useEffect(() => {
+    const handleScroll = () => {
+      if (!commentsContainerRef.current) return;
+      const { scrollTop, scrollHeight, clientHeight } = commentsContainerRef.current;
+      
+      // Load more when scrolled to bottom
+      if (scrollHeight - scrollTop - clientHeight < 100 && hasMoreComments && !isLoadingMore && !commentsLoading) {
+        setIsLoadingMore(true);
+        const nextPage = commentsPage + 1;
+        postService
+          .getComments(post.id, { pageNumber: nextPage, pageSize: 30 })
+          .then(({ data }) => {
+            const newComments = data.data ?? [];
+            if (newComments.length > 0) {
+              setComments((prev) => [...prev, ...newComments]);
+              setCommentsPage(nextPage);
+              setHasMoreComments(newComments.length >= 30);
+            } else {
+              setHasMoreComments(false);
+            }
+          })
+          .catch(() => {})
+          .finally(() => setIsLoadingMore(false));
+      }
+    };
+
+    const container = commentsContainerRef.current;
+    if (container) {
+      container.addEventListener('scroll', handleScroll);
+      return () => container.removeEventListener('scroll', handleScroll);
+    }
+  }, [post.id, commentsPage, hasMoreComments, isLoadingMore, commentsLoading]);
 
   // Keyboard shortcuts
   useEffect(() => {
@@ -125,16 +169,23 @@ export function PostDetailModal({
       const { data } = await postService.addComment(post.id, content);
       const added = data.data;
       setComments((prev) => [
-        ...prev,
         {
           ...added,
           createdAt: added.createdAt ?? new Date().toISOString(),
           user: { userName: currentUser?.userName ?? '', avatarUrl: currentUser?.avatarUrl ?? null } as unknown as User,
         },
+        ...prev,
       ]);
       setLocalCommentsCount((c) => c + 1);
       onCommentAdded?.(post.id);
       setNewComment('');
+      
+      // Scroll to top
+      if (commentsContainerRef.current) {
+        setTimeout(() => {
+          commentsContainerRef.current?.scrollTo({ top: 0, behavior: 'smooth' });
+        }, 0);
+      }
     } catch {
       toast.error('Không thể thêm bình luận');
     } finally {
@@ -247,7 +298,7 @@ export function PostDetailModal({
           </div>
 
           {/* Scrollable: caption + comments */}
-          <div className="flex-1 overflow-y-auto">
+          <div ref={commentsContainerRef} className="flex-1 overflow-y-auto">
             {/* Caption */}
             {post.content && (
               <div className="flex gap-3 px-4 py-3">
@@ -276,7 +327,7 @@ export function PostDetailModal({
                 <Spinner size="sm" />
               </div>
             ) : (
-              <div className="space-y-4 px-4 pb-3">
+              <div ref={commentsListRef} className="space-y-4 px-4 pb-3">
                 {comments.map((c) => (
                   <div key={c.id} className="flex gap-3">
                     <Avatar src={c.user?.avatarUrl ?? ''} alt={c.user?.userName ?? ''} size="xs" className="mt-0.5 shrink-0" />
@@ -289,6 +340,11 @@ export function PostDetailModal({
                     </div>
                   </div>
                 ))}
+                {isLoadingMore && (
+                  <div className="flex justify-center py-3">
+                    <Spinner size="sm" />
+                  </div>
+                )}
               </div>
             )}
           </div>
