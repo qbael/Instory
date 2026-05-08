@@ -92,18 +92,6 @@ export default function LoginPage() {
             }
           />
 
-          <div className="flex items-center justify-between">
-            <label className="flex items-center gap-2 text-sm text-text-secondary">
-              <input
-                type="checkbox"
-                className="h-4 w-4 rounded accent-primary"
-              />
-              Ghi nhớ đăng nhập
-            </label>
-            <span className="text-sm font-medium text-primary hover:cursor-pointer hover:underline">
-              Quên mật khẩu?
-            </span>
-          </div>
 
           <Button type="submit" fullWidth size="lg" isLoading={isLoading}>
             Đăng nhập

@@ -34,7 +34,7 @@ public class StoryService : IStoryService
 
     public async Task<List<StoryGroupDto>> GetFeedAsync(int currentUserId)
     {
-        var stories = await _storyRepository.GetFeedStoriesAsync();
+        var stories = await _storyRepository.GetFeedStoriesAsync(currentUserId);
 
         return stories
             .GroupBy(s => s.UserId)
@@ -123,7 +123,7 @@ public class StoryService : IStoryService
             MediaUrl = mediaUrl,
             Caption = dto.Caption,
             MediaType = MediaType.Image,
-            ExpiresAt = DateTime.UtcNow.AddMinutes(1),
+            ExpiresAt = DateTime.UtcNow.AddHours(24),
         };
 
         await _storyRepository.AddAsync(story);
