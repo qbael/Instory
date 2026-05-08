@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
+import type { PostImage } from '@/types';
+
 interface LightboxProps {
-  images: any[];
+  images: PostImage[];
   initialIndex?: number;
   isOpen: boolean;
   onClose: () => void;
@@ -47,7 +49,7 @@ const Lightbox: React.FC<LightboxProps> = ({ images, initialIndex = 0, isOpen, o
 
   if (!isOpen || !images.length) return null;
 
-  const currentImgSrc = images[currentIndex].imageUrl || images[currentIndex].url || images[currentIndex];
+  const currentImgSrc = images[currentIndex].imageUrl;
 
   return (
     <div 

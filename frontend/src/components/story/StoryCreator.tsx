@@ -1,5 +1,5 @@
 import { useState, useRef, useCallback, useEffect } from 'react';
-import { ImagePlus, Video, X, Plus } from 'lucide-react';
+import { ImagePlus, X, Plus } from 'lucide-react';
 import { toast } from 'sonner';
 import { Modal } from '@/components/ui/Modal';
 import { Button } from '@/components/ui/Button';
@@ -8,28 +8,9 @@ import { closeModal } from '@/store/slices/uiSlice';
 import { storyService } from '@/services/storyService';
 import { highlightService } from '@/services/highlightService';
 import { cn } from '@/utils/cn';
-import {
-  ACCEPTED_IMAGE_TYPES,
-  ACCEPTED_VIDEO_TYPES,
-  ACCEPTED_MEDIA_TYPES,
-  MAX_IMAGE_SIZE_MB,
-  MAX_VIDEO_SIZE_MB,
-  MAX_VIDEO_DURATION_SECONDS,
-} from '@/utils/constants';
+import { ACCEPTED_IMAGE_TYPES, MAX_IMAGE_SIZE_MB } from '@/utils/constants';
 import type { StoryHighlight } from '@/types';
 
-function getVideoDuration(file: File): Promise<number> {
-  return new Promise((resolve, reject) => {
-    const video = document.createElement('video');
-    video.preload = 'metadata';
-    video.onloadedmetadata = () => {
-      URL.revokeObjectURL(video.src);
-      resolve(video.duration);
-    };
-    video.onerror = reject;
-    video.src = URL.createObjectURL(file);
-  });
-}
 
 export function StoryCreator() {
   const dispatch = useAppDispatch();
@@ -38,7 +19,6 @@ export function StoryCreator() {
 
   const [mediaFile, setMediaFile] = useState<File | null>(null);
   const [mediaPreview, setMediaPreview] = useState<string | null>(null);
-  const [mediaType, setMediaType] = useState<'image' | 'video' | null>(null);
   const [caption, setCaption] = useState('');
   const [isDragging, setIsDragging] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -64,46 +44,24 @@ export function StoryCreator() {
     dispatch(closeModal());
     setMediaFile(null);
     setMediaPreview(null);
-    setMediaType(null);
     setCaption('');
     setSelectedHighlightId(null);
     setShowNewHighlight(false);
     setNewHighlightTitle('');
   }, [dispatch]);
 
-  const handleFileSelect = useCallback(async (file: File) => {
-    const isImage = ACCEPTED_IMAGE_TYPES.includes(file.type);
-    const isVideo = ACCEPTED_VIDEO_TYPES.includes(file.type);
-
-    if (!isImage && !isVideo) {
-      toast.error('Chỉ chấp nhận ảnh (JPEG, PNG, WebP, GIF) hoặc video (MP4, MOV, WebM)');
+  const handleFileSelect = useCallback((file: File) => {
+    if (!ACCEPTED_IMAGE_TYPES.includes(file.type)) {
+      toast.error('Chỉ chấp nhận ảnh (JPEG, PNG, WebP, GIF)');
       return;
     }
 
-    if (isImage && file.size > MAX_IMAGE_SIZE_MB * 1024 * 1024) {
+    if (file.size > MAX_IMAGE_SIZE_MB * 1024 * 1024) {
       toast.error(`Ảnh phải nhỏ hơn ${MAX_IMAGE_SIZE_MB}MB`);
       return;
     }
 
-    if (isVideo) {
-      if (file.size > MAX_VIDEO_SIZE_MB * 1024 * 1024) {
-        toast.error(`Video phải nhỏ hơn ${MAX_VIDEO_SIZE_MB}MB`);
-        return;
-      }
-      try {
-        const duration = await getVideoDuration(file);
-        if (duration > MAX_VIDEO_DURATION_SECONDS) {
-          toast.error(`Video không được dài hơn ${MAX_VIDEO_DURATION_SECONDS} giây`);
-          return;
-        }
-      } catch {
-        toast.error('Không thể đọc thông tin video');
-        return;
-      }
-    }
-
     setMediaFile(file);
-    setMediaType(isVideo ? 'video' : 'image');
     setMediaPreview(URL.createObjectURL(file));
   }, []);
 
@@ -121,7 +79,6 @@ export function StoryCreator() {
     if (mediaPreview) URL.revokeObjectURL(mediaPreview);
     setMediaFile(null);
     setMediaPreview(null);
-    setMediaType(null);
     if (fileRef.current) fileRef.current.value = '';
   }, [mediaPreview]);
 
@@ -168,20 +125,11 @@ export function StoryCreator() {
         {/* Media upload / preview */}
         {mediaPreview ? (
           <div className="relative mb-4 overflow-hidden rounded-lg bg-black/5">
-            {mediaType === 'video' ? (
-              <video
-                src={mediaPreview}
-                controls
-                muted
-                className="max-h-80 w-full object-contain"
-              />
-            ) : (
-              <img
-                src={mediaPreview}
-                alt="Xem trước"
-                className="max-h-80 w-full object-contain"
-              />
-            )}
+            <img
+              src={mediaPreview}
+              alt="Xem trước"
+              className="max-h-80 w-full object-contain"
+            />
             <button
               type="button"
               onClick={removeMedia}
@@ -204,15 +152,14 @@ export function StoryCreator() {
               isDragging ? 'border-primary bg-primary/5' : 'border-border hover:border-primary/50',
             )}
           >
-            <div className="mb-3 flex gap-3">
+            <div className="mb-3">
               <ImagePlus className="h-8 w-8 text-text-secondary" />
-              <Video className="h-8 w-8 text-text-secondary" />
             </div>
             <p className="text-sm font-medium text-text-secondary">
-              Kéo ảnh / video vào đây hoặc <span className="text-primary">duyệt</span>
+              Kéo ảnh vào đây hoặc <span className="text-primary">duyệt</span>
             </p>
             <p className="mt-1 text-xs text-text-secondary/60">
-              Ảnh ≤ {MAX_IMAGE_SIZE_MB}MB · Video ≤ {MAX_VIDEO_DURATION_SECONDS}s
+              Ảnh ≤ {MAX_IMAGE_SIZE_MB}MB
             </p>
           </div>
         )}
@@ -220,7 +167,7 @@ export function StoryCreator() {
         <input
           ref={fileRef}
           type="file"
-          accept={ACCEPTED_MEDIA_TYPES.join(',')}
+          accept={ACCEPTED_IMAGE_TYPES.join(',')}
           onChange={(e) => {
             const file = e.target.files?.[0];
             if (file) handleFileSelect(file);

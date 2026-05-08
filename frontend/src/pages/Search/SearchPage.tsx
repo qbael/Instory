@@ -1,11 +1,12 @@
-import { useState, memo, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, useSearchParams } from 'react-router';
 import { Search, Hash, X } from 'lucide-react';
 import { useSearch } from '@/hooks/useSearch';
 import { UserCard } from '@/components/user/UserCard';
 import { UserCardSkeleton } from '@/components/user/UserCardSkeleton';
 import { cn } from '@/utils/cn';
-import type { Post, Hashtag } from '@/types';
+import type {Hashtag } from '@/types';
+import PostGrid from '@/components/post/PostGrid';
 
 type Tab = 'people' | 'posts' | 'tags';
 
@@ -19,7 +20,7 @@ export default function SearchPage() {
   const [searchParams,setSearchParams] = useSearchParams();
   const initialTag = searchParams.get('tag');
   const [tab, setTab] = useState<Tab>(initialTag ? 'tags' : 'people');
-  const { query, setQuery, results, isLoading, clear } = useSearch(tab);
+  const { query, setQuery, results, isLoading, clear, toggleLike } = useSearch(tab);
 
 
   useEffect(() => {
@@ -115,7 +116,7 @@ export default function SearchPage() {
           {tab === 'posts' && (
             <div>
               {results.posts.length > 0 ? (
-                <PostGrid posts={results.posts} />
+                <PostGrid posts={results.posts} onLikeToggle={toggleLike} />
               ) : (
                 <EmptyResults query={query} type="posts" />
               )}
@@ -155,42 +156,42 @@ export default function SearchPage() {
   );
 }
 
-const PostGrid = memo(function PostGrid({ posts }: { posts: Post[] }) {
-  return (
-    <div className="grid grid-cols-3 gap-1">
-      {posts.map((post) => (
-        <Link
-          key={post.id}
-          to={`/profile/${post.user.userName}`}
-          className="group relative aspect-square overflow-hidden rounded bg-border"
-        >
-          {post.images?.[0]?.imageUrl ? (
-            <img
-              src={post.images[0].imageUrl}
-              alt=""
-              loading="lazy"
-              className="h-full w-full object-cover"
-            />
-          ) : (
-            <div className="flex h-full w-full items-center justify-center bg-bg p-2">
-              <p className="line-clamp-3 text-center text-xs text-text-secondary">
-                {post.content}
-              </p>
-            </div>
-          )}
-          <div className="absolute inset-0 flex items-center justify-center gap-4 bg-black/40 opacity-0 transition-opacity group-hover:opacity-100">
-            <span className="text-sm font-bold text-white">
-              ❤️ {post.likesCount}
-            </span>
-            <span className="text-sm font-bold text-white">
-              💬 {post.commentsCount}
-            </span>
-          </div>
-        </Link>
-      ))}
-    </div>
-  );
-});
+// const PostGrid = memo(function PostGrid({ posts }: { posts: Post[] }) {
+//   return (
+//     <div className="grid grid-cols-3 gap-1">
+//       {posts.map((post) => (
+//         <Link
+//           key={post.id}
+//           to={`/profile/${post.user.userName}`}
+//           className="group relative aspect-square overflow-hidden rounded bg-border"
+//         >
+//           {post.images?.[0]?.imageUrl ? (
+//             <img
+//               src={post.images[0].imageUrl}
+//               alt=""
+//               loading="lazy"
+//               className="h-full w-full object-cover"
+//             />
+//           ) : (
+//             <div className="flex h-full w-full items-center justify-center bg-bg p-2">
+//               <p className="line-clamp-3 text-center text-xs text-text-secondary">
+//                 {post.content}
+//               </p>
+//             </div>
+//           )}
+//           <div className="absolute inset-0 flex items-center justify-center gap-4 bg-black/40 opacity-0 transition-opacity group-hover:opacity-100">
+//             <span className="text-sm font-bold text-white">
+//               ❤️ {post.likesCount}
+//             </span>
+//             <span className="text-sm font-bold text-white">
+//               💬 {post.commentsCount}
+//             </span>
+//           </div>
+//         </Link>
+//       ))}
+//     </div>
+//   );
+// });
 
 function HashtagRow({ hashtag }: { hashtag: Hashtag }) {
   return (

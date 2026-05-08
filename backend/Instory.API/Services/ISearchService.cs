@@ -7,6 +7,6 @@ public interface ISearchService
 {
     Task<List<UserDTO>> SearchUsersAsync(string query);
 
-    Task<List<PostResponseDTO>> SearchPostsAsync(string query);
+    Task<List<PostResponseDTO>> SearchPostsAsync(int currentUserId, string query);
 
 }

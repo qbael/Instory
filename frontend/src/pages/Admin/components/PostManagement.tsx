@@ -67,8 +67,9 @@ export function PostManagement() {
           p.id === postId ? { ...p, isDeleted: true, deletedAt: new Date().toISOString() } : p
         )
       );
-    } catch (err: any) {
-      toast.error(err.response?.data?.message || 'Thao tác thất bại');
+    } catch (err) {
+      const e = err as { response?: { data?: { message?: string } } };
+      toast.error(e.response?.data?.message || 'Thao tác thất bại');
     } finally {
       setDeletingId(null);
     }

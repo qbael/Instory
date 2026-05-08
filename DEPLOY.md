@@ -118,7 +118,6 @@ set -e
 
 AWS_REGION="ap-southeast-2"
 ECR_REGISTRY="689327565628.dkr.ecr.ap-southeast-2.amazonaws.com"
-IMAGE_NAME="instory-api"
 SECRET_NAME="instory/production"
 
 echo "Fetching secrets..."
@@ -128,10 +127,21 @@ SECRET=$(aws secretsmanager get-secret-value \
   --query SecretString \
   --output text)
 
-# Ghi ra file .env
+echo "Writing .env file..."
 echo "$SECRET" | python3 -c "
 import json, sys
-data = json.load(sys.stdin)
+
+def flatten(obj, prefix=''):
+    result = {}
+    for k, v in obj.items():
+        key = f'{prefix}__{k}' if prefix else k
+        if isinstance(v, dict):
+            result.update(flatten(v, key))
+        else:
+            result[key] = str(v)
+    return result
+
+data = flatten(json.load(sys.stdin))
 for k, v in data.items():
     print(f'{k}={v}')
 " > /home/ubuntu/.env
@@ -141,15 +151,17 @@ aws ecr get-login-password --region $AWS_REGION | \
   docker login --username AWS --password-stdin $ECR_REGISTRY
 
 echo "Pulling latest image..."
-docker pull $ECR_REGISTRY/$IMAGE_NAME:latest
+docker pull $ECR_REGISTRY/instory-api:latest
 
 echo "Restarting container..."
 cd /home/ubuntu
 docker compose -f docker-compose.prod.yml down || true
-docker compose -f docker-compose.prod.yml up -d
+docker compose -f docker-compose.prod.yml --env-file /home/ubuntu/.env up -d
 
 echo "Done!"
 ```
+
+> **Lưu ý quan trọng:** Script dùng `flatten()` để tự động xử lý nested JSON từ Secrets Manager. Ví dụ: `{"Google": {"ClientId": "xxx"}}` → `Google__ClientId=xxx` (dùng `__` separator theo chuẩn .NET configuration). Thêm key mới vào Secrets Manager là tự động có trong `.env` — không cần sửa script.
 
 ```bash
 chmod +x /home/ubuntu/deploy.sh
@@ -232,6 +244,7 @@ Vào repo → Settings → Secrets and variables → Actions:
 | `AWS_SECRET_ACCESS_KEY` | Secret key của `iuser-deploy` |
 | `EC2_HOST` | `3.25.112.35` |
 | `EC2_SSH_KEY` | Nội dung file `.pem` |
+| `VITE_GOOGLE_CLIENT_ID` | Google OAuth Client ID (dùng trong frontend build) |
 
 ### 6.2 Workflow file
 
@@ -463,6 +476,51 @@ server_name instory.codes www.instory.codes;
 ```
 Restart Nginx rồi chạy lại `certbot --nginx`. Nếu cert đã tồn tại, chọn **1 (Reinstall)**.
 
+### Secrets có trong Secrets Manager nhưng không xuất hiện trong container env
+
+**Triệu chứng:** Config như `Google__ClientId`, `Email__Host` có trong Secrets Manager nhưng app không đọc được — `printenv` trong container không thấy.
+
+**Nguyên nhân:** `deploy.sh` cũ hard-code từng key một khi ghi `.env`:
+```bash
+echo "ConnectionStrings__Instory=$(echo $SECRET | python3 -c "...")" > ~/.env
+echo "JwtSettings__SecretKey=..." >> ~/.env
+# ... chỉ 6 key, bỏ sót Google và Email
+```
+Ngoài ra, key lồng nhau như `{"Google": {"ClientId": "..."}}` không được flatten đúng — ghi ra là `Google={"ClientId": "..."}` thay vì `Google__ClientId=...`.
+
+**Cách fix:** Thay bằng script flatten tự động (xem Bước 3). Sau đó verify:
+```bash
+/home/ubuntu/deploy.sh
+cat /home/ubuntu/.env | grep -E "Google|Email"
+docker exec $(docker ps -q) printenv | grep -E "Google|Email"
+```
+
+### Upload ảnh/story bị lỗi 500 trên production
+
+**Triệu chứng:** Upload ảnh (post hoặc story) hoạt động trên localhost nhưng trả về 500 khi dùng domain production.
+
+**Cách kiểm tra:**
+```bash
+docker exec $(docker ps -q) printenv | grep AWS
+```
+
+**Nguyên nhân:** `AWS__AccessKey` và `AWS__SecretKey` không có trong Secrets Manager (chỉ có `AWS__Region` và `AWS__BucketName`). Code cũ dùng `BasicAWSCredentials("", "")` → S3 từ chối xác thực → 500.
+
+**Cách fix:** Sửa `Program.cs` để fallback về IAM Role khi credentials rỗng. EC2 đã có `instory-ec2-role` với `AmazonS3FullAccess` nên không cần credentials thủ công:
+
+```csharp
+// Trước (luôn dùng explicit credentials — fail khi rỗng)
+var credentials = new BasicAWSCredentials(awsSettings.AccessKey, awsSettings.SecretKey);
+return new AmazonS3Client(credentials, config);
+
+// Sau (fallback về IAM Role nếu không có credentials)
+if (!string.IsNullOrEmpty(awsSettings.AccessKey) && !string.IsNullOrEmpty(awsSettings.SecretKey))
+    return new AmazonS3Client(new BasicAWSCredentials(awsSettings.AccessKey, awsSettings.SecretKey), config);
+return new AmazonS3Client(config); // dùng IAM Role tự động
+```
+
+**Kết quả:** Localhost dùng credentials từ `appsettings.Development.json`, production dùng IAM Role — không cần thêm `AWS__AccessKey`/`AWS__SecretKey` vào Secrets Manager.
+
 ### IAM user sai khi login ECR
 
 **Triệu chứng:** `AccessDeniedException: user/iam-s3-user is not authorized to perform: ecr:GetAuthorizationToken`
@@ -492,7 +550,7 @@ aws ecr get-login-password --region ap-southeast-2 --profile deploy | \
 - [x] docker-compose.prod.yml trên EC2
 - [x] Nginx config (port 80 → 8080, SignalR WebSocket)
 - [x] GitHub Actions workflow (backend + frontend + deploy to EC2)
-- [x] GitHub Secrets (AWS credentials, EC2 host, SSH key)
+- [x] GitHub Secrets (AWS credentials, EC2 host, SSH key, VITE_GOOGLE_CLIENT_ID)
 - [x] CI/CD hoạt động end-to-end (push main → tự động deploy)
 - [x] Domain `instory.codes` (name.com) + DNS trỏ về EC2
 - [x] HTTPS với Certbot — `https://instory.codes` ✅

@@ -7,10 +7,12 @@ public class SearchService : ISearchService
 {
     private readonly IUserRepository _userRepository;
     private readonly IPostRepository _postRepository;
-    public SearchService(IUserRepository userRepository, IPostRepository postRepository)
+    private readonly ILikeRepository _likeRepository;
+    public SearchService(IUserRepository userRepository, IPostRepository postRepository, ILikeRepository likeRepository)
     {
         _userRepository = userRepository;
         _postRepository = postRepository;
+        _likeRepository = likeRepository;
     }
 
     public async Task<List<UserDTO>> SearchUsersAsync(string query)
@@ -19,9 +21,10 @@ public class SearchService : ISearchService
         return users.Select(UserDTO.FromEntity).ToList();
     }
 
-    public async Task<List<PostResponseDTO>> SearchPostsAsync(string query)
+    public async Task<List<PostResponseDTO>> SearchPostsAsync(int currentUserId, string query)
     {
         var posts = await _postRepository.SearchPostsAsync(query);
+        var likedPostIds = await _likeRepository.GetLikePostIdsByUserIdAsync(currentUserId);
 
         return posts.Select(p => new PostResponseDTO
         {
@@ -29,9 +32,10 @@ public class SearchService : ISearchService
             Content = p.Content,
             LikesCount = p.LikeCount,
             CommentsCount = p.CommentCount,
+            IsLiked = likedPostIds.Contains(p.Id),
             User = new UserDTO
             {
-                UserName = p.User.UserName,
+                UserName = p.User.UserName ?? string.Empty,
                 AvatarUrl = p.User.AvatarUrl,
                 FullName = p.User.FullName,
             },

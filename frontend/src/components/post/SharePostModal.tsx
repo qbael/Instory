@@ -34,10 +34,11 @@ const SharePostModal: React.FC<SharePostModalProps> = ({
       setCaption('');
       onClose();
       onSuccess?.();
-    } catch (err: any) {
-      const errorMessage = 
-        err.response?.data?.message || 
-        err.response?.data?.detail || 
+    } catch (err) {
+      const error = err as { response?: { data?: { message?: string; detail?: string } } };
+      const errorMessage =
+        error.response?.data?.message ||
+        error.response?.data?.detail ||
         "Lỗi hệ thống khi báo cáo bài viết";
 
       toast.error(errorMessage);

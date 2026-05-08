@@ -1,7 +1,9 @@
 import * as Radix from '@radix-ui/react-dropdown-menu';
 import { cn } from '@/utils/cn';
 
+// eslint-disable-next-line react-refresh/only-export-components
 export const DropdownMenu = Radix.Root;
+// eslint-disable-next-line react-refresh/only-export-components
 export const DropdownMenuTrigger = Radix.Trigger;
 
 export function DropdownMenuContent({

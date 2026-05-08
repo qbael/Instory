@@ -83,7 +83,7 @@ public class PostRepository : Repository<Post>, IPostRepository
 
         // Sử dụng ILike để tìm kiếm chuỗi (bao gồm cả hashtag nếu query có dấu #)
         var posts = await queryable
-            .Where(p => EF.Functions.ILike(p.Content, $"%{query}%"))
+            .Where(p => EF.Functions.ILike(p.Content!, $"%{query}%"))
             .OrderByDescending(p => p.LikeCount)
             .ThenByDescending(p => p.CreatedAt)
             .Take(limit)

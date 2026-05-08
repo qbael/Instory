@@ -38,8 +38,8 @@ public class UserRepository : Repository<User>, IUserRepository
     public async Task<List<User>> SearchAsync(string query)
     {
         return await _dbSet
-            .Where(u => EF.Functions.ILike(u.UserName, $"%{query}%")
-                        || EF.Functions.ILike(u.FullName, $"%{query}%"))
+            .Where(u => EF.Functions.ILike(u.UserName!, $"%{query}%")
+                        || EF.Functions.ILike(u.FullName!, $"%{query}%"))
             .Take(10)
             .ToListAsync();
     }
