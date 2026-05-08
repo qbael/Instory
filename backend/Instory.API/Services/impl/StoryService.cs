@@ -34,7 +34,7 @@ public class StoryService : IStoryService
 
     public async Task<List<StoryGroupDto>> GetFeedAsync(int currentUserId)
     {
-        var stories = await _storyRepository.GetFeedStoriesAsync();
+        var stories = await _storyRepository.GetFeedStoriesAsync(currentUserId);
 
         return stories
             .GroupBy(s => s.UserId)
