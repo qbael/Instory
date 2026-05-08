@@ -10,11 +10,13 @@ public class SearchServiceTests
 {
     private readonly Mock<IUserRepository> _userRepoMock = new();
     private readonly Mock<IPostRepository> _postRepoMock = new();
+
+    private readonly Mock<ILikeRepository> _likeRepoMock = new();
     private readonly SearchService _sut;
 
     public SearchServiceTests()
     {
-        _sut = new SearchService(_userRepoMock.Object, _postRepoMock.Object);
+        _sut = new SearchService(_userRepoMock.Object, _postRepoMock.Object, _likeRepoMock.Object);
     }
 
     [Fact]
@@ -62,7 +64,7 @@ public class SearchServiceTests
         };
         _postRepoMock.Setup(r => r.SearchPostsAsync("hello", 20)).ReturnsAsync(posts);
 
-        var result = await _sut.SearchPostsAsync("hello");
+        var result = await _sut.SearchPostsAsync(user.Id, "hello");
 
         result.Should().HaveCount(1);
         result[0].Id.Should().Be(100);

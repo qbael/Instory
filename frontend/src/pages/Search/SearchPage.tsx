@@ -1,11 +1,11 @@
-import { useState, memo, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, useSearchParams } from 'react-router';
 import { Search, Hash, X } from 'lucide-react';
 import { useSearch } from '@/hooks/useSearch';
 import { UserCard } from '@/components/user/UserCard';
 import { UserCardSkeleton } from '@/components/user/UserCardSkeleton';
 import { cn } from '@/utils/cn';
-import type { Post, Hashtag } from '@/types';
+import type {Hashtag } from '@/types';
 import PostGrid from '@/components/post/PostGrid';
 
 type Tab = 'people' | 'posts' | 'tags';
