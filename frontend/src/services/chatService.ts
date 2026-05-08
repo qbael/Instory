@@ -1,5 +1,5 @@
 import api from './api';
-import type { Chat, ChatMessage } from '@/types/chat';
+import type { Chat, ChatMessage, Friend } from '@/types/chat';
 
 const BASE = 'v1/chat';
 
@@ -35,5 +35,9 @@ export const chatService = {
       name,
       participantIds,
     });
+  },
+
+  getFriends() {
+    return api.get<Friend[]>('v1/friendship/friends');
   },
 };

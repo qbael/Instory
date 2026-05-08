@@ -42,7 +42,7 @@ export function Sidebar() {
       label: 'Tạo bài',
       action: () => dispatch(openModal({ modal: 'createPost' })),
     },
-    {icon : TrendingUp, label: 'Xu hướng', to: '/hashtagtrending' },
+    { icon: TrendingUp, label: 'Xu hướng', to: '/hashtagtrending' },
     { icon: User, label: 'Hồ sơ', to: `/profile/${user?.userName}` },
   ];
 

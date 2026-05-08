@@ -115,6 +115,16 @@ public class FriendshipService : IFriendshipService
         return friendships.Select(FriendshipResponseDto.FromEntity).ToList();
     }
 
+    public async Task<List<FriendDto>> GetFriendsAsync(int userId)
+    {
+        var friendships = await _friendshipRepository.GetAcceptedFriendsAsync(userId);
+        return friendships.Select(f =>
+        {
+            var friend = f.RequesterId == userId ? f.Addressee : f.Requester;
+            return new FriendDto(friend.Id, friend.UserName, friend.FullName, friend.AvatarUrl);
+        }).ToList();
+    }
+
     private static async Task TrySendNotification(Func<Task> send)
     {
         try { await send(); }

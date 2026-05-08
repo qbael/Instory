@@ -35,7 +35,7 @@ public class ChatController : ControllerBase
             Id = c.Id,
             Type = c.Type.ToString(),
             Name = c.Name,
-            Participants = c.Participants.Select(p => new ChatParticipantDto { UserId = p.UserId, FullName = p.User.FullName, AvatarUrl = p.User.AvatarUrl }),
+            Participants = c.Participants.Select(p => new ChatParticipantDto { UserId = p.UserId, FullName = p.User.FullName, Username = p.User.UserName, AvatarUrl = p.User.AvatarUrl }),
             LastMessage = c.Messages.Select(m => new ChatMessageResponseDto {
                 Id = m.Id,
                 ChatId = m.ChatId,

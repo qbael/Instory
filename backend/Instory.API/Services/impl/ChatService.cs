@@ -110,7 +110,7 @@ public class ChatService : IChatService
                     pId, senderId,
                     Models.Enums.NotificationType.NewMessage.ToString(),
                     chatId,
-                    "sent you a message"));
+                    "sent a message"));
             }
         }
 

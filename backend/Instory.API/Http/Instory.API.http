@@ -68,7 +68,6 @@ Content-Type: application/json
   "fullName": "Tran Minh Dang"
 }
 
-//CHAT SERVICES
 
 ### Get User Chats
 GET {{InstoryAPI_HostAddress}}/api/v1/chat

@@ -77,4 +77,12 @@ public class FriendshipController : ControllerBase
         var result = await _friendshipService.GetSentPendingRequestsAsync(currentUserId);
         return Ok(result);
     }
+
+    [HttpGet("friends")]
+    public async Task<IActionResult> GetFriends()
+    {
+        var currentUserId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+        var result = await _friendshipService.GetFriendsAsync(currentUserId);
+        return Ok(result);
+    }
 }

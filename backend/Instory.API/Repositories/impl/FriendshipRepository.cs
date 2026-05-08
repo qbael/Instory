@@ -34,4 +34,14 @@ public class FriendshipRepository : Repository<Friendship>, IFriendshipRepositor
             .Where(f => f.RequesterId == userId && f.Status == FriendshipStatus.Pending)
             .ToListAsync();
     }
+
+    public async Task<List<Friendship>> GetAcceptedFriendsAsync(int userId)
+    {
+        return await _dbSet
+            .Include(f => f.Requester)
+            .Include(f => f.Addressee)
+            .Where(f => (f.RequesterId == userId || f.AddresseeId == userId)
+                        && f.Status == FriendshipStatus.Accepted)
+            .ToListAsync();
+    }
 }

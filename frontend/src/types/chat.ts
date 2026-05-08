@@ -3,10 +3,11 @@
 export interface ChatParticipant {
   userId: number;
   fullName: string | null;
+  username: string | null;
   avatarUrl: string | null;
 }
 
-export type ChatType = 'direct' | 'group';
+export type ChatType = 'Direct' | 'Group';
 
 export interface ChatMessage {
   id: number;
@@ -25,4 +26,11 @@ export interface Chat {
   name: string | null;
   participants: ChatParticipant[];
   lastMessage: ChatMessage | null;
+}
+
+export interface Friend {
+  id: number;
+  userName: string | null;
+  fullName: string | null;
+  avatarUrl: string | null;
 }

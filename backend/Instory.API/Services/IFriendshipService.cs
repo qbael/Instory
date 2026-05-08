@@ -13,4 +13,5 @@ public interface IFriendshipService
     Task UnfriendAsync(int userId1, int userId2);
     Task<List<FriendshipResponseDto>> GetPendingRequestsAsync(int userId);
     Task<List<FriendshipResponseDto>> GetSentPendingRequestsAsync(int userId);
+    Task<List<FriendDto>> GetFriendsAsync(int userId);
 }
