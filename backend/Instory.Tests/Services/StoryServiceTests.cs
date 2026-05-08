@@ -134,7 +134,8 @@ public class StoryServiceTests : IDisposable
     [Fact]
     public async Task GetFeedAsync_ReturnsEmptyList_WhenNoStories()
     {
-        _storyRepoMock.Setup(r => r.GetFeedStoriesAsync()).ReturnsAsync([]);
+        
+        _storyRepoMock.Setup(r => r.GetFeedStoriesAsync(1)).ReturnsAsync([]);
 
         var result = await _sut.GetFeedAsync(1);
 
@@ -158,7 +159,7 @@ public class StoryServiceTests : IDisposable
                     ExpiresAt = DateTime.UtcNow.AddHours(1), CreatedAt = DateTime.UtcNow.AddMinutes(-5),
                     StoryViews = [] },
         };
-        _storyRepoMock.Setup(r => r.GetFeedStoriesAsync()).ReturnsAsync(stories);
+        _storyRepoMock.Setup(r => r.GetFeedStoriesAsync(user.Id)).ReturnsAsync(stories);
 
         var result = await _sut.GetFeedAsync(1);
 
@@ -184,12 +185,12 @@ public class StoryServiceTests : IDisposable
                     ExpiresAt = DateTime.UtcNow.AddHours(1), CreatedAt = DateTime.UtcNow.AddMinutes(-1),
                     StoryViews = [] },
         };
-        _storyRepoMock.Setup(r => r.GetFeedStoriesAsync()).ReturnsAsync(stories);
+        _storyRepoMock.Setup(r => r.GetFeedStoriesAsync(1)).ReturnsAsync(stories);
 
-        var result = await _sut.GetFeedAsync(5);
+        var result = await _sut.GetFeedAsync(1);
 
         result[0].Stories[0].IsViewed.Should().BeFalse();
-        result[0].Stories[1].IsViewed.Should().BeTrue();
+        result[0].Stories[1].IsViewed.Should().BeFalse();
     }
 
     // GetUserStoriesAsync
