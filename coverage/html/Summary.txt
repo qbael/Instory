@@ -1,39 +1,37 @@
 Summary
-  Generated on: 4/30/2026 - 11:44:08 PM
-  Coverage date: 4/30/2026 - 6:11:44 PM - 4/30/2026 - 11:44:03 PM
-  Parser: MultiReport (5x Cobertura)
+  Generated on: 5/2/2026 - 8:56:29 PM
+  Coverage date: 5/2/2026 - 8:56:22 PM
+  Parser: Cobertura
   Assemblies: 1
-  Classes: 17
-  Files: 17
-  Line coverage: 53.1%
-  Covered lines: 966
-  Uncovered lines: 852
-  Coverable lines: 1818
-  Total lines: 2632
-  Branch coverage: 48.4% (188 of 388)
-  Covered branches: 188
-  Total branches: 388
-  Method coverage: 67.8% (74 of 109)
-  Full method coverage: 50.4% (55 of 109)
-  Covered methods: 74
-  Fully covered methods: 55
-  Total methods: 109
+  Classes: 15
+  Files: 15
+  Line coverage: 66%
+  Covered lines: 1121
+  Uncovered lines: 575
+  Coverable lines: 1696
+  Total lines: 2427
+  Branch coverage: 62.5% (220 of 352)
+  Covered branches: 220
+  Total branches: 352
+  Method coverage: 80.3% (82 of 102)
+  Full method coverage: 57.8% (59 of 102)
+  Covered methods: 82
+  Fully covered methods: 59
+  Total methods: 102
 
-Instory.API                                       53.1%
+Instory.API                                         66%
   CommentService                                  72.3%
   HashtagService                                  61.6%
   Instory.API.Services.impl.AdminService          73.8%
-  Instory.API.Services.impl.AuthService           37.6%
+  Instory.API.Services.impl.AuthService           67.3%
   Instory.API.Services.impl.ChatService           50.5%
   Instory.API.Services.impl.FriendshipService     71.4%
   Instory.API.Services.impl.HighlightService        60%
-  Instory.API.Services.impl.MediaService             0%
   Instory.API.Services.impl.NotificationService   86.6%
   Instory.API.Services.impl.PostReportService      100%
   Instory.API.Services.impl.ProfileService        47.5%
   Instory.API.Services.impl.SearchService          100%
-  Instory.API.Services.impl.SmtpEmailSender          0%
-  Instory.API.Services.impl.StoryService          25.3%
+  Instory.API.Services.impl.StoryService          88.1%
   LikeService                                      100%
-  PostService                                     55.9%
+  PostService                                     55.7%
   SharePostService                                  49%

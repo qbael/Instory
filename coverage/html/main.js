@@ -293,19 +293,17 @@ var assemblies = [
       { "name": "CommentService", "rp": "Instory.API_CommentService.html", "cl": 47, "ucl": 18, "cal": 65, "tl": 98, "cb": 13, "tb": 16, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
       { "name": "HashtagService", "rp": "Instory.API_HashtagService.html", "cl": 106, "ucl": 66, "cal": 172, "tl": 242, "cb": 27, "tb": 34, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
       { "name": "Instory.API.Services.impl.AdminService", "rp": "Instory.API_AdminService.html", "cl": 93, "ucl": 33, "cal": 126, "tl": 181, "cb": 28, "tb": 34, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
-      { "name": "Instory.API.Services.impl.AuthService", "rp": "Instory.API_AuthService.html", "cl": 105, "ucl": 174, "cal": 279, "tl": 385, "cb": 30, "tb": 88, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
+      { "name": "Instory.API.Services.impl.AuthService", "rp": "Instory.API_AuthService.html", "cl": 184, "ucl": 89, "cal": 273, "tl": 377, "cb": 47, "tb": 84, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
       { "name": "Instory.API.Services.impl.ChatService", "rp": "Instory.API_ChatService.html", "cl": 48, "ucl": 47, "cal": 95, "tl": 145, "cb": 5, "tb": 18, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
       { "name": "Instory.API.Services.impl.FriendshipService", "rp": "Instory.API_FriendshipService.html", "cl": 60, "ucl": 24, "cal": 84, "tl": 133, "cb": 9, "tb": 18, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
       { "name": "Instory.API.Services.impl.HighlightService", "rp": "Instory.API_HighlightService.html", "cl": 42, "ucl": 28, "cal": 70, "tl": 106, "cb": 12, "tb": 24, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
-      { "name": "Instory.API.Services.impl.MediaService", "rp": "Instory.API_MediaService.html", "cl": 0, "ucl": 78, "cal": 78, "tl": 133, "cb": 0, "tb": 10, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
       { "name": "Instory.API.Services.impl.NotificationService", "rp": "Instory.API_NotificationService.html", "cl": 39, "ucl": 6, "cal": 45, "tl": 78, "cb": 8, "tb": 8, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
       { "name": "Instory.API.Services.impl.PostReportService", "rp": "Instory.API_PostReportService.html", "cl": 34, "ucl": 0, "cal": 34, "tl": 61, "cb": 6, "tb": 6, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
       { "name": "Instory.API.Services.impl.ProfileService", "rp": "Instory.API_ProfileService.html", "cl": 19, "ucl": 21, "cal": 40, "tl": 73, "cb": 5, "tb": 20, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
       { "name": "Instory.API.Services.impl.SearchService", "rp": "Instory.API_SearchService.html", "cl": 34, "ucl": 0, "cal": 34, "tl": 49, "cb": 0, "tb": 0, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
-      { "name": "Instory.API.Services.impl.SmtpEmailSender", "rp": "Instory.API_SmtpEmailSender.html", "cl": 0, "ucl": 29, "cal": 29, "tl": 51, "cb": 0, "tb": 12, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
-      { "name": "Instory.API.Services.impl.StoryService", "rp": "Instory.API_StoryService.html", "cl": 34, "ucl": 100, "cal": 134, "tl": 198, "cb": 10, "tb": 42, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
+      { "name": "Instory.API.Services.impl.StoryService", "rp": "Instory.API_StoryService.html", "cl": 112, "ucl": 15, "cal": 127, "tl": 187, "cb": 25, "tb": 32, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
       { "name": "LikeService", "rp": "Instory.API_LikeService.html", "cl": 24, "ucl": 0, "cal": 24, "tl": 47, "cb": 6, "tb": 6, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
-      { "name": "PostService", "rp": "Instory.API_PostService.html", "cl": 254, "ucl": 200, "cal": 454, "tl": 573, "cb": 23, "tb": 46, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
+      { "name": "PostService", "rp": "Instory.API_PostService.html", "cl": 252, "ucl": 200, "cal": 452, "tl": 571, "cb": 23, "tb": 46, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
       { "name": "SharePostService", "rp": "Instory.API_SharePostService.html", "cl": 27, "ucl": 28, "cal": 55, "tl": 79, "cb": 6, "tb": 6, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
     ]},
 ];
@@ -321,22 +319,10 @@ var riskHotspotMetrics = [
 
 var riskHotspots = [
   {
-    "assembly": "Instory.API", "class": "Instory.API.Services.impl.StoryService", "reportPath": "Instory.API_StoryService.html", "methodName": "CreateAsync()", "methodShortName": "CreateAsync()", "fileIndex": 0, "line": 112,
-    "metrics": [
-      { "value": 600, "exceeded": true },
-      { "value": 24, "exceeded": true },
-    ]},
-  {
-    "assembly": "Instory.API", "class": "Instory.API.Services.impl.AuthService", "reportPath": "Instory.API_AuthService.html", "methodName": "GoogleLoginAsync()", "methodShortName": "GoogleLoginAsync()", "fileIndex": 0, "line": 222,
+    "assembly": "Instory.API", "class": "Instory.API.Services.impl.AuthService", "reportPath": "Instory.API_AuthService.html", "methodName": "GoogleLoginAsync()", "methodShortName": "GoogleLoginAsync()", "fileIndex": 0, "line": 214,
     "metrics": [
       { "value": 506, "exceeded": true },
       { "value": 22, "exceeded": true },
-    ]},
-  {
-    "assembly": "Instory.API", "class": "Instory.API.Services.impl.AuthService", "reportPath": "Instory.API_AuthService.html", "methodName": "VerifySignupOtpAsync()", "methodShortName": "VerifySignupOtpAsync()", "fileIndex": 0, "line": 168,
-    "metrics": [
-      { "value": 272, "exceeded": true },
-      { "value": 16, "exceeded": true },
     ]},
   {
     "assembly": "Instory.API", "class": "Instory.API.Services.impl.ProfileService", "reportPath": "Instory.API_ProfileService.html", "methodName": "UpdateAsync()", "methodShortName": "UpdateAsync()", "fileIndex": 0, "line": 42,
@@ -351,15 +337,9 @@ var riskHotspots = [
       { "value": 14, "exceeded": false },
     ]},
   {
-    "assembly": "Instory.API", "class": "Instory.API.Services.impl.SmtpEmailSender", "reportPath": "Instory.API_SmtpEmailSender.html", "methodName": "SendAsync()", "methodShortName": "SendAsync()", "fileIndex": 0, "line": 18,
+    "assembly": "Instory.API", "class": "PostService", "reportPath": "Instory.API_PostService.html", "methodName": "UpdatePostAsync()", "methodShortName": "UpdatePostAsync()", "fileIndex": 0, "line": 269,
     "metrics": [
-      { "value": 156, "exceeded": true },
-      { "value": 12, "exceeded": false },
-    ]},
-  {
-    "assembly": "Instory.API", "class": "PostService", "reportPath": "Instory.API_PostService.html", "methodName": "UpdatePostAsync()", "methodShortName": "UpdatePostAsync()", "fileIndex": 0, "line": 270,
-    "metrics": [
-      { "value": 119, "exceeded": true },
+      { "value": 123, "exceeded": true },
       { "value": 30, "exceeded": true },
     ]},
   {
@@ -369,13 +349,7 @@ var riskHotspots = [
       { "value": 10, "exceeded": false },
     ]},
   {
-    "assembly": "Instory.API", "class": "Instory.API.Services.impl.AuthService", "reportPath": "Instory.API_AuthService.html", "methodName": "GrantAdminRoleAsync()", "methodShortName": "GrantAdminRoleAsync()", "fileIndex": 0, "line": 372,
-    "metrics": [
-      { "value": 42, "exceeded": true },
-      { "value": 6, "exceeded": false },
-    ]},
-  {
-    "assembly": "Instory.API", "class": "Instory.API.Services.impl.AuthService", "reportPath": "Instory.API_AuthService.html", "methodName": "SendSignupOtpAsync()", "methodShortName": "SendSignupOtpAsync()", "fileIndex": 0, "line": 111,
+    "assembly": "Instory.API", "class": "Instory.API.Services.impl.AuthService", "reportPath": "Instory.API_AuthService.html", "methodName": "GrantAdminRoleAsync()", "methodShortName": "GrantAdminRoleAsync()", "fileIndex": 0, "line": 364,
     "metrics": [
       { "value": 42, "exceeded": true },
       { "value": 6, "exceeded": false },
