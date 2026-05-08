@@ -123,7 +123,7 @@ public class StoryService : IStoryService
             MediaUrl = mediaUrl,
             Caption = dto.Caption,
             MediaType = MediaType.Image,
-            ExpiresAt = DateTime.UtcNow.AddMinutes(1),
+            ExpiresAt = DateTime.UtcNow.AddHours(24),
         };
 
         await _storyRepository.AddAsync(story);
