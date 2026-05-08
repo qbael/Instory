@@ -62,13 +62,17 @@ public class SearchServiceTests
                 }
             }
         };
-        _postRepoMock.Setup(r => r.SearchPostsAsync("hello", 20)).ReturnsAsync(posts);
+        _postRepoMock.Setup(r => r.SearchPostsAsync("hello", 20))
+                 .ReturnsAsync(posts);
 
+        _likeRepoMock.Setup(r => r.GetLikePostIdsByUserIdAsync(user.Id))
+                     .ReturnsAsync(new HashSet<int> { 100 });
         var result = await _sut.SearchPostsAsync(user.Id, "hello");
 
         result.Should().HaveCount(1);
         result[0].Id.Should().Be(100);
         result[0].LikesCount.Should().Be(2);
+        result[0].IsLiked.Should().BeTrue();
         result[0].User!.UserName.Should().Be("alice");
         result[0].Images.Select(i => i.SortOrder).Should().ContainInOrder(1, 2);
     }
