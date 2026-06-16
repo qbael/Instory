@@ -92,7 +92,7 @@ public class PostService : IPostService
             // 3. Xử lý ảnh song song (Concurrent Upload)
             if (request.Images?.Any() == true)
             {
-                var allowedTypes = new[] { "image/jpeg", "image/png", "image/jpg", "image/gif" };
+                var allowedTypes = new[] { "image/jpeg", "image/png", "image/jpg", "image/gif", "image/webp" };
                 var validImages = request.Images.Where(f => f.Length > 0).ToList();
 
                 // Validate định dạng trước khi mất công gọi AWS S3

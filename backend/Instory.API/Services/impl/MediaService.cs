@@ -1,11 +1,7 @@
-using System;
-using System.IO;
-using System.Threading.Tasks;
 using Amazon.S3;
 using Amazon.S3.Model;
 using Amazon.S3.Transfer;
 using Instory.API.Models;
-using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Options;
 namespace Instory.API.Services.impl;
 
@@ -37,7 +33,6 @@ public class MediaService : IMediaService
             InputStream = newMemoryStream,
             Key = fileName,
             BucketName = _awsSettings.BucketName,
-            CannedACL = S3CannedACL.PublicRead
         };
 
         var fileTransferUtility = new TransferUtility(_s3Client);
@@ -83,7 +78,6 @@ public class MediaService : IMediaService
             SourceKey = sourceKey,
             DestinationBucket = _awsSettings.BucketName,
             DestinationKey = destKey,
-            CannedACL = S3CannedACL.PublicRead
         });
 
         return $"https://{_awsSettings.BucketName}.s3.{_awsSettings.Region}.amazonaws.com/{destKey}";
