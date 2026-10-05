@@ -11,15 +11,7 @@ public static class DataExtensions
     {
         using var scope = app.Services.CreateScope();
         var db = scope.ServiceProvider.GetRequiredService<InstoryDbContext>();
-        try
-        {
-            await db.Database.MigrateAsync();
-        }
-        catch (Npgsql.PostgresException ex)
-        {
-            if (ex.SqlState != "42P07")
-                throw;
-        }
+        await db.Database.MigrateAsync();
     }
     
     public static async Task SeedRolesAsync(this IHost app)

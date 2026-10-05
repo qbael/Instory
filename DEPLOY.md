@@ -1,558 +1,109 @@
-# Instory AWS Deployment Guide
+# Triển khai Instory trên AWS
 
-## Architecture
+Bản triển khai dùng tài khoản `092201262875`, region `ap-southeast-1` (Singapore).
+CloudFormation stack: `instory`. Mẫu hạ tầng: `deploy/aws.yml`.
 
-```
-git push → GitHub Actions → build + test backend → push ECR → EC2 pull & restart
-                          → build frontend → scp dist → EC2 /var/www/instory
+## Dịch vụ
 
-User → Nginx (443) → /             → Static files React (/var/www/instory)
-                   → /api/         → .NET App (8080) → RDS PostgreSQL
-                   → /hubs/        → .NET App (8080, WebSocket)
-                                                      → AWS S3 (media)
-```
-
-## AWS Resources
-
-| Service | Chi tiết |
+| Thành phần | Tài nguyên |
 |---|---|
-| ECR | `689327565628.dkr.ecr.ap-southeast-2.amazonaws.com/instory-api` |
-| RDS | `instory-db.cbomcyqc8i6z.ap-southeast-2.rds.amazonaws.com` — PostgreSQL 17, db.t3.micro |
-| EC2 | IP `3.25.112.35`, Ubuntu 24.04, t2.micro — serves backend + frontend |
-| Domain | `instory.codes` (name.com) — HTTPS via Certbot/Let's Encrypt |
-| Secrets Manager | `instory/production` |
-| IAM Role | `instory-ec2-role` (gắn vào EC2) |
-| IAM User | `iuser-deploy` (dùng cho GitHub Actions) |
-| Region | `ap-southeast-2` (Sydney) |
+| Website HTTPS | https://d3bxzivb46uej3.cloudfront.net |
+| Media HTTPS | https://dyyv9jtx43bib.cloudfront.net |
+| EC2 có sẵn | `i-0b3a2deb9e5aab2b9`, Ubuntu, Docker + Nginx + SSM |
+| Elastic IP | `46.137.243.190` |
+| RDS | `instory`, PostgreSQL 17.11, db.t4g.micro, private, backup 7 ngày |
+| ECR có sẵn | `092201262875.dkr.ecr.ap-southeast-1.amazonaws.com/instory/backend` |
+| Media bucket có sẵn | `instory-092201262875-ap-southeast-1-an`, private, CloudFront OAC |
+| Artifact bucket | `instory-artifacts-zblrc3x7bwly`, private, releases hết hạn sau 30 ngày |
+| Cấu hình runtime | Secrets Manager `instory/production` |
+| Instance role | `Instory`: đọc secret, ECR, artifacts; đọc/ghi media; SSM |
+| CI role | `instory-github-deploy`: GitHub OIDC, chỉ `qbael/Instory` nhánh `main` |
 
----
+CloudFront chuyển website/API/SignalR cùng origin đến Nginx. Nginx phục vụ SPA,
+proxy `/api/`, `/hubs/` (WebSocket), `/health` đến API tại `127.0.0.1:8080`.
+CloudFront media truy cập S3 bằng OAC. S3 chặn truy cập public trực tiếp.
+Security group chỉ cho CloudFront vào cổng 80; RDS chỉ cho EC2 vào 5432.
+Quản trị máy bằng SSM, không mở SSH hoặc cổng API ra Internet.
 
-## Bước 1: Chuẩn bị AWS Infrastructure
+`instory.codes` không phân giải DNS khi thiết lập. URL CloudFront hoạt động độc lập
+với domain này; gắn domain riêng cần DNS + ACM và cập nhật Google OAuth origins.
+Database cũ không còn instance/snapshot, nên đây là database mới. S3 cũ được giữ lại.
 
-### 1.1 Tạo ECR repository
-```bash
-aws ecr create-repository --repository-name instory-api --region ap-southeast-2
-```
+## CI/CD
 
-### 1.2 Tạo RDS PostgreSQL
-- Engine: PostgreSQL 17
-- Instance: db.t3.micro
-- DB name: `Instory`, User: `instory`
-- VPC: default VPC
-- Security group: tạo `instory-rds-sg`
+`.github/workflows/ci-cd.yml` kiểm tra pull request và `main`:
 
-### 1.3 Tạo EC2
-- AMI: Ubuntu 24.04
-- Instance type: t2.micro
-- Security group: tạo `instory-sg` (inbound: 22, 80, 443, 8080)
-- IAM Role: `instory-ec2-role` với policies:
-  - `AmazonEC2ContainerRegistryReadOnly`
-  - `SecretsManagerReadWrite`
-  - `AmazonS3FullAccess`
+- Backend: restore, Release build, tests, coverage.
+- Frontend: `npm ci`, lint, test, production build.
+- Triển khai: kiểm tra secrets rendering, deploy thành công và rollback khi lỗi.
 
-### 1.4 Kết nối EC2 → RDS
-Vào **RDS → instory-db → Connectivity & security → Connected compute resources → "Set up EC2 connection"**, chọn EC2 instance.  
-AWS sẽ tự động config security group cho cả hai.
+Push/merge vào `main`, hoặc chạy workflow thủ công trên `main`, sẽ:
 
-### 1.5 Tạo Secrets Manager
-Vào **Secrets Manager → Store a new secret → Other type**:
-```json
-{
-  "ConnectionStrings__Instory": "Host=instory-db.cbomcyqc8i6z.ap-southeast-2.rds.amazonaws.com;Database=Instory;Username=instory;Password=YOUR_PASSWORD;sslmode=require",
-  "JwtSettings__SecretKey": "YOUR_JWT_SECRET_KEY",
-  "AWS__AccessKey": "YOUR_AWS_ACCESS_KEY",
-  "AWS__SecretKey": "YOUR_AWS_SECRET_KEY",
-  "AWS__BucketName": "YOUR_S3_BUCKET",
-  "AWS__Region": "ap-southeast-2",
-  "Google__ClientId": "YOUR_GOOGLE_OAUTH_CLIENT_ID",
-  "Email__Host": "smtp.gmail.com",
-  "Email__Port": "587",
-  "Email__Username": "YOUR_GMAIL_ADDRESS",
-  "Email__Password": "YOUR_GMAIL_APP_PASSWORD",
-  "Email__FromName": "Instory"
-}
-```
-Secret name: `instory/production`
+1. Nhận AWS credentials tạm thời bằng OIDC.
+2. Build/push image ECR với tag commit SHA; tag immutable được tái sử dụng khi chạy lại.
+3. Gói `frontend/` và `deploy/`, tải lên S3.
+4. Gọi SSM để EC2 tải release, đọc Secrets Manager, chạy Docker Compose.
+5. Chờ database/API health, đổi symlink frontend, kiểm tra URL public và commit marker.
+6. Khôi phục backend/frontend/Nginx của release trước nếu deploy lỗi.
 
-### 1.6 Tạo IAM User cho GitHub Actions
-- User name: `iuser-deploy`
-- Policies: `AmazonEC2ContainerRegistryFullAccess`, `SecretsManagerReadWrite`
-- Tạo Access Key → lưu lại
+Một EC2 chạy một API instance; mỗi restart có gián đoạn ngắn.
+Deploy không tự hoàn nguyên database migration. Migration tiếp theo cần tương thích
+với release trước hoặc có kế hoạch phục hồi RDS; bản khởi tạo này tạo schema mới.
 
----
+GitHub Actions **variables** (không chứa mật khẩu): `AWS_REGION`, `ECR_REGISTRY`,
+`ECR_REPOSITORY`, `INSTANCE_ID`, `ARTIFACT_BUCKET`, `AWS_DEPLOY_ROLE_ARN`,
+`SITE_URL`, `VITE_GOOGLE_CLIENT_ID`. Không cần AWS access key hoặc SSH key trong GitHub.
 
-## Bước 2: Cài đặt EC2
+## Secrets và Google
 
-SSH vào EC2:
-```bash
-ssh -i your-key.pem ubuntu@3.25.112.35
-```
+Secret nhận JSON phẳng (dấu `__`) hoặc lồng nhau; `render-secrets.py` chuyển thành
+Compose JSON override mode `0600`. Secrets không nằm trong image hoặc frontend.
+Các khóa runtime:
 
-### 2.1 Cài Docker
-```bash
-curl -fsSL https://get.docker.com | sh
-sudo usermod -aG docker ubuntu
-newgrp docker
-```
+- `ConnectionStrings__Instory`: RDS endpoint, database `Instory`, username/password,
+  `SSL Mode=VerifyFull;Root Certificate=/app/rds-ca-bundle.pem`.
+- `JwtSettings__SecretKey`, `Issuer`, `Audience`, `ExpirationMinutes`,
+  `RefreshTokenExpirationDays`.
+- `AWS__Region`, `AWS__BucketName`, `AWS__PublicBaseUrl` (media CloudFront URL).
+- `Google__ClientId`: trùng `VITE_GOOGLE_CLIENT_ID` lúc build frontend.
+- `Email__Host`, `Port`, `Username`, `Password`, `FromName`; `FromEmail` nếu khác username.
+- `Cors__AllowedOrigins__0`: website HTTPS origin.
 
-### 2.2 Cài AWS CLI
-```bash
-curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
-unzip awscliv2.zip
-sudo ./aws/install
-```
+OAuth project: `instory-499507`, client Instory
+`340684800952-gt4r2o1a5oh9fj8mpfv3sk36jq0orjiq.apps.googleusercontent.com`.
+Authorized JavaScript origins cần website HTTPS ở trên. Login dùng Google ID-token
+popup, không cần OAuth client secret hoặc callback backend. Google có thể mất vài
+phút để áp dụng thay đổi. Cần kiểm tra login bằng tài khoản Google thật.
 
-### 2.3 Cài Nginx
-```bash
-sudo apt update && sudo apt install -y nginx
-```
-
----
-
-## Bước 3: Deploy Script trên EC2
-
-Tạo file `/home/ubuntu/deploy.sh`:
-```bash
-#!/bin/bash
-set -e
-
-AWS_REGION="ap-southeast-2"
-ECR_REGISTRY="689327565628.dkr.ecr.ap-southeast-2.amazonaws.com"
-SECRET_NAME="instory/production"
-
-echo "Fetching secrets..."
-SECRET=$(aws secretsmanager get-secret-value \
-  --secret-id $SECRET_NAME \
-  --region $AWS_REGION \
-  --query SecretString \
-  --output text)
-
-echo "Writing .env file..."
-echo "$SECRET" | python3 -c "
-import json, sys
-
-def flatten(obj, prefix=''):
-    result = {}
-    for k, v in obj.items():
-        key = f'{prefix}__{k}' if prefix else k
-        if isinstance(v, dict):
-            result.update(flatten(v, key))
-        else:
-            result[key] = str(v)
-    return result
-
-data = flatten(json.load(sys.stdin))
-for k, v in data.items():
-    print(f'{k}={v}')
-" > /home/ubuntu/.env
-
-echo "Logging into ECR..."
-aws ecr get-login-password --region $AWS_REGION | \
-  docker login --username AWS --password-stdin $ECR_REGISTRY
-
-echo "Pulling latest image..."
-docker pull $ECR_REGISTRY/instory-api:latest
-
-echo "Restarting container..."
-cd /home/ubuntu
-docker compose -f docker-compose.prod.yml down || true
-docker compose -f docker-compose.prod.yml --env-file /home/ubuntu/.env up -d
-
-echo "Done!"
-```
-
-> **Lưu ý quan trọng:** Script dùng `flatten()` để tự động xử lý nested JSON từ Secrets Manager. Ví dụ: `{"Google": {"ClientId": "xxx"}}` → `Google__ClientId=xxx` (dùng `__` separator theo chuẩn .NET configuration). Thêm key mới vào Secrets Manager là tự động có trong `.env` — không cần sửa script.
+## Vận hành và kiểm tra
 
 ```bash
-chmod +x /home/ubuntu/deploy.sh
+aws login
+aws cloudformation describe-stacks --stack-name instory --region ap-southeast-1
+aws ssm start-session --target i-0b3a2deb9e5aab2b9 --region ap-southeast-1
 ```
 
----
-
-## Bước 4: Docker Compose Production
-
-Tạo `/home/ubuntu/docker-compose.prod.yml`:
-```yaml
-version: '3.9'
-services:
-  api:
-    image: 689327565628.dkr.ecr.ap-southeast-2.amazonaws.com/instory-api:latest
-    ports:
-      - "8080:8080"
-    env_file:
-      - .env
-    volumes:
-      - dataprotection_keys:/root/.aspnet/DataProtection-Keys
-    restart: unless-stopped
-
-volumes:
-  dataprotection_keys:
-```
-
----
-
-## Bước 5: Nginx Config
+Trong EC2, release tại `/opt/instory/current`, release trước tại `/opt/instory/previous`.
+Docker volume `instory_dataprotection_keys` được giữ qua deploy. Logs container xoay
+vòng 3 file x 10MB; Nginx log bỏ query để không ghi SignalR access token.
 
 ```bash
-sudo nano /etc/nginx/sites-available/instory
+curl --fail https://d3bxzivb46uej3.cloudfront.net/health
+curl --fail https://d3bxzivb46uej3.cloudfront.net/release.txt
+python3 deploy/test_deploy.py
+python3 deploy/smoke.py --self-test
+node deploy/realtime-smoke.mjs --self-test
 ```
 
-```nginx
-server {
-    listen 80;
-    server_name 3.25.112.35;  # thay bằng domain nếu có
-
-    location / {
-        proxy_pass http://localhost:8080;
-        proxy_http_version 1.1;
-        proxy_set_header Upgrade $http_upgrade;
-        proxy_set_header Connection keep-alive;
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto $scheme;
-    }
-
-    # SignalR WebSocket
-    location /hubs/ {
-        proxy_pass http://localhost:8080;
-        proxy_http_version 1.1;
-        proxy_set_header Upgrade $http_upgrade;
-        proxy_set_header Connection "upgrade";
-        proxy_set_header Host $host;
-    }
-}
-```
-
-```bash
-sudo ln -s /etc/nginx/sites-available/instory /etc/nginx/sites-enabled/
-sudo rm /etc/nginx/sites-enabled/default
-sudo nginx -t
-sudo systemctl restart nginx
-```
-
----
-
-## Bước 6: GitHub Actions CI/CD
-
-### 6.1 Thêm GitHub Secrets
-Vào repo → Settings → Secrets and variables → Actions:
-
-| Secret | Value |
-|---|---|
-| `AWS_ACCESS_KEY_ID` | Access key của `iuser-deploy` |
-| `AWS_SECRET_ACCESS_KEY` | Secret key của `iuser-deploy` |
-| `EC2_HOST` | `3.25.112.35` |
-| `EC2_SSH_KEY` | Nội dung file `.pem` |
-| `VITE_GOOGLE_CLIENT_ID` | Google OAuth Client ID (dùng trong frontend build) |
-
-### 6.2 Workflow file
-
-Tạo `.github/workflows/ci-cd.yml`:
-```yaml
-name: CI/CD
-
-on:
-  push:
-    branches: [main]
-
-env:
-  AWS_REGION: ap-southeast-2
-  ECR_REGISTRY: 689327565628.dkr.ecr.ap-southeast-2.amazonaws.com
-  ECR_REPOSITORY: instory-api
-
-jobs:
-  build-and-push:
-    name: Build & Push to ECR
-    runs-on: ubuntu-latest
-
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Setup .NET
-        uses: actions/setup-dotnet@v4
-        with:
-          dotnet-version: '10.x'
-
-      - name: Build & Test
-        run: |
-          dotnet restore backend/Instory.slnx
-          dotnet build backend/Instory.slnx --no-restore
-          dotnet test backend/Instory.Tests --no-build
-
-      - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v4
-        with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ${{ env.AWS_REGION }}
-
-      - name: Login to ECR
-        uses: aws-actions/amazon-ecr-login@v2
-
-      - name: Build & Push Docker image
-        run: |
-          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:latest ./backend
-          docker push $ECR_REGISTRY/$ECR_REPOSITORY:latest
-
-  deploy:
-    name: Deploy to EC2
-    runs-on: ubuntu-latest
-    needs: build-and-push
-
-    steps:
-      - name: SSH & Deploy
-        uses: appleboy/ssh-action@v1
-        with:
-          host: ${{ secrets.EC2_HOST }}
-          username: ubuntu
-          key: ${{ secrets.EC2_SSH_KEY }}
-          script: /home/ubuntu/deploy.sh
-```
-
----
-
-## Bước 7: Deploy Frontend
-
-Frontend được build trong GitHub Actions và copy lên EC2 tự động.
-
-### 7.1 Chuẩn bị thư mục trên EC2
-```bash
-sudo mkdir -p /var/www/instory
-sudo chown ubuntu:ubuntu /var/www/instory
-```
-
-### 7.2 Cập nhật Nginx config
-Tách `/api/` và `/hubs/` proxy về backend, `/` serve React static files:
-```nginx
-server {
-    server_name instory.codes www.instory.codes;
-
-    root /var/www/instory;
-    index index.html;
-
-    location / {
-        try_files $uri $uri/ /index.html;
-    }
-
-    location /api/ {
-        client_max_body_size 10m;
-        proxy_pass http://localhost:8080;
-        proxy_http_version 1.1;
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto $scheme;
-    }
-
-    location /hubs/ {
-        proxy_pass http://localhost:8080;
-        proxy_http_version 1.1;
-        proxy_set_header Upgrade $http_upgrade;
-        proxy_set_header Connection "upgrade";
-        proxy_set_header Host $host;
-    }
-
-    listen 443 ssl;
-    ssl_certificate /etc/letsencrypt/live/instory.codes/fullchain.pem;
-    ssl_certificate_key /etc/letsencrypt/live/instory.codes/privkey.pem;
-    include /etc/letsencrypt/options-ssl-nginx.conf;
-    ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem;
-}
-
-server {
-    listen 80;
-    server_name instory.codes www.instory.codes;
-    return 301 https://$host$request_uri;
-}
-```
-
-### 7.3 GitHub Actions — frontend deploy
-CI/CD tự động build frontend với env production và scp lên EC2:
-- `VITE_API_URL=https://instory.codes/api`
-- `VITE_SIGNALR_URL=https://instory.codes/hubs`
-
-Xem `.github/workflows/ci-cd.yml` — job `frontend` build + upload artifact, job `deploy` download + scp lên `/var/www/instory/`.
-
----
-
-## Bước 8: Domain + HTTPS với Certbot
-
-### 7.1 Mua domain và trỏ DNS
-- Domain: `instory.codes` (mua trên name.com)
-- Vào **name.com → My Domains → instory.codes → Manage DNS Records**, thêm:
-
-| Type | Host | Answer | TTL |
-|---|---|---|---|
-| `A` | `@` | `3.25.112.35` | 300 |
-| `A` | `www` | `3.25.112.35` | 300 |
-
-Kiểm tra propagate: `nslookup instory.codes` → phải trả về `3.25.112.35`
-
-### 7.2 Cập nhật Nginx config
-Sửa `server_name` trong `/etc/nginx/sites-available/instory`:
-```nginx
-server_name instory.codes www.instory.codes;
-```
-
-```bash
-sudo nginx -t
-sudo systemctl restart nginx
-```
-
-### 7.3 Cài Certbot và lấy cert
-```bash
-sudo apt install -y certbot python3-certbot-nginx
-sudo certbot --nginx -d instory.codes -d www.instory.codes
-sudo systemctl enable certbot.timer
-```
-
-Certbot tự động update Nginx config với SSL, renew cert mỗi 90 ngày.
-
-**Kết quả:** `https://instory.codes` hoạt động với HTTPS ✅
-
----
-
-## Những chỗ bị bí
-
-### EC2 không connect được RDS (nc timeout)
-
-**Triệu chứng:**
-```
-nc: connect to instory-db... port 5432 (tcp) timed out
-```
-
-**Đã thử mà không fix được:**
-- Tự tay thêm inbound rule vào `instory-rds-sg` cho EC2 security group `sg-0812e9dc1b51f6238`
-- Rule đúng port 5432, đúng VPC, đúng security group — vẫn timeout
-- Lý do nghi ngờ: Network ACL ở subnet level có thể block dù security group đúng
-
-**Cách fix:**
-Dùng AWS wizard thay vì config tay:
-> RDS → instory-db → Connectivity & security → Connected compute resources → **"Set up EC2 connection"** → chọn EC2 instance
-
-AWS tự động config toàn bộ security group + networking. Sau khi wizard chạy xong thì `nc` thành công ngay.
-
-**Bài học:** Đừng config security group EC2↔RDS tay — dùng wizard của AWS, nhanh hơn và chắc chắn hơn.
-
-### GitHub Actions không trigger
-
-**Triệu chứng:** Push lên main nhưng không thấy workflow chạy.
-
-**Nguyên nhân:** Đang đứng ở nhánh `mindang`, commit chưa thực sự lên `main`.
-
-**Cách fix:**
-```bash
-git push origin main  # phải chỉ rõ push lên main, không phải nhánh hiện tại
-```
-
-### Frontend build fail — TypeScript errors
-
-**Triệu chứng:** CI/CD fail ở bước `npm run build` với nhiều lỗi TS6133 (unused variables) và TS2339 (property không tồn tại).
-
-**Nguyên nhân:**
-- Dùng `post.imageUrl` nhưng type `Post` không có field này — đúng là `post.images[0].imageUrl`
-- Import thừa: `use`, `Bookmark`, `CreateCommentDto`, `de` từ zod
-- Destructure `fetchPage` từ hook nhưng không dùng
-
-**Cách fix:** Sửa từng file theo đúng lỗi TypeScript báo. Các file đã sửa:
-- `CommentSection.tsx` — bỏ `use`, prefix unused vars với `_`
-- `PostActions.tsx` — bỏ `Bookmark` import
-- `PostCard.tsx` — dùng `src` thật thay vì hardcode picsum
-- `usePosts.ts` — bỏ `de` import từ zod
-- `HomePage.tsx` — bỏ `useState`, bỏ `fetchPage`
-- `AdminPage.tsx`, `ProfilePage.tsx`, `SearchPage.tsx` — đổi `post.imageUrl` → `post.images?.[0]?.imageUrl`
-- `postService.ts` — bỏ `CreateCommentDto` import
-
-### Certbot "Could not find matching server block"
-
-**Triệu chứng:** `Could not automatically find a matching server block for instory.codes`
-
-**Nguyên nhân:** Nginx config còn dùng `server_name 3.25.112.35` thay vì domain thật.
-
-**Cách fix:** Sửa `/etc/nginx/sites-available/instory`:
-```nginx
-server_name instory.codes www.instory.codes;
-```
-Restart Nginx rồi chạy lại `certbot --nginx`. Nếu cert đã tồn tại, chọn **1 (Reinstall)**.
-
-### Secrets có trong Secrets Manager nhưng không xuất hiện trong container env
-
-**Triệu chứng:** Config như `Google__ClientId`, `Email__Host` có trong Secrets Manager nhưng app không đọc được — `printenv` trong container không thấy.
-
-**Nguyên nhân:** `deploy.sh` cũ hard-code từng key một khi ghi `.env`:
-```bash
-echo "ConnectionStrings__Instory=$(echo $SECRET | python3 -c "...")" > ~/.env
-echo "JwtSettings__SecretKey=..." >> ~/.env
-# ... chỉ 6 key, bỏ sót Google và Email
-```
-Ngoài ra, key lồng nhau như `{"Google": {"ClientId": "..."}}` không được flatten đúng — ghi ra là `Google={"ClientId": "..."}` thay vì `Google__ClientId=...`.
-
-**Cách fix:** Thay bằng script flatten tự động (xem Bước 3). Sau đó verify:
-```bash
-/home/ubuntu/deploy.sh
-cat /home/ubuntu/.env | grep -E "Google|Email"
-docker exec $(docker ps -q) printenv | grep -E "Google|Email"
-```
-
-### Upload ảnh/story bị lỗi 500 trên production
-
-**Triệu chứng:** Upload ảnh (post hoặc story) hoạt động trên localhost nhưng trả về 500 khi dùng domain production.
-
-**Cách kiểm tra:**
-```bash
-docker exec $(docker ps -q) printenv | grep AWS
-```
-
-**Nguyên nhân:** `AWS__AccessKey` và `AWS__SecretKey` không có trong Secrets Manager (chỉ có `AWS__Region` và `AWS__BucketName`). Code cũ dùng `BasicAWSCredentials("", "")` → S3 từ chối xác thực → 500.
-
-**Cách fix:** Sửa `Program.cs` để fallback về IAM Role khi credentials rỗng. EC2 đã có `instory-ec2-role` với `AmazonS3FullAccess` nên không cần credentials thủ công:
-
-```csharp
-// Trước (luôn dùng explicit credentials — fail khi rỗng)
-var credentials = new BasicAWSCredentials(awsSettings.AccessKey, awsSettings.SecretKey);
-return new AmazonS3Client(credentials, config);
-
-// Sau (fallback về IAM Role nếu không có credentials)
-if (!string.IsNullOrEmpty(awsSettings.AccessKey) && !string.IsNullOrEmpty(awsSettings.SecretKey))
-    return new AmazonS3Client(new BasicAWSCredentials(awsSettings.AccessKey, awsSettings.SecretKey), config);
-return new AmazonS3Client(config); // dùng IAM Role tự động
-```
-
-**Kết quả:** Localhost dùng credentials từ `appsettings.Development.json`, production dùng IAM Role — không cần thêm `AWS__AccessKey`/`AWS__SecretKey` vào Secrets Manager.
-
-### IAM user sai khi login ECR
-
-**Triệu chứng:** `AccessDeniedException: user/iam-s3-user is not authorized to perform: ecr:GetAuthorizationToken`
-
-**Nguyên nhân:** AWS CLI trên máy local đang dùng credentials của `iam-s3-user`, không phải `iuser-deploy`.
-
-**Cách fix:**
-```bash
-aws configure --profile deploy  # tạo profile mới với credentials của iuser-deploy
-aws ecr get-login-password --region ap-southeast-2 --profile deploy | \
-  docker login --username AWS --password-stdin \
-  689327565628.dkr.ecr.ap-southeast-2.amazonaws.com
-```
-
----
-
-## Checklist
-
-- [x] ECR repository
-- [x] RDS PostgreSQL
-- [x] EC2 với Docker + Nginx + AWS CLI
-- [x] IAM Role cho EC2
-- [x] IAM User cho GitHub Actions
-- [x] Secrets Manager
-- [x] EC2 → RDS connection
-- [x] deploy.sh trên EC2
-- [x] docker-compose.prod.yml trên EC2
-- [x] Nginx config (port 80 → 8080, SignalR WebSocket)
-- [x] GitHub Actions workflow (backend + frontend + deploy to EC2)
-- [x] GitHub Secrets (AWS credentials, EC2 host, SSH key, VITE_GOOGLE_CLIENT_ID)
-- [x] CI/CD hoạt động end-to-end (push main → tự động deploy)
-- [x] Domain `instory.codes` (name.com) + DNS trỏ về EC2
-- [x] HTTPS với Certbot — `https://instory.codes` ✅
-- [x] Frontend deploy — GitHub Actions build + scp → EC2, Nginx serve static files
-- [x] Nginx config tách `/api/`, `/hubs/` → backend, `/` → React static files
+Live smoke chỉ dùng hai tài khoản `@example.invalid` có username `instory_smoke_*`.
+Đặt `SITE_URL`, `SMOKE_EMAIL`, `SMOKE_PASSWORD`, `SECOND_EMAIL`, `SECOND_PASSWORD`;
+chạy `smoke.py --register-only`, xác nhận email trong DB và cấp Admin cho tài khoản
+thứ nhất, rồi chạy `smoke.py` và `realtime-smoke.mjs`. Script không gửi OTP và xuất
+`CLEANUP_MANIFEST` cho các bản ghi/media cần dọn. Không dùng tài khoản thật cho smoke.
+Admin thật được cấp cho tài khoản chủ sở hữu sau khi đăng ký/xác minh hoặc Google login.
+
+CloudFormation giữ artifact bucket khi xóa stack, tạo snapshot RDS, và bật RDS deletion
+protection. Khi cập nhật stack, dùng `UsePreviousValue` cho `DatabasePassword` để
+không ghi mật khẩu vào command line. EC2/ECR/media bucket/secret có sẵn được tái sử dụng,
+không thuộc vòng đời tạo/xóa của stack. Instance security group và managed SSM policy
+đã cấu hình ngoài stack; giữ chúng khi phục hồi cấu hình EC2.

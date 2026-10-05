@@ -18,6 +18,7 @@ const Lightbox: React.FC<LightboxProps> = ({ images, initialIndex = 0, isOpen, o
 
   useEffect(() => {
     if (isOpen) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- Reopening the viewer starts at the clicked image.
       setCurrentIndex(initialIndex);
       document.body.style.overflow = 'hidden';
     } else {

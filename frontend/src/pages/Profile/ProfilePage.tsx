@@ -112,7 +112,7 @@ export default function ProfilePage() {
       .getByUser(profile.id)
       .then(({ data }) => setStoryGroup(data))
       .catch(() => setStoryGroup(null));
-  }, [profile?.id]);
+  }, [profile]);
 
   const handleToggleLike = (postId: number) =>{
     if(tab == 'posts'){
@@ -137,7 +137,7 @@ export default function ProfilePage() {
       .getByUser(profile.id)
       .then(({ data }) => setHighlights(data))
       .catch(() => {});
-  }, [profile?.id]);
+  }, [profile]);
 
   useEffect(() => {
     loadHighlights();
@@ -158,6 +158,7 @@ export default function ProfilePage() {
   }, [loadStories]);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- The route username resets the active profile tab.
     setTab('posts');
   }, [username]);
 

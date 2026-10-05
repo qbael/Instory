@@ -33,6 +33,11 @@ public class InstoryDbContext(DbContextOptions<InstoryDbContext> options) : Iden
     {
         base.OnModelCreating(modelBuilder);
 
+        modelBuilder.Entity<ReportReason>().HasData(
+            new ReportReason { Id = 1, Code = "SPAM", Name = "Spam", CreatedAt = DateTime.UnixEpoch },
+            new ReportReason { Id = 2, Code = "HARASSMENT", Name = "Quấy rối", CreatedAt = DateTime.UnixEpoch },
+            new ReportReason { Id = 3, Code = "OTHER", Name = "Lý do khác", CreatedAt = DateTime.UnixEpoch });
+
         modelBuilder.Entity<Follow>()
             .HasOne(f => f.Follower)
             .WithMany(u => u.Followers)

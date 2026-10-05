@@ -66,7 +66,8 @@ public class AuthController : ControllerBase
             Message = result.Message,
             UserId = result.Data.User.Id,
             Username = result.Data.User.UserName!,
-            Email = result.Data.User.Email!
+            Email = result.Data.User.Email!,
+            Roles = result.Data.Roles
         });
     }
 
@@ -107,7 +108,8 @@ public class AuthController : ControllerBase
             Message = result.Message,
             UserId = result.Data.User.Id,
             Username = result.Data.User.UserName!,
-            Email = result.Data.User.Email!
+            Email = result.Data.User.Email!,
+            Roles = result.Data.Roles
         });
     }
     

@@ -113,12 +113,14 @@ public class AuthServiceTests
         _tokenServiceMock.Setup(t => t.GenerateTokenAsync(user)).ReturnsAsync("newAccess");
         _tokenServiceMock.Setup(t => t.GenerateRefreshToken()).Returns("newRefresh");
         _userManagerMock.Setup(m => m.UpdateAsync(user)).ReturnsAsync(IdentityResult.Success);
+        _userManagerMock.Setup(m => m.GetRolesAsync(user)).ReturnsAsync(new List<string> { "Admin", "User" });
 
         var result = await _sut.RefreshTokenAsync("old");
 
         result.Success.Should().BeTrue();
         result.Data!.Token.Should().Be("newAccess");
         result.Data.RefreshToken.Should().Be("newRefresh");
+        result.Data.Roles.Should().BeEquivalentTo("Admin", "User");
         user.RefreshToken.Should().Be("newRefresh");
         user.RefreshTokenExpiryTime.Should().BeAfter(DateTime.UtcNow);
         _userManagerMock.Verify(m => m.UpdateAsync(user), Times.Once);

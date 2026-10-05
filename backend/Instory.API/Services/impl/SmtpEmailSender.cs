@@ -21,10 +21,10 @@ public class SmtpEmailSender : IEmailSender
         var username = _configuration["Email:Username"];
         var password = _configuration["Email:Password"];
         var fromName = _configuration["Email:FromName"] ?? "Instory";
-        var from = username;
+        var from = _configuration["Email:FromEmail"] ?? username;
 
         if (string.IsNullOrWhiteSpace(host) || string.IsNullOrWhiteSpace(from))
-            throw new InvalidOperationException("Email SMTP settings are missing (Email:Host / Email:Username).");
+            throw new InvalidOperationException("Email SMTP settings are missing (Email:Host / Email:FromEmail).");
 
         int port = 587;
         if (!string.IsNullOrWhiteSpace(portString) && int.TryParse(portString, out var parsedPort)) port = parsedPort;
@@ -48,4 +48,3 @@ public class SmtpEmailSender : IEmailSender
         await client.DisconnectAsync(true);
     }
 }
-

@@ -17,8 +17,11 @@ export function useInfiniteScroll({
 }: UseInfiniteScrollOptions) {
   const sentinelRef = useRef<HTMLDivElement | null>(null);
   const onLoadMoreRef = useRef(onLoadMore);
-  onLoadMoreRef.current = onLoadMore;
   const isIntersectingRef = useRef(false);
+
+  useEffect(() => {
+    onLoadMoreRef.current = onLoadMore;
+  }, [onLoadMore]);
 
   useEffect(() => {
     const node = sentinelRef.current;

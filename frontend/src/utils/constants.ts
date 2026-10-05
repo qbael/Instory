@@ -1,5 +1,6 @@
-export const API_URL = import.meta.env.VITE_API_URL as string ?? '/api';
-export const SIGNALR_URL = import.meta.env.VITE_SIGNALR_URL as string ?? '/hubs';
+export const API_URL = import.meta.env.VITE_API_URL || '/api';
+export const SIGNALR_URL = import.meta.env.VITE_SIGNALR_URL || '/hubs';
+export const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID?.trim() || '';
 
 export const DEFAULT_PAGE_SIZE = 20;
 export const STORY_DURATION_HOURS = 24;

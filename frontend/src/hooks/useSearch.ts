@@ -74,7 +74,7 @@ export function useSearch(type: SearchType) {
       } else {
         await postService.like(postId);
       }
-    } catch (error) {
+    } catch {
       // 4. Rollback: Phục hồi lại trạng thái cũ cho riêng bài viết bị lỗi
       setResults((prev) => {
         if (!prev) return prev;

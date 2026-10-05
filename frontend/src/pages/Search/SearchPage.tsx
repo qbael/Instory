@@ -26,6 +26,7 @@ export default function SearchPage() {
   useEffect(() => {
   if (initialTag) {
     setQuery(`#${initialTag}`);
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- A hashtag in the route selects its post results.
     setTab('posts');
   }},[initialTag, setQuery])
 

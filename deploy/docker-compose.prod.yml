@@ -1,0 +1,21 @@
+name: instory
+
+services:
+  api:
+    image: ${API_IMAGE:?Set the immutable ECR image for this release}
+    network_mode: host
+    environment:
+      ASPNETCORE_ENVIRONMENT: Production
+      ASPNETCORE_URLS: http://127.0.0.1:8080
+    volumes:
+      - dataprotection_keys:/root/.aspnet/DataProtection-Keys
+    restart: unless-stopped
+    logging:
+      driver: json-file
+      options:
+        max-size: 10m
+        max-file: "3"
+
+volumes:
+  dataprotection_keys:
+    name: ${DATA_PROTECTION_VOLUME:-instory_dataprotection_keys}
