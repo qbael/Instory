@@ -8,7 +8,7 @@ import { Heart, MessageCircle } from 'lucide-react';
 interface PostGridProps {
   posts: Post[];    
   onLikeToggle?: (postId: number) => void;
-  onCommentAdded?: (postId: number, comment: any) => void;
+  onCommentAdded?: (postId: number) => void;
   onDeleted?: (postId: number) => void;
 }
 
@@ -68,7 +68,7 @@ const PostGrid = memo(function PostGrid({
           // Đóng modal bằng cách set selectedPost về null
           onClose={() => setSelectedPost(null)}
           onLikeToggle={() => onLikeToggle?.(selectedPost.id)}
-          onCommentAdded={(comment) => onCommentAdded?.(selectedPost.id, comment)}
+          onCommentAdded={onCommentAdded}
           onDeleted={() => {
             onDeleted?.(selectedPost.id);
             setSelectedPost(null); // Đóng modal sau khi xóa thành công

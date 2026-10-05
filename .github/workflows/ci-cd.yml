@@ -5,11 +5,10 @@ on:
     branches: [main]
   pull_request:
     branches: [main]
+  workflow_dispatch:
 
-env:
-  AWS_REGION: ap-southeast-2
-  ECR_REGISTRY: 689327565628.dkr.ecr.ap-southeast-2.amazonaws.com
-  ECR_REPOSITORY: instory-api
+permissions:
+  contents: read
 
 jobs:
   backend:
@@ -20,10 +19,10 @@ jobs:
         with:
           dotnet-version: '10.0.x'
       - run: dotnet restore backend/Instory.slnx
-      - run: dotnet build   backend/Instory.slnx --no-restore -c Release
-      - name: Test (with coverage)
+      - run: dotnet build backend/Instory.slnx --no-restore -c Release
+      - name: Test with coverage
         run: dotnet test backend/Instory.Tests --no-build -c Release --collect:"XPlat Code Coverage" --results-directory ./coverage --settings backend/Instory.Tests/coverage.runsettings
-      - name: Upload coverage report
+      - name: Upload coverage
         if: always()
         uses: actions/upload-artifact@v4
         with:
@@ -32,73 +31,85 @@ jobs:
 
   frontend:
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-          cache: 'npm'
+          cache: npm
           cache-dependency-path: frontend/package-lock.json
       - run: npm ci
-        working-directory: frontend
+      - run: npm run lint
+      - run: npm test
       - name: Build
         run: npm run build
-        working-directory: frontend
         env:
-          VITE_API_URL: https://instory.codes/api
-          VITE_SIGNALR_URL: https://instory.codes/hubs
-          VITE_GOOGLE_CLIENT_ID: ${{ secrets.VITE_GOOGLE_CLIENT_ID }}
-      - name: Upload dist artifact
+          VITE_API_URL: /api
+          VITE_SIGNALR_URL: /hubs
+          VITE_GOOGLE_CLIENT_ID: ${{ vars.VITE_GOOGLE_CLIENT_ID }}
+      - name: Upload frontend
         uses: actions/upload-artifact@v4
-        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
         with:
           name: frontend-dist
           path: frontend/dist/
 
-  deploy:
-    name: Deploy to EC2
+  deployment-checks:
     runs-on: ubuntu-latest
-    needs: [backend, frontend]
-    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-
     steps:
       - uses: actions/checkout@v4
+      - run: bash -n deploy/deploy.sh
+      - run: python3 deploy/test_deploy.py
 
-      - name: Configure AWS credentials
+  deploy:
+    name: Deploy to AWS
+    runs-on: ubuntu-latest
+    needs: [backend, frontend, deployment-checks]
+    if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+    timeout-minutes: 25
+    concurrency:
+      group: instory-production
+      cancel-in-progress: false
+    permissions:
+      contents: read
+      id-token: write
+    env:
+      AWS_REGION: ${{ vars.AWS_REGION }}
+      ECR_REGISTRY: ${{ vars.ECR_REGISTRY }}
+      ECR_REPOSITORY: ${{ vars.ECR_REPOSITORY }}
+      INSTANCE_ID: ${{ vars.INSTANCE_ID }}
+      ARTIFACT_BUCKET: ${{ vars.ARTIFACT_BUCKET }}
+      ARTIFACT_KEY: releases/${{ github.sha }}.tar.gz
+      SECRET_ID: instory/production
+      RELEASE_SHA: ${{ github.sha }}
+      SITE_URL: ${{ vars.SITE_URL }}
+      DATA_PROTECTION_VOLUME: instory_dataprotection_keys
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check deployment configuration
+        run: |
+          test -n "$AWS_REGION" && test -n "$ECR_REGISTRY" && test -n "$ECR_REPOSITORY"
+          test -n "$INSTANCE_ID" && test -n "$ARTIFACT_BUCKET" && test -n "$SITE_URL"
+          test -n "${{ vars.AWS_DEPLOY_ROLE_ARN }}"
+      - name: Configure AWS role
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          role-to-assume: ${{ vars.AWS_DEPLOY_ROLE_ARN }}
           aws-region: ${{ env.AWS_REGION }}
-
-      - name: Login to ECR
-        uses: aws-actions/amazon-ecr-login@v2
-
-      - name: Build & Push Docker image
-        run: |
-          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:latest ./backend
-          docker push $ECR_REGISTRY/$ECR_REPOSITORY:latest
-
-      - name: Download frontend dist
-        uses: actions/download-artifact@v4
+          role-session-name: instory-${{ github.run_id }}
+      - uses: aws-actions/amazon-ecr-login@v2
+      - name: Build and push immutable image
+        run: bash deploy/push-image.sh
+      - uses: actions/download-artifact@v4
         with:
           name: frontend-dist
-          path: frontend/dist
-
-      - name: Copy frontend to EC2
-        uses: appleboy/scp-action@v0.1.7
-        with:
-          host: ${{ secrets.EC2_HOST }}
-          username: ubuntu
-          key: ${{ secrets.EC2_SSH_KEY }}
-          source: frontend/dist/*
-          target: /var/www/instory/
-          strip_components: 2
-
-      - name: SSH & Deploy backend
-        uses: appleboy/ssh-action@v1
-        with:
-          host: ${{ secrets.EC2_HOST }}
-          username: ubuntu
-          key: ${{ secrets.EC2_SSH_KEY }}
-          script: /home/ubuntu/deploy.sh
+          path: release/frontend
+      - name: Package release
+        run: |
+          cp -r deploy release/deploy
+          tar -czf release.tar.gz -C release frontend deploy
+          aws s3 cp release.tar.gz "s3://$ARTIFACT_BUCKET/$ARTIFACT_KEY" --no-progress
+      - name: Deploy and verify through Systems Manager
+        run: python3 deploy/run-command.py

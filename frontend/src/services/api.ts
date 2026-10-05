@@ -17,7 +17,6 @@ const AUTH_PATHS = [
     '/auth/signup/send-otp',
     '/auth/signup/verify-otp',
     '/auth/refresh',
-    '/auth/me',
 ];
 
 function isAuthRequest(url?: string): boolean {
@@ -73,7 +72,9 @@ api.interceptors.response.use(
             return api(originalRequest);
         } catch (refreshError) {
             processQueue(refreshError);
-            window.location.href = '/login';
+            if (!originalRequest.url?.includes('/auth/me')) {
+                window.location.href = '/login';
+            }
             return Promise.reject(refreshError);
         } finally {
             isRefreshing = false;

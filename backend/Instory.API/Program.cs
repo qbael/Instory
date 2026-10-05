@@ -1,5 +1,7 @@
 using System.Text;
 using System.Text.Json.Serialization;
+using System.Net;
+using System.Net.Sockets;
 using Serilog;
 using Amazon;
 using Amazon.Runtime;
@@ -15,6 +17,7 @@ using Instory.API.Services;
 using Instory.API.Services.impl;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
@@ -22,19 +25,34 @@ using Microsoft.IdentityModel.Tokens;
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Host.UseSerilog((context, config) =>
-    config.ReadFrom.Configuration(context.Configuration));
+    config.ReadFrom.Configuration(context.Configuration).WriteTo.Console());
 
 builder.Services.AddOpenApi();
+
+builder.Configuration["JwtSettings:Issuer"] ??= "Instory";
+builder.Configuration["JwtSettings:Audience"] ??= "Instory";
+
+builder.Services.Configure<ForwardedHeadersOptions>(options =>
+{
+    options.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
+    foreach (var proxy in builder.Configuration.GetSection("ReverseProxy:KnownProxies").Get<string[]>() ?? [])
+    {
+        var address = IPAddress.Parse(proxy);
+        options.KnownProxies.Add(address);
+        if (address.AddressFamily == AddressFamily.InterNetwork)
+            options.KnownProxies.Add(address.MapToIPv6());
+    }
+    foreach (var network in builder.Configuration.GetSection("ReverseProxy:KnownNetworks").Get<string[]>() ?? [])
+        options.KnownIPNetworks.Add(System.Net.IPNetwork.Parse(network));
+});
 
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("FrontendPolicy", policy =>
     {
-        policy
-            .WithOrigins(
-                "http://localhost:5173",
-                "http://localhost:5174"
-            )
+        var origins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>()
+            ?? (builder.Environment.IsDevelopment() ? ["http://localhost:5173", "http://localhost:5174"] : []);
+        policy.WithOrigins(origins)
             .AllowAnyHeader()
             .AllowAnyMethod()
             .AllowCredentials();
@@ -169,6 +187,8 @@ builder.Services.AddScoped<ISearchService, SearchService>();
 
 var app = builder.Build();
 
+app.UseForwardedHeaders();
+
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
@@ -181,7 +201,7 @@ if (app.Environment.IsDevelopment())
 
 app.UseSerilogRequestLogging();
 
-app.UseHttpsRedirection();
+app.UseWhen(context => !context.Request.Path.StartsWithSegments("/health"), branch => branch.UseHttpsRedirection());
 
 app.UseCors("FrontendPolicy");
 
@@ -193,6 +213,8 @@ app.UseAuthorization();
 app.MapControllers();
 app.MapHub<NotificationHub>("/hubs/notifications");
 app.MapHub<ChatHub>("/hubs/chat");
+app.MapGet("/health", async (InstoryDbContext db) =>
+    await db.Database.CanConnectAsync() ? Results.Ok(new { status = "healthy" }) : Results.StatusCode(503));
 await app.MigrateDbAsync();
 await app.SeedRolesAsync();
 

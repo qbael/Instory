@@ -1,5 +1,8 @@
 ﻿appsettings.Development.json
 .git
-bin/
-obj/
+**/bin/
+**/obj/
+**/appsettings*.json
+**/*private*.json
+.env*
 Instory.Tests/

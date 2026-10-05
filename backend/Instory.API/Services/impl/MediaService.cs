@@ -25,49 +25,31 @@ public class MediaService : IMediaService
 
         var fileName = $"{folderName}/{Guid.NewGuid()}{Path.GetExtension(file.FileName)}";
 
-        using var newMemoryStream = new MemoryStream();
-        await file.CopyToAsync(newMemoryStream);
+        using var stream = file.OpenReadStream();
 
         var uploadRequest = new TransferUtilityUploadRequest
         {
-            InputStream = newMemoryStream,
+            InputStream = stream,
             Key = fileName,
             BucketName = _awsSettings.BucketName,
+            ContentType = file.ContentType,
         };
 
-        var fileTransferUtility = new TransferUtility(_s3Client);
+        using var fileTransferUtility = new TransferUtility(_s3Client);
         await fileTransferUtility.UploadAsync(uploadRequest);
 
-        return $"https://{_awsSettings.BucketName}.s3.{_awsSettings.Region}.amazonaws.com/{fileName}";
+        return GetPublicUrl(fileName);
     }
 
     public async Task DeleteAsync(string url)
     {
-        var expectedPrefix = $"https://{_awsSettings.BucketName}.s3.{_awsSettings.Region}.amazonaws.com/";
-        if (!url.StartsWith(expectedPrefix))
-            return;
-
-        var uri = new Uri(url);
-        var key = uri.AbsolutePath.TrimStart('/');
-
-        try
-        {
-            await _s3Client.DeleteObjectAsync(_awsSettings.BucketName, key);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogWarning(ex, "S3 delete failed for key: {Key}", key);
-        }
+        await DeleteFileAsync(url);
     }
 
     public async Task<string> CopyAsync(string sourceUrl, string destFolderName)
     {
-        var expectedPrefix = $"https://{_awsSettings.BucketName}.s3.{_awsSettings.Region}.amazonaws.com/";
-        if (!sourceUrl.StartsWith(expectedPrefix))
+        if (!TryGetObjectKey(sourceUrl, out var sourceKey))
             throw new ArgumentException("Source URL doesn't belong to this bucket");
-
-        var sourceUri = new Uri(sourceUrl);
-        var sourceKey = sourceUri.AbsolutePath.TrimStart('/');
 
         var extension = Path.GetExtension(sourceKey);
         var destKey = $"{destFolderName}/{Guid.NewGuid()}{extension}";
@@ -80,47 +62,59 @@ public class MediaService : IMediaService
             DestinationKey = destKey,
         });
 
-        return $"https://{_awsSettings.BucketName}.s3.{_awsSettings.Region}.amazonaws.com/{destKey}";
+        return GetPublicUrl(destKey);
     }
 
     public async Task<bool> DeleteFileAsync(string fileUrl)
     {
-        if (string.IsNullOrWhiteSpace(fileUrl))
+        if (!TryGetObjectKey(fileUrl, out var fileKey))
             return false;
 
         try
         {
-            // Phân tích URL để lấy ra Object Key.
-            // Ví dụ URI: https://bucket-name.s3.region.amazonaws.com/posts/guid.jpg
-            // AbsolutePath sẽ trả về: "/posts/guid.jpg"
-            var uri = new Uri(fileUrl);
-
-            // Cắt bỏ dấu "/" ở đầu để lấy đúng Key chuẩn của S3 (ví dụ: "posts/guid.jpg")
-            string fileKey = uri.AbsolutePath.TrimStart('/');
-
             var deleteRequest = new DeleteObjectRequest
             {
                 BucketName = _awsSettings.BucketName,
                 Key = fileKey
             };
 
-            // Gửi request xóa lên AWS S3
             await _s3Client.DeleteObjectAsync(deleteRequest);
-
-            Console.WriteLine($"[S3] Đã xóa thành công file: {fileKey}");
             return true;
-        }
-        catch (Amazon.S3.AmazonS3Exception ex)
-        {
-            // Lỗi từ phía AWS S3 (ví dụ: Key không tồn tại, sai quyền truy cập...)
-            Console.WriteLine($"[S3 Error] Lỗi khi xóa file trên S3: {ex.Message}");
-            return false;
         }
         catch (Exception ex)
         {
-            // Lỗi parse URL hoặc lỗi khác
-            Console.WriteLine($"[System Error] Lỗi hệ thống khi xóa file: {ex.Message}");
+            _logger.LogWarning(ex, "S3 delete failed for key: {Key}", fileKey);
             return false;
         }
+    }
+
+    private string S3BaseUrl => $"https://{_awsSettings.BucketName}.s3.{_awsSettings.Region}.amazonaws.com/";
+
+    private string PublicBaseUrl => string.IsNullOrWhiteSpace(_awsSettings.PublicBaseUrl)
+        ? S3BaseUrl
+        : _awsSettings.PublicBaseUrl.TrimEnd('/') + "/";
+
+    private string GetPublicUrl(string key) => PublicBaseUrl
+        + string.Join('/', key.Split('/').Select(Uri.EscapeDataString));
+
+    private bool TryGetObjectKey(string url, out string key)
+    {
+        key = string.Empty;
+        if (!Uri.TryCreate(url, UriKind.Absolute, out var uri) || uri.UserInfo.Length > 0)
+            return false;
+
+        // Accept legacy S3 URLs as well as the configured CloudFront origin.
+        foreach (var baseUrl in new[] { PublicBaseUrl, S3BaseUrl })
+        {
+            var origin = new Uri(baseUrl);
+            if (uri.Scheme != origin.Scheme || uri.Host != origin.Host || uri.Port != origin.Port
+                || !uri.AbsolutePath.StartsWith(origin.AbsolutePath, StringComparison.Ordinal))
+                continue;
+
+            key = Uri.UnescapeDataString(uri.AbsolutePath[origin.AbsolutePath.Length..]);
+            return !string.IsNullOrWhiteSpace(key);
+        }
+
+        return false;
     }
 }

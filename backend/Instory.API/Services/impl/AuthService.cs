@@ -280,6 +280,7 @@ public class AuthService : IAuthService
         user.RefreshTokenExpiryTime = DateTime.UtcNow.AddDays(refreshTokenValidityInDays);
         await _userManager.UpdateAsync(user);
 
+        var roles = await _userManager.GetRolesAsync(user);
         return new ServiceResponse<LoginDto>
         {
             Success = true,
@@ -289,6 +290,7 @@ public class AuthService : IAuthService
                 Token = token,
                 RefreshToken = refreshToken,
                 User = user,
+                Roles = roles,
                 RefreshTokenValidityInDays = refreshTokenValidityInDays
             }
         };
@@ -317,7 +319,8 @@ public class AuthService : IAuthService
         user.RefreshTokenExpiryTime = DateTime.UtcNow.AddDays(refreshTokenValidityInDays);
 
         await _userManager.UpdateAsync(user);
-        
+
+        var roles = await _userManager.GetRolesAsync(user);
         return new ServiceResponse<LoginDto>
         {
             Success = true,
@@ -327,6 +330,7 @@ public class AuthService : IAuthService
                 Token = newAccessToken,
                 RefreshToken = newRefreshToken,
                 User = user,
+                Roles = roles,
                 RefreshTokenValidityInDays = refreshTokenValidityInDays
             }
         };

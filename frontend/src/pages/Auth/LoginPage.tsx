@@ -10,6 +10,7 @@ import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { GoogleLogin } from '@react-oauth/google';
 import type { CredentialResponse } from '@react-oauth/google';
+import { GOOGLE_CLIENT_ID } from '@/utils/constants';
 
 export default function LoginPage() {
   const { login, googleLogin, isLoading, error, clearError } = useAuth();
@@ -105,7 +106,7 @@ export default function LoginPage() {
         </div>
 
         <div className="flex justify-center">
-          <GoogleLogin
+          {GOOGLE_CLIENT_ID ? <GoogleLogin
             onSuccess={async (credentialResponse: CredentialResponse) => {
               const idToken = credentialResponse.credential;
               if (!idToken) return;
@@ -120,7 +121,11 @@ export default function LoginPage() {
             onError={() => {
               toast.error('Đăng nhập Google thất bại');
             }}
-          />
+          /> : (
+            <p className="text-center text-sm text-text-secondary">
+              Đăng nhập Google chưa được cấu hình. Vui lòng đăng nhập bằng tài khoản.
+            </p>
+          )}
         </div>
       </div>
 

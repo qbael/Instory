@@ -6,4 +6,5 @@ public class AwsSettings
     public string SecretKey { get; set; } = string.Empty;
     public string Region { get; set; } = string.Empty;
     public string BucketName { get; set; } = string.Empty;
+    public string PublicBaseUrl { get; set; } = string.Empty;
 }
