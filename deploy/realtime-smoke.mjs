@@ -47,8 +47,8 @@ try {
     console.log('PASS existing SignalR WebSocket runtime loads');
   } else {
     const site = new URL(process.env.SITE_URL);
-    assert.equal(site.protocol, 'https:');
-    assert.equal(site.href, site.origin + '/');
+    assert.ok(site.protocol === 'https:' && site.href === site.origin + '/',
+      'SITE_URL must be a public HTTPS origin without credentials or query');
     const credentials = [[process.env.SMOKE_EMAIL, process.env.SMOKE_PASSWORD],
       [process.env.SECOND_EMAIL, process.env.SECOND_PASSWORD]];
     for (const [email, password] of credentials) {

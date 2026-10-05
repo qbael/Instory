@@ -142,12 +142,20 @@ def run(site, credentials):
         check(has_id(first.request("GET", "/api/v1/friendship/friends"), b["id"]), "friend request accepted")
 
         post = first.request("POST", "/api/v1/posts", fields={"Content": marker + " #" + marker, "AllowComment": "true"}, file_field="Images")
-        post_id = post["id"]
+        returned_post_id = post["id"]
+        post_id = returned_post_id
+        # Recover this exact synthetic create for cleanup even if its response is broken.
+        if post_id <= 0:
+            own_posts = rows(first.request("GET", f'/api/v1/users/{a["id"]}/posts'))
+            matching = [p for p in own_posts if p.get("userId") == a["id"] and p.get("content") == marker + " #" + marker]
+            if len(matching) == 1:
+                post_id = matching[0]["id"]
+        manifest["mediaUrls"].extend(image["imageUrl"] for image in post.get("images", []))
         manifest["postIds"].append(post_id)
-        cleanup.append((first, "DELETE", f"/api/v1/posts/{post_id}", {"expected": (204, 404)}))
-        check(post_id > 0 and post["images"], "post and S3 media upload")
+        if post_id > 0:
+            cleanup.append((first, "DELETE", f"/api/v1/posts/{post_id}", {"expected": (204, 404)}))
+        check(returned_post_id > 0 and post["images"], "post and S3 media upload")
         media = post["images"][0]["imageUrl"]
-        manifest["mediaUrls"].append(media)
         check(media.startswith("https://") and guest.request("GET", media, raw=True) == IMAGE, "public media HTTPS download")
         first.request("PUT", f"/api/v1/posts/{post_id}", fields={"Content": marker + " edited #" + marker})
         check("edited" in first.request("GET", f"/api/v1/posts/{post_id}")["content"], "post edit persists")

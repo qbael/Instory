@@ -1,8 +1,10 @@
 using FluentAssertions;
+using Instory.API.DTOs;
 using Instory.API.Helpers;
 using Instory.API.Models;
 using Instory.API.Repositories;
 using Instory.API.Services;
+using Microsoft.AspNetCore.Http;
 using Moq;
 
 namespace Instory.Tests.Services;
@@ -134,8 +136,35 @@ public class PostServiceTests
 
         result.Should().NotBeNull();
         result.Id.Should().Be(10);
+        result.UserId.Should().Be(1);
+        result.User.Id.Should().Be(1);
         result.User!.UserName.Should().Be("u1");
         result.Images.Should().HaveCount(1);
+    }
+
+    [Fact]
+    public async Task CreatePostAsync_ReturnsIdsAssignedWhenPostAndImagesAreSaved()
+    {
+        Post? savedPost = null;
+        List<PostImage> savedImages = [];
+        _postRepoMock.Setup(repo => repo.AddAsync(It.IsAny<Post>()))
+            .Callback<Post>(post => savedPost = post).Returns(Task.CompletedTask);
+        _unitOfWorkMock.Setup(unit => unit.SaveChangesAsync())
+            .Callback(() => savedPost!.Id = 42).ReturnsAsync(1);
+        _postImageRepoMock.Setup(repo => repo.AddRangeAsync(It.IsAny<IEnumerable<PostImage>>()))
+            .Callback<IEnumerable<PostImage>>(images => savedImages = images.ToList()).Returns(Task.CompletedTask);
+        _postRepoMock.Setup(repo => repo.SaveChangesAsync())
+            .Callback(() => { for (var i = 0; i < savedImages.Count; i++) savedImages[i].Id = 100 + i; })
+            .Returns(Task.CompletedTask);
+        using var stream = new MemoryStream([1]);
+        var file = new FormFile(stream, 0, 1, "image", "photo.jpg") { Headers = new HeaderDictionary(), ContentType = "image/jpeg" };
+        _mediaServiceMock.Setup(media => media.UploadFileAsync(file, "posts")).ReturnsAsync("https://cdn.example.com/posts/photo.jpg");
+
+        var result = await _sut.CreatePostAsync(7, new CreatePostRequestDTO { Content = "hello", Images = [file] });
+
+        result.Id.Should().Be(42);
+        result.UserId.Should().Be(7);
+        result.Images.Should().ContainSingle(image => image.Id == 100 && image.SortOrder == 1);
     }
 
     [Fact]

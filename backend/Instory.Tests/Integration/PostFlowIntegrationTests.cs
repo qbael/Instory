@@ -5,6 +5,7 @@ using Instory.API.Models;
 using Instory.API.Repositories;
 using Instory.API.Repositories.impl;
 using Instory.API.Services;
+using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Moq;
 
@@ -143,6 +144,8 @@ public class PostFlowIntegrationTests
         var result = await service.CreatePostAsync(userId: 1, dto);
 
         result.Should().NotBeNull();
+        result.Id.Should().BeGreaterThan(0);
+        result.UserId.Should().Be(1);
         (await ctx.Posts.CountAsync(p => p.UserId == 1)).Should().Be(1);
         hashtagMock.Verify(h => h.ProcessHashtagsAsync(It.IsAny<int>(), "hello #world"), Times.Once);
     }
@@ -158,11 +161,39 @@ public class PostFlowIntegrationTests
         var hashtagMock = new Mock<IHashtagService>();
         var (service, _) = BuildService(ctx, hashtag: hashtagMock);
 
-        await service.UpdatePostAsync(postId: 100, currentUserId: 1, new UpdatePostRequestDTO { Content = "new" });
+        var result = await service.UpdatePostAsync(postId: 100, currentUserId: 1, new UpdatePostRequestDTO { Content = "new" });
 
         var reloaded = await ctx.Posts.AsNoTracking().FirstAsync(p => p.Id == 100);
         reloaded.Content.Should().Be("new");
         reloaded.UpdatedAt.Should().NotBeNull();
+        result.Id.Should().Be(100);
+        result.UserId.Should().Be(1);
         hashtagMock.Verify(h => h.UpdateHashtagAsync(100, "old", "new", It.IsAny<DateTime>()), Times.Once);
+    }
+
+    [Fact]
+    public async Task CreateAndUpdatePostAsync_ReturnPersistedImageIdsWithoutDuplicates()
+    {
+        await using var ctx = CreateContext();
+        ctx.Users.Add(new User { Id = 1, UserName = "alice", Email = "a@a.com" });
+        await ctx.SaveChangesAsync();
+        var media = new Mock<IMediaService>();
+        media.Setup(service => service.UploadFileAsync(It.IsAny<IFormFile>(), "posts"))
+            .ReturnsAsync("https://cdn.example.com/posts/photo.jpg");
+        var (service, _) = BuildService(ctx, media: media);
+        using var stream = new MemoryStream([1, 2, 3]);
+        var file = new FormFile(stream, 0, stream.Length, "image", "photo.jpg") { Headers = new HeaderDictionary(), ContentType = "image/jpeg" };
+
+        var created = await service.CreatePostAsync(1, new CreatePostRequestDTO { Content = "post", Images = [file] });
+        var persistedPost = await ctx.Posts.Include(post => post.PostImages).SingleAsync();
+        created.Id.Should().Be(persistedPost.Id);
+        created.Images.Should().ContainSingle(image => image.Id == persistedPost.PostImages.Single().Id && image.Id > 0);
+
+        var updated = await service.UpdatePostAsync(created.Id, 1, new UpdatePostRequestDTO { NewImages = [file] });
+        updated.Id.Should().Be(created.Id);
+        updated.UserId.Should().Be(1);
+        updated.Images.Should().HaveCount(2).And.OnlyHaveUniqueItems(image => image.Id);
+        updated.Images.Select(image => image.Id).Should().BeEquivalentTo(
+            await ctx.Set<PostImage>().Select(image => image.Id).ToListAsync());
     }
 }
