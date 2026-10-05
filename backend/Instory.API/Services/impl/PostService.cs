@@ -87,8 +87,6 @@ public class PostService : IPostService
 
             await _hashtagService.ProcessHashtagsAsync(post.Id, request.Content ?? string.Empty);
 
-            var postImagesDtoList = new List<PostImageDTO>();
-
             // 3. Xử lý ảnh song song (Concurrent Upload)
             if (request.Images?.Any() == true)
             {
@@ -121,15 +119,8 @@ public class PostService : IPostService
 
                 if (postImages.Any())
                 {
+                    post.PostImages = postImages.ToList();
                     await _postImageRepository.AddRangeAsync(postImages);
-
-                    // Map ngay sang DTO để chuẩn bị trả về cho frontend
-                    postImagesDtoList = postImages.Select(img => new PostImageDTO
-                    {
-                        Id = img.Id,
-                        ImageUrl = img.ImageUrl,
-                        SortOrder = img.SortOrder
-                    }).ToList();
                 }
             }
 
@@ -140,18 +131,7 @@ public class PostService : IPostService
             await _unitOfWork.CommitTransactionAsync();
 
             // 6. Map dữ liệu thành Response DTO và trả về
-            return new PostResponseDTO
-            {
-                // Id = post.Id,
-                // UserId = post.UserId,
-                Content = post.Content,
-                CreatedAt = post.CreatedAt,
-                LikesCount = 0,
-                CommentsCount = 0,
-                SharesCount = 0,
-                IsLiked = false,
-                Images = postImagesDtoList.OrderBy(img => img.SortOrder).ToList()
-            };
+            return MapToResponseDTO(post);
         }
         catch (Exception)
         {
@@ -238,7 +218,7 @@ public class PostService : IPostService
         return new PostResponseDTO
         {
             Id = post.Id,
-            // UserId = post.UserId,
+            UserId = post.UserId,
             Content = post.Content,
             LikesCount = post.LikeCount,
             CommentsCount = post.CommentCount,
@@ -247,7 +227,7 @@ public class PostService : IPostService
 
             User = new UserDTO
             {
-                // Id = post.User.Id,
+                Id = post.User.Id,
                 UserName = post.User.UserName ?? string.Empty,
                 AvatarUrl = post.User.AvatarUrl,
                 FullName = post.User.FullName,
@@ -352,7 +332,8 @@ public class PostService : IPostService
 
                     foreach (var img in newPostImages)
                     {
-                        post.PostImages.Add(img);
+                        if (!post.PostImages.Contains(img))
+                            post.PostImages.Add(img);
                     }
                 }
             }
@@ -360,23 +341,7 @@ public class PostService : IPostService
             await _unitOfWork.SaveChangesAsync();
             await _unitOfWork.CommitTransactionAsync();
 
-            return new PostResponseDTO
-            {
-                // Id = post.Id,
-                Content = post.Content,
-                CreatedAt = post.CreatedAt,
-                CommentsCount = post.CommentCount,
-                SharesCount = post.ShareCount,
-                LikesCount = post.LikeCount,
-                Images = post.PostImages
-                .OrderBy(img => img.SortOrder)
-                .Select(img => new PostImageDTO
-                {
-                    Id = img.Id,
-                    ImageUrl = img.ImageUrl,
-                    SortOrder = img.SortOrder
-                }).ToList()
-            };
+            return MapToResponseDTO(post);
         }
         catch (Exception)
         {
