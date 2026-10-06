@@ -1,6 +1,7 @@
 using FluentAssertions;
 using Instory.API.Models;
 using Instory.API.Repositories;
+using Instory.API.Services;
 using Moq;
 
 namespace Instory.Tests.Services;
@@ -9,11 +10,12 @@ public class CommentServiceTests
 {
     private readonly Mock<ICommentRepository> _commentRepoMock = new();
     private readonly Mock<IPostRepository> _postRepoMock = new();
+    private readonly Mock<INotificationService> _notificationMock = new();
     private readonly CommentService _sut;
 
     public CommentServiceTests()
     {
-        _sut = new CommentService(_commentRepoMock.Object, _postRepoMock.Object);
+        _sut = new CommentService(_commentRepoMock.Object, _postRepoMock.Object, _notificationMock.Object);
     }
 
     [Fact]
@@ -26,6 +28,29 @@ public class CommentServiceTests
 
         result.Should().BeNull();
         _commentRepoMock.Verify(r => r.AddAsync(It.IsAny<Comment>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task AddCommentAsync_DoesNotChangeDeletedPostOrSendNotification()
+    {
+        _postRepoMock.Setup(repo => repo.GetByIdAsync(10)).ReturnsAsync(new Post { Id = 10, UserId = 1, IsDeleted = true });
+
+        (await _sut.AddCommentAsync(2, 10, new CreateCommentRequestDTO { Content = "comment" })).Should().BeNull();
+
+        _commentRepoMock.Verify(repo => repo.SaveChangesAsync(), Times.Never);
+        _notificationMock.Verify(n => n.CreateAndSendAsync(It.IsAny<int>(), It.IsAny<int>(), It.IsAny<string>(), It.IsAny<int?>(), It.IsAny<string>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task AddCommentAsync_StillSucceeds_WhenNotificationFailsAfterCommentIsSaved()
+    {
+        _postRepoMock.Setup(repo => repo.GetByIdAsync(10)).ReturnsAsync(new Post { Id = 10, UserId = 1 });
+        var saved = false;
+        _commentRepoMock.Setup(repo => repo.SaveChangesAsync()).Callback(() => saved = true).Returns(Task.CompletedTask);
+        _notificationMock.Setup(n => n.CreateAndSendAsync(1, 2, "PostCommented", 10, It.IsAny<string>()))
+            .Callback(() => saved.Should().BeTrue()).ThrowsAsync(new Exception("notification down"));
+
+        (await _sut.AddCommentAsync(2, 10, new CreateCommentRequestDTO { Content = "comment" })).Should().NotBeNull();
     }
 
     [Fact]
@@ -55,6 +80,7 @@ public class CommentServiceTests
         post.CommentCount.Should().Be(3);
         _commentRepoMock.Verify(r => r.AddAsync(It.Is<Comment>(c => c.PostId == 10 && c.UserId == 2 && c.Content == "great post")), Times.Once);
         _commentRepoMock.Verify(r => r.SaveChangesAsync(), Times.Once);
+        _notificationMock.Verify(n => n.CreateAndSendAsync(1, 2, "PostCommented", 10, It.IsAny<string>()), Times.Once);
     }
 
     [Fact]

@@ -18,6 +18,7 @@ public class PostServiceTests
     private readonly Mock<IUnitOfWork> _unitOfWorkMock = new();
     private readonly Mock<IHashtagService> _hashtagServiceMock = new();
     private readonly Mock<ISharePostRepository> _sharePostRepoMock = new();
+    private readonly Mock<INotificationService> _notificationMock = new();
     private readonly PostService _sut;
 
     public PostServiceTests()
@@ -29,7 +30,8 @@ public class PostServiceTests
             _mediaServiceMock.Object,
             _unitOfWorkMock.Object,
             _hashtagServiceMock.Object,
-            _sharePostRepoMock.Object);
+            _sharePostRepoMock.Object,
+            _notificationMock.Object);
     }
 
     [Fact]
@@ -156,6 +158,9 @@ public class PostServiceTests
         _postRepoMock.Setup(repo => repo.SaveChangesAsync())
             .Callback(() => { for (var i = 0; i < savedImages.Count; i++) savedImages[i].Id = 100 + i; })
             .Returns(Task.CompletedTask);
+        var sendOrder = new List<string>();
+        _unitOfWorkMock.Setup(unit => unit.CommitTransactionAsync()).Callback(() => sendOrder.Add("commit")).Returns(Task.CompletedTask);
+        _notificationMock.Setup(notification => notification.BroadcastNewPostAsync(42, 7)).Callback(() => sendOrder.Add("broadcast")).Returns(Task.CompletedTask);
         using var stream = new MemoryStream([1]);
         var file = new FormFile(stream, 0, 1, "image", "photo.jpg") { Headers = new HeaderDictionary(), ContentType = "image/jpeg" };
         _mediaServiceMock.Setup(media => media.UploadFileAsync(file, "posts")).ReturnsAsync("https://cdn.example.com/posts/photo.jpg");
@@ -165,6 +170,8 @@ public class PostServiceTests
         result.Id.Should().Be(42);
         result.UserId.Should().Be(7);
         result.Images.Should().ContainSingle(image => image.Id == 100 && image.SortOrder == 1);
+        _notificationMock.Verify(n => n.BroadcastNewPostAsync(42, 7), Times.Once);
+        sendOrder.Should().Equal("commit", "broadcast");
     }
 
     [Fact]

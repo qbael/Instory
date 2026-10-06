@@ -31,6 +31,13 @@ test('same-origin configuration and cookie-session recovery', async () => {
       createElement(MemoryRouter, null, createElement(LoginPage))));
     assert.match(loginHtml, /Đăng nhập Google chưa được cấu hình/);
 
+    const { isOwnNewPost } = await server.ssrLoadModule('/src/hooks/useSignalR.tsx');
+    assert.equal(isOwnNewPost({ actorId: 7 }, 7), true);
+    assert.equal(isOwnNewPost({ actorId: 8 }, 7), false);
+    assert.equal(isOwnNewPost(undefined, 7), false);
+    assert.equal(isOwnNewPost({}, 7), false);
+    assert.equal(isOwnNewPost(undefined, undefined), false);
+
     const { default: api } = await server.ssrLoadModule('/src/services/api.ts');
     assert.equal(api.defaults.withCredentials, true);
     let currentUrl = '/profile/alice';

@@ -2,7 +2,9 @@ using FluentAssertions;
 using Instory.API.Data;
 using Instory.API.Models;
 using Instory.API.Repositories.impl;
+using Instory.API.Services;
 using Microsoft.EntityFrameworkCore;
+using Moq;
 
 namespace Instory.Tests.Integration;
 
@@ -28,7 +30,7 @@ public class LikeFlowIntegrationTests
 
         var likeRepo = new LikeRepository(ctx);
         var postRepo = new PostRepository(ctx);
-        var service = new LikeService(likeRepo, postRepo);
+        var service = new LikeService(likeRepo, postRepo, new Mock<INotificationService>().Object);
 
         // Like
         var first = await service.ToggleLikeAsync(postId: 100, userId: 2);
@@ -56,7 +58,7 @@ public class LikeFlowIntegrationTests
 
         var likeRepo = new LikeRepository(ctx);
         var postRepo = new PostRepository(ctx);
-        var service = new LikeService(likeRepo, postRepo);
+        var service = new LikeService(likeRepo, postRepo, new Mock<INotificationService>().Object);
 
         var result = await service.ToggleLikeAsync(postId: 999, userId: 1);
 

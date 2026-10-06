@@ -38,7 +38,7 @@ public class PostFlowIntegrationTests
         var mediaMock = media ?? new Mock<IMediaService>();
         var hashtagMock = hashtag ?? new Mock<IHashtagService>();
 
-        var service = new PostService(postRepo, imageRepo, likeRepo, mediaMock.Object, uow.Object, hashtagMock.Object, shareRepo);
+        var service = new PostService(postRepo, imageRepo, likeRepo, mediaMock.Object, uow.Object, hashtagMock.Object, shareRepo, new Mock<INotificationService>().Object);
         return (service, ctx);
     }
 
