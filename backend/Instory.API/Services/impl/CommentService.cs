@@ -1,22 +1,26 @@
 using Instory.API.Helpers;
 using Instory.API.Models;
 using Instory.API.Repositories;
+using Instory.API.Services;
+using Instory.API.Models.Enums;
 public class CommentService : ICommentService
 {
     private readonly ICommentRepository _commentRepository;
     private readonly IPostRepository _postRepository;
+    private readonly INotificationService _notificationService;
 
-    public CommentService(ICommentRepository commentRepository, IPostRepository postRepository)
+    public CommentService(ICommentRepository commentRepository, IPostRepository postRepository, INotificationService notificationService)
     {
         _commentRepository = commentRepository;
         _postRepository = postRepository;
+        _notificationService = notificationService;
     }
     public async Task<CommentResponseDTO?> AddCommentAsync(int userId, int postId, CreateCommentRequestDTO request)
     {
 
         var post = await _postRepository.GetByIdAsync(postId);
         Console.WriteLine("POST: " + post);
-        if (post == null || !post.AllowComment)
+        if (post == null || post.IsDeleted || !post.AllowComment)
         {
             return null;
         }
@@ -35,6 +39,13 @@ public class CommentService : ICommentService
         post.CommentCount++;
         // await _postRepository.SaveChangesAsync(); // save change in Comment and Post
         await _commentRepository.SaveChangesAsync();
+
+        try
+        {
+            await _notificationService.CreateAndSendAsync(post.UserId, userId,
+                NotificationType.PostCommented.ToString(), postId, "commented on your post");
+        }
+        catch { /* notification failure must not break the saved comment */ }
 
         return new CommentResponseDTO
         {

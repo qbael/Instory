@@ -15,8 +15,9 @@ public class PostService : IPostService
     private readonly IHashtagService _hashtagService;
 
     private readonly ISharePostRepository _sharePostRepository;
+    private readonly INotificationService _notificationService;
     private readonly IUnitOfWork _unitOfWork;
-    public PostService(IPostRepository postRepository, IPostImageRepository postImageRepository, ILikeRepository likeRepository, IMediaService mediaService, IUnitOfWork unitOfWork, IHashtagService hashtagService, ISharePostRepository sharePostRepository)
+    public PostService(IPostRepository postRepository, IPostImageRepository postImageRepository, ILikeRepository likeRepository, IMediaService mediaService, IUnitOfWork unitOfWork, IHashtagService hashtagService, ISharePostRepository sharePostRepository, INotificationService notificationService)
     {
         _postRepository = postRepository;
         _postImageRepository = postImageRepository;
@@ -25,6 +26,7 @@ public class PostService : IPostService
         _unitOfWork = unitOfWork;
         _hashtagService = hashtagService;
         _sharePostRepository = sharePostRepository;
+        _notificationService = notificationService;
     }
 
     public async Task<PaginatedResult<PostResponseDTO>> GetAllPostsAsync(int currentUserId, int page, int pageSize)
@@ -129,6 +131,9 @@ public class PostService : IPostService
 
             // 5. Nếu mọi thứ thành công (cả DB và S3), xác nhận Transaction
             await _unitOfWork.CommitTransactionAsync();
+
+            try { await _notificationService.BroadcastNewPostAsync(post.Id, userId); }
+            catch { /* realtime failure must not fail the committed post */ }
 
             // 6. Map dữ liệu thành Response DTO và trả về
             return MapToResponseDTO(post);

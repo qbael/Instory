@@ -2,7 +2,9 @@ using FluentAssertions;
 using Instory.API.Data;
 using Instory.API.Models;
 using Instory.API.Repositories.impl;
+using Instory.API.Services;
 using Microsoft.EntityFrameworkCore;
+using Moq;
 
 namespace Instory.Tests.Integration;
 
@@ -30,7 +32,7 @@ public class CommentFlowIntegrationTests
 
         var commentRepo = new CommentRepository(ctx);
         var postRepo = new PostRepository(ctx);
-        var service = new CommentService(commentRepo, postRepo);
+        var service = new CommentService(commentRepo, postRepo, new Mock<INotificationService>().Object);
 
         var added = await service.AddCommentAsync(userId: 1, postId: 100, new CreateCommentRequestDTO { Content = "first!" });
 

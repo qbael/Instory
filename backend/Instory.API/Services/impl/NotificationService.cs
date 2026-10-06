@@ -46,6 +46,9 @@ public class NotificationService : INotificationService
         }
     }
 
+    public Task BroadcastNewPostAsync(int postId, int actorId) =>
+        _hubContext.Clients.All.SendAsync("NewPost", new { PostId = postId, ActorId = actorId });
+
     public async Task<PaginatedResult<NotificationDto>> GetUserNotificationsAsync(int userId, int page, int pageSize)
     {
         var notifications = await _notificationRepository.GetByUserIdAsync(userId, page, pageSize);

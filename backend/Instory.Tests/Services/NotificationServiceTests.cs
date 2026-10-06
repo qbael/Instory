@@ -25,13 +25,29 @@ public class NotificationServiceTests
         _sut = new NotificationService(_notificationRepoMock.Object, _hubContextMock.Object);
     }
 
-    [Fact]
-    public async Task CreateAndSendAsync_DoesNothing_WhenRecipientEqualsActor()
+    [Theory]
+    [InlineData("PostLiked")]
+    [InlineData("PostCommented")]
+    public async Task CreateAndSendAsync_DoesNothing_WhenRecipientEqualsActor(string type)
     {
-        await _sut.CreateAndSendAsync(5, 5, "Like", null, "x");
+        await _sut.CreateAndSendAsync(5, 5, type, 100, "x");
 
         _notificationRepoMock.Verify(r => r.AddAsync(It.IsAny<Notification>()), Times.Never);
         _notificationRepoMock.Verify(r => r.SaveChangesAsync(), Times.Never);
+        _clientProxyMock.Verify(p => p.SendCoreAsync(It.IsAny<string>(), It.IsAny<object[]>(), It.IsAny<CancellationToken>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task BroadcastNewPostAsync_SendsCommittedPostIdAndActorToConnectedFeedViewers()
+    {
+        _hubClientsMock.SetupGet(clients => clients.All).Returns(_clientProxyMock.Object);
+
+        await _sut.BroadcastNewPostAsync(42, 7);
+
+        _clientProxyMock.Verify(proxy => proxy.SendCoreAsync("NewPost", It.Is<object[]>(args =>
+            (int)args[0].GetType().GetProperty("PostId")!.GetValue(args[0])! == 42
+            && (int)args[0].GetType().GetProperty("ActorId")!.GetValue(args[0])! == 7), It.IsAny<CancellationToken>()), Times.Once);
+        _notificationRepoMock.Verify(repo => repo.AddAsync(It.IsAny<Notification>()), Times.Never);
     }
 
     [Fact]

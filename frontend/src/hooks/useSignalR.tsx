@@ -42,11 +42,15 @@ function getNavigateTo(n: Notification): string | undefined {
 
 // ─── Hook ─────────────────────────────────────────────────────────────────────
 
+export const isOwnNewPost = (post: { actorId?: number } | undefined, userId?: number) =>
+  post?.actorId !== undefined && post.actorId === userId;
+
 export function useSignalR() {
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
   const location = useLocation();
   const isAuthenticated = useAppSelector((s) => s.auth.isAuthenticated);
+  const currentUserId = useAppSelector((s) => s.auth.user?.id);
   const connectionRef = useRef<HubConnection | null>(null);
   const [hasNewPosts, setHasNewPosts] = useState(false);
 
@@ -65,7 +69,7 @@ export function useSignalR() {
   useEffect(() => { navigateRef.current = navigate; }, [navigate]);
   useEffect(() => { locationRef.current = location.pathname; }, [location.pathname]);
 
-  // SignalR connect/disconnect — only depends on isAuthenticated
+  // SignalR connect/disconnect follows the authenticated account.
   useEffect(() => {
     if (!isAuthenticated) {
       connectionRef.current?.stop().catch(() => {});
@@ -101,7 +105,9 @@ export function useSignalR() {
       });
     });
 
-    connection.on('NewPost', () => setHasNewPosts(true));
+    connection.on('NewPost', (post?: { actorId?: number }) => {
+      if (!isOwnNewPost(post, currentUserId)) setHasNewPosts(true);
+    });
 
     connection.start().catch((err) => {
       if (isMounted) console.error('SignalR connection failed:', err);
@@ -113,7 +119,7 @@ export function useSignalR() {
       connection.stop().catch(() => {});
       connectionRef.current = null;
     };
-  }, [isAuthenticated, dispatch]);
+  }, [isAuthenticated, currentUserId, dispatch]);
 
   return { hasNewPosts, dismissNewPosts };
 }
