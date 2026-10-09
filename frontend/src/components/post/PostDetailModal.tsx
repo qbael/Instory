@@ -223,10 +223,10 @@ export function PostDetailModal({
       </button>
 
       {/* Main dialog */}
-      <div className="flex h-[90vh] max-h-[860px] w-[90vw] max-w-5xl overflow-hidden rounded-none bg-bg-card shadow-2xl sm:rounded-xl">
+      <div className="flex h-[90vh] max-h-[860px] w-[90vw] max-w-5xl flex-col overflow-hidden rounded-none bg-bg-card shadow-2xl sm:rounded-xl md:flex-row">
 
         {/* ── Left: image ──────────────────────────────────────────── */}
-        <div className="relative flex flex-1 items-center justify-center bg-black">
+        <div className={cn("relative h-[40%] shrink-0 items-center justify-center bg-black md:flex md:h-auto md:flex-1", images.length > 0 ? "flex" : "hidden")}>
           {images.length > 0 ? (
             <img
               src={images[imageIndex]?.imageUrl}
@@ -274,7 +274,7 @@ export function PostDetailModal({
         </div>
 
         {/* ── Right panel ──────────────────────────────────────────── */}
-        <div className="flex w-[380px] shrink-0 flex-col border-l border-border">
+        <div className="flex min-h-0 w-full flex-1 flex-col border-border md:w-[380px] md:flex-none md:border-l">
 
           {/* Header */}
           <div className="flex items-center gap-3 border-b border-border px-4 py-3">
@@ -438,7 +438,7 @@ export function PostDetailModal({
           className="absolute inset-0 z-60 flex items-center justify-center bg-black/50"
           onClick={(e) => { if (e.currentTarget === e.target) setShowOptions(false); }}
         >
-          <div className="w-[400px] overflow-hidden rounded-2xl bg-bg-card text-center shadow-xl">
+          <div className="w-[400px] max-w-[90vw] overflow-hidden rounded-2xl bg-bg-card text-center shadow-xl">
             {isOwnPost && (
               <button
                 type="button"
