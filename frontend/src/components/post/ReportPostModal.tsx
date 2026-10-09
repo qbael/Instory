@@ -141,7 +141,7 @@ export function ReportPostModal({
                         checked={selectedReasonId === reason.id}
                         onChange={(e) =>{
                             setSelectedReasonId(parseInt(e.target.value, 10));
-                            setSelectedReasonCode(reason.code);          
+                            setSelectedReasonCode(reason.code.toLowerCase());          
                         }}
                         className="mt-0.5 flex-shrink-0"
                       />
