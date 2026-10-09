@@ -41,9 +41,12 @@ body {
   box-sizing: border-box;
 }
 
-a {
-  color: var(--color-text-link);
-  text-decoration: none;
+/* In the base layer so Tailwind utilities (text-*, hover:underline) can override it. */
+@layer base {
+  a {
+    color: var(--color-text-link);
+    text-decoration: none;
+  }
 }
 
 ::-webkit-scrollbar {
