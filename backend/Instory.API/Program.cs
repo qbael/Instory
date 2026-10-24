@@ -22,7 +22,8 @@ using Microsoft.IdentityModel.Tokens;
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Host.UseSerilog((context, config) =>
-    config.ReadFrom.Configuration(context.Configuration));
+    config.ReadFrom.Configuration(context.Configuration)
+          .WriteTo.Console());
 
 builder.Services.AddOpenApi();
 
@@ -195,5 +196,6 @@ app.MapHub<NotificationHub>("/hubs/notifications");
 app.MapHub<ChatHub>("/hubs/chat");
 await app.MigrateDbAsync();
 await app.SeedRolesAsync();
+await app.SeedUsersAsync();
 
 app.Run();
