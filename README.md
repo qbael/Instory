@@ -2,7 +2,7 @@
 
 # Instory — Hướng Dẫn Khởi Chạy
 
-Dự án gồm 3 thành phần chính: **Backend** (ASP.NET Core), **Frontend** (React), và **Database** (PostgreSQL chạy qua Docker).
+Dự án gồm 3 thành phần chính: **Backend** (ASP.NET Core), **Frontend** (React), và **Database** (PostgreSQL trên AWS RDS; Docker là tuỳ chọn cho database local).
 
 ## Tech Stack
 
@@ -20,7 +20,7 @@ Dự án gồm 3 thành phần chính: **Backend** (ASP.NET Core), **Frontend** 
 | Frontend | Redux Toolkit | 2.x |
 | Frontend | React Router | 7.x |
 | Frontend | TailwindCSS | 4.x |
-| Database | PostgreSQL | 16 (Alpine) |
+| Database | PostgreSQL | AWS RDS / Docker local |
 
 ---
 
@@ -29,9 +29,10 @@ Dự án gồm 3 thành phần chính: **Backend** (ASP.NET Core), **Frontend** 
 ```
 instory/
 ├── backend/                        # ASP.NET Core API
-│   ├── appsettings.json
-│   ├── appsettings.Development.json
-│   └── ...
+│   └── Instory.API/
+│       ├── appsettings.json
+│       ├── appsettings.Development.json
+│       └── ...
 ├── frontend/                       # React App
 │   ├── .env
 │   └── ...
@@ -44,9 +45,9 @@ instory/
 
 Nếu máy bạn chưa cài các công cụ dưới đây, hãy làm theo hướng dẫn tương ứng với hệ điều hành của mình.
 
-### Docker Desktop
+### Docker Desktop (tuỳ chọn)
 
-Docker dùng để chạy database PostgreSQL mà không cần cài thủ công.
+Chỉ cần Docker nếu muốn chạy database local thay cho RDS.
 
 - **Windows / macOS:** Tải và cài tại https://www.docker.com/products/docker-desktop
     - Sau khi cài xong, mở ứng dụng **Docker Desktop** và chờ icon Docker ở thanh taskbar chuyển sang trạng thái **"Running"** trước khi tiếp tục.
@@ -117,20 +118,22 @@ cd instory
 
 ---
 
-## 2. Khởi Động Database
+## 2. Kết Nối Database RDS
 
-Database PostgreSQL được chạy qua Docker Compose, **cần khởi động trước** khi chạy backend.
+Backend dùng connection string `ConnectionStrings:Instory` để kết nối PostgreSQL trên RDS, không cần chạy Docker. Máy local phải được phép truy cập endpoint RDS qua cổng 5432 trong security group của database.
 
-```bash
-docker compose up -d
-```
-
-Kiểm tra container đã chạy:
+Tải chứng chỉ CA của RDS để xác thực TLS:
 
 ```bash
-docker compose ps
-# instory_db   Up   0.0.0.0:5432->5432/tcp
+mkdir -p "$HOME/.postgresql"
+curl --fail --show-error --location \
+  https://truststore.pki.rds.amazonaws.com/global/global-bundle.pem \
+  --output "$HOME/.postgresql/rds-ca-bundle.pem"
 ```
+
+Trong cấu hình bên dưới, thay `RDS_PASSWORD` bằng mật khẩu database và `ROOT_CERTIFICATE_PATH` bằng đường dẫn tuyệt đối tới file vừa tải (ví dụ `/home/your-user/.postgresql/rds-ca-bundle.pem`). Giữ `SSL Mode=VerifyFull` để xác thực chứng chỉ và hostname RDS.
+
+Nếu muốn dùng database local, vẫn có thể chạy `docker compose up -d postgres` và đổi connection string về `Host=localhost;Port=5432;Database=Instory;Username=instory;Password=instory_pass`.
 
 ---
 
@@ -138,15 +141,15 @@ docker compose ps
 
 ### 2.1 Tạo file cấu hình
 
-Trong thư mục `backend/`, tạo file `appsettings.Development.json` với nội dung sau:
+Trong thư mục `backend/Instory.API/`, tạo file `appsettings.Development.json` với nội dung sau:
 
 ```json
 {
   "ConnectionStrings": {
-    "Instory": "Host=localhost;Port=5432;Database=Instory;Username=instory;Password=instory_pass"
+    "Instory": "Host=instory.c7qgaem64gqm.ap-southeast-1.rds.amazonaws.com;Port=5432;Database=Instory;Username=instory;Password=RDS_PASSWORD;SSL Mode=VerifyFull;Root Certificate=ROOT_CERTIFICATE_PATH"
   },
   "JwtSettings": {
-    "SecretKey": "d8bd321e43d9865b82d37c5d592db1f62631a08552a7616da415f08b2239cb2e",
+    "SecretKey": "YOUR_LOCAL_JWT_SECRET_AT_LEAST_32_CHARACTERS",
     "Issuer": "Instory",
     "Audience": "Instory",
     "ExpirationMinutes": 4320,
@@ -169,19 +172,25 @@ Trong thư mục `backend/`, tạo file `appsettings.Development.json` với n�
 
 > **Lưu ý:** Thay `YOUR_AWS_ACCESS_KEY` và `YOUR_AWS_SECRET_KEY` bằng credentials AWS thực tế nếu cần dùng tính năng upload file. Liên hệ team để lấy giá trị chính xác.
 
-### 2.2 Chạy migration (nếu dùng Entity Framework)
+File `appsettings.Development.json` được Git bỏ qua; không commit mật khẩu RDS.
+
+### 2.2 Migration database
+
+Backend tự áp dụng migration khi khởi động. Với RDS dùng chung production, thao tác ghi và migration từ local sẽ tác động trực tiếp tới dữ liệu production. Chỉ chạy lệnh sau khi cần cập nhật thủ công:
 
 ```bash
-cd backend
+cd backend/Instory.API
 dotnet ef database update
 ```
 
 ### 2.3 Khởi động backend
 
 ```bash
-cd backend
+cd backend/Instory.API
 dotnet run
 ```
+
+Hoặc từ thư mục gốc repo: `dotnet run --project backend/Instory.API`.
 
 Backend sẽ chạy tại: `http://localhost:5174`
 
@@ -215,13 +224,14 @@ Frontend sẽ chạy tại: `http://localhost:5173`
 |---|---|
 | Frontend (React) | http://localhost:5173 |
 | Backend API (ASP.NET) | http://localhost:5174 |
-| PostgreSQL | localhost:5432 |
+| PostgreSQL (RDS) | instory.c7qgaem64gqm.ap-southeast-1.rds.amazonaws.com:5432 |
 
 ---
 
 ## Lệnh Hữu Ích
 
 ```bash
+# Các lệnh dưới đây chỉ dành cho database Docker local
 # Xem log database
 docker compose logs -f postgres
 
@@ -240,7 +250,7 @@ docker compose down -v
 ## Thứ Tự Khởi Động
 
 ```
-1. docker compose up -d      → Database sẵn sàng
-2. dotnet run (backend/)     → API sẵn sàng
-3. npm run dev (frontend/)   → Giao diện sẵn sàng
+1. Cấu hình RDS và chứng chỉ CA (chỉ lần đầu)
+2. dotnet run --project backend/Instory.API → API sẵn sàng
+3. npm run dev (frontend/)                 → Giao diện sẵn sàng
 ```
