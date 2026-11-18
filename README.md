@@ -122,16 +122,7 @@ cd instory
 
 Backend dùng connection string `ConnectionStrings:Instory` để kết nối PostgreSQL trên RDS, không cần chạy Docker. Máy local phải được phép truy cập endpoint RDS qua cổng 5432 trong security group của database.
 
-Tải chứng chỉ CA của RDS để xác thực TLS:
-
-```bash
-mkdir -p "$HOME/.postgresql"
-curl --fail --show-error --location \
-  https://truststore.pki.rds.amazonaws.com/global/global-bundle.pem \
-  --output "$HOME/.postgresql/rds-ca-bundle.pem"
-```
-
-Trong cấu hình bên dưới, thay `RDS_PASSWORD` bằng mật khẩu database và `ROOT_CERTIFICATE_PATH` bằng đường dẫn tuyệt đối tới file vừa tải (ví dụ `/home/your-user/.postgresql/rds-ca-bundle.pem`). Giữ `SSL Mode=VerifyFull` để xác thực chứng chỉ và hostname RDS.
+Trong cấu hình bên dưới, thay `RDS_PASSWORD` bằng mật khẩu database. `SSL Mode=Require` giữ kết nối mã hóa và không yêu cầu tải file CA; chế độ này không xác minh chứng chỉ máy chủ.
 
 Nếu muốn dùng database local, vẫn có thể chạy `docker compose up -d postgres` và đổi connection string về `Host=localhost;Port=5432;Database=Instory;Username=instory;Password=instory_pass`.
 
@@ -146,7 +137,7 @@ Trong thư mục `backend/Instory.API/`, tạo file `appsettings.Development.jso
 ```json
 {
   "ConnectionStrings": {
-    "Instory": "Host=instory.c7qgaem64gqm.ap-southeast-1.rds.amazonaws.com;Port=5432;Database=Instory;Username=instory;Password=RDS_PASSWORD;SSL Mode=VerifyFull;Root Certificate=ROOT_CERTIFICATE_PATH"
+    "Instory": "Host=instory.c7qgaem64gqm.ap-southeast-1.rds.amazonaws.com;Port=5432;Database=Instory;Username=instory;Password=RDS_PASSWORD;SSL Mode=Require"
   },
   "JwtSettings": {
     "SecretKey": "YOUR_LOCAL_JWT_SECRET_AT_LEAST_32_CHARACTERS",
@@ -250,7 +241,7 @@ docker compose down -v
 ## Thứ Tự Khởi Động
 
 ```
-1. Cấu hình RDS và chứng chỉ CA (chỉ lần đầu)
+1. Cấu hình connection string RDS (chỉ lần đầu)
 2. dotnet run --project backend/Instory.API → API sẵn sàng
 3. npm run dev (frontend/)                 → Giao diện sẵn sàng
 ```
